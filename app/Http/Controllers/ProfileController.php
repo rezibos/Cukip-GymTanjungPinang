@@ -10,9 +10,25 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // eager loading gym agar tidak query berulang untuk setiap review
-        $reviews = $user->reviews()->with('gym')->latest()->get();
+        $activeMembership = $user->activeMembership();
 
-        return view('profile.show', compact('user', 'reviews'));
+        // Riwayat membership (termasuk yang sudah kedaluwarsa/dibatalkan), terbaru dulu
+        $memberships = $user->memberships()->with('plan')->latest()->get();
+
+        // Riwayat transaksi, terbaru dulu
+        $transactions = $user->transactions()->with('membership.plan')->latest()->get();
+
+        // Booking kelas yang akan datang (tanggal sesi >= hari ini, status masih booked)
+        $upcomingBookings = $user->classBookings()
+            ->with('session.gymClass')
+            ->where('status', 'booked')
+            ->whereHas('session', fn ($q) => $q->whereDate('date', '>=', now()))
+            ->get()
+            ->sortBy(fn ($booking) => $booking->session->date)
+            ->values();
+
+        return view('profile.show', compact(
+            'user', 'activeMembership', 'memberships', 'transactions', 'upcomingBookings'
+        ));
     }
 }

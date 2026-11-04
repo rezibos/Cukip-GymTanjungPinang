@@ -2,11 +2,8 @@
 
 namespace App\Filament\Resources\Reviews\Tables;
 
-use App\Models\Review;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -19,41 +16,26 @@ class ReviewsTable
         return $table
             ->columns([
                 TextColumn::make('user.name')->label('User')->searchable(),
-                TextColumn::make('gym.name')->label('Gym')->searchable()->sortable(),
-                TextColumn::make('rating')->label('Rating')->sortable()
-                    ->formatStateUsing(fn ($state) => $state . ' / 5'),
+                TextColumn::make('rating')->label('Rating')->formatStateUsing(fn ($state) => $state . ' / 5'),
                 TextColumn::make('review')->label('Komentar')->limit(50)->tooltip(fn ($record) => $record->review),
                 TextColumn::make('status')->label('Status')->badge()
-                    ->color(fn (string $state) => $state === Review::STATUS_APPROVED ? 'success' : 'danger'),
+                    ->color(fn (string $state) => $state === 'approved' ? 'success' : 'danger'),
                 TextColumn::make('created_at')->label('Tanggal')->dateTime('d/m/Y')->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                SelectFilter::make('status')->options([
-                    Review::STATUS_APPROVED => 'approved',
-                    Review::STATUS_REJECTED => 'rejected',
-                ]),
-                SelectFilter::make('gym')->label('Gym')->relationship('gym', 'name')->searchable()->preload(),
+                SelectFilter::make('status')->options(['approved' => 'approved', 'rejected' => 'rejected']),
             ])
             ->recordActions([
-                Action::make('reject')
-                    ->label('Sembunyikan')
-                    ->icon('heroicon-o-eye-slash')
-                    ->color('warning')
+                Action::make('reject')->label('Sembunyikan')->icon('heroicon-o-eye-slash')->color('warning')
                     ->requiresConfirmation()
-                    ->visible(fn (Review $record) => $record->status === Review::STATUS_APPROVED)
-                    ->action(fn (Review $record) => $record->update(['status' => Review::STATUS_REJECTED])),
-
-                Action::make('approve')
-                    ->label('Tampilkan')
-                    ->icon('heroicon-o-eye')
-                    ->color('success')
-                    ->visible(fn (Review $record) => $record->status === Review::STATUS_REJECTED)
-                    ->action(fn (Review $record) => $record->update(['status' => Review::STATUS_APPROVED])),
-
+                    ->visible(fn ($record) => $record->status === 'approved')
+                    ->action(fn ($record) => $record->update(['status' => 'rejected'])),
+                Action::make('approve')->label('Tampilkan')->icon('heroicon-o-eye')->color('success')
+                    ->visible(fn ($record) => $record->status === 'rejected')
+                    ->action(fn ($record) => $record->update(['status' => 'approved'])),
                 EditAction::make(),
                 DeleteAction::make(),
-            ])
-            ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
+            ]);
     }
 }

@@ -17,6 +17,8 @@ class UserForm
             TextInput::make('email')->label('Email')->email()->required()->maxLength(191)
                 ->unique(ignoreRecord: true),
 
+            TextInput::make('phone')->label('Telepon')->tel()->maxLength(20),
+
             Select::make('role')->label('Role')
                 ->options(['user' => 'user', 'admin' => 'admin'])
                 ->required()
