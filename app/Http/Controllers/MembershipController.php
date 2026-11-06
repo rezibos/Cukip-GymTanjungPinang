@@ -20,6 +20,8 @@ class MembershipController extends Controller
 
     public function checkoutForm(MembershipPlan $plan)
     {
+        abort_unless($plan->is_active, 404);
+
         $user = auth()->user();
 
         if ($user->isMember()) {
@@ -37,6 +39,8 @@ class MembershipController extends Controller
 
     public function checkoutStore(Request $request, MembershipPlan $plan)
     {
+        abort_unless($plan->is_active, 404);
+
         $user = auth()->user();
 
         // Validasi ulang di server, jangan percaya pengecekan di halaman form saja
@@ -81,13 +85,13 @@ class MembershipController extends Controller
         $profile = GymProfile::current();
 
         $waMessage = "Halo, saya ingin konfirmasi pembayaran membership CukipGym.\n"
-            . "Nomor Invoice: {$transaction->invoice_number}\n"
-            . "Paket: {$transaction->membership->plan->name}\n"
-            . "Total: {$transaction->formatted_amount}\n"
-            . "Terima kasih.";
+            ."Nomor Invoice: {$transaction->invoice_number}\n"
+            ."Paket: {$transaction->membership->plan->name}\n"
+            ."Total: {$transaction->formatted_amount}\n"
+            .'Terima kasih.';
 
         $waUrl = $profile->whatsapp_url
-            ? $profile->whatsapp_url . '?text=' . rawurlencode($waMessage)
+            ? $profile->whatsapp_url.'?text='.rawurlencode($waMessage)
             : null;
 
         return view('membership.invoice', compact('transaction', 'waUrl'));

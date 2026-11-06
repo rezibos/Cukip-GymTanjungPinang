@@ -4,20 +4,31 @@ namespace Database\Seeders;
 
 use App\Models\MembershipPlan;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class MembershipPlanSeeder extends Seeder
 {
     public function run(): void
     {
-        $plans = [
-            ['name' => 'Paket Harian', 'duration_days' => 1, 'price' => 25000, 'description' => 'Akses satu hari penuh.'],
-            ['name' => 'Paket Mingguan', 'duration_days' => 7, 'price' => 100000, 'description' => 'Akses tujuh hari.'],
-            ['name' => 'Paket Bulanan', 'duration_days' => 30, 'price' => 250000, 'description' => 'Akses satu bulan penuh, termasuk kelas.'],
-            ['name' => 'Paket Tahunan', 'duration_days' => 365, 'price' => 2500000, 'description' => 'Akses satu tahun, hemat dibanding bulanan.'],
-        ];
+        DB::transaction(function (): void {
+            foreach (config('membership.catalog') as $name => $plan) {
+                MembershipPlan::updateOrCreate(['name' => $name, 'duration_days' => $plan['duration_days']], [
+                    'price' => $plan['price'],
+                    'description' => $plan['description'],
+                    'is_active' => true,
+                ]);
 
-        foreach ($plans as $plan) {
-            MembershipPlan::create($plan);
-        }
+                if (isset($plan['yearly_price'])) {
+                    MembershipPlan::updateOrCreate(['name' => $name, 'duration_days' => 365], [
+                        'price' => $plan['yearly_price'],
+                        'description' => $plan['description'],
+                        'is_active' => true,
+                    ]);
+                }
+            }
+
+            MembershipPlan::whereIn('name', ['Paket Harian', 'Paket Mingguan', 'Paket Bulanan', 'Paket Tahunan'])
+                ->update(['is_active' => false]);
+        });
     }
 }

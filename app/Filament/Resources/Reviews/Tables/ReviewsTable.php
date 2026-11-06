@@ -16,7 +16,8 @@ class ReviewsTable
         return $table
             ->columns([
                 TextColumn::make('user.name')->label('User')->searchable(),
-                TextColumn::make('rating')->label('Rating')->formatStateUsing(fn ($state) => $state . ' / 5'),
+                TextColumn::make('name')->label('Nama tampilan')->searchable(),
+                TextColumn::make('rating')->label('Rating')->formatStateUsing(fn ($state) => $state.' / 5'),
                 TextColumn::make('review')->label('Komentar')->limit(50)->tooltip(fn ($record) => $record->review),
                 TextColumn::make('status')->label('Status')->badge()
                     ->color(fn (string $state) => $state === 'approved' ? 'success' : 'danger'),

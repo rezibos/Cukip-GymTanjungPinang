@@ -12,9 +12,10 @@ class Review extends Model
     use HasFactory;
 
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_REJECTED = 'rejected';
 
-    protected $fillable = ['user_id', 'rating', 'review', 'status'];
+    protected $fillable = ['user_id', 'name', 'rating', 'review', 'status'];
 
     protected function casts(): array
     {

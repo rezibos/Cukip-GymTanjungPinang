@@ -1,0 +1,60 @@
+<?php
+
+return [
+    'preview_branches' => [
+        [
+            'name' => 'CukipGym · Pusat Kota',
+            'region' => 'Area Tanjungpinang Kota, Tanjungpinang',
+            'lat' => 0.9274,
+            'lng' => 104.4446,
+            'hours' => '06:00 – 22:00 · Setiap hari',
+            'image' => 'images/gym-equipment-editorial.webp',
+            'image_position' => 'left center',
+        ],
+        [
+            'name' => 'CukipGym · Batu 9',
+            'region' => 'Area Batu IX, Tanjungpinang Timur',
+            'lat' => 0.9270,
+            'lng' => 104.5158,
+            'hours' => '06:00 – 22:00 · Setiap hari',
+            'image' => 'images/gym-cable-row-editorial.webp',
+            'image_position' => '35% center',
+        ],
+        [
+            'name' => 'CukipGym · Bukit Bestari',
+            'region' => 'Area Bukit Bestari, Tanjungpinang',
+            'lat' => 0.8988,
+            'lng' => 104.4622,
+            'hours' => '07:00 – 22:00 · Setiap hari',
+            'image' => 'images/gym-kettlebell-editorial.webp',
+            'image_position' => 'center',
+        ],
+        [
+            'name' => 'CukipGym · Tanjung Unggat',
+            'region' => 'Area Tanjung Unggat, Bukit Bestari',
+            'lat' => 0.9108,
+            'lng' => 104.4528,
+            'hours' => '06:00 – 21:00 · Setiap hari',
+            'image' => 'images/gym-equipment-editorial.webp',
+            'image_position' => 'right center',
+        ],
+        [
+            'name' => 'CukipGym · Melayu Kota Piring',
+            'region' => 'Area Melayu Kota Piring, Tanjungpinang Timur',
+            'lat' => 0.9295,
+            'lng' => 104.4892,
+            'hours' => '06:00 – 22:00 · Setiap hari',
+            'image' => 'images/gym-cable-row-editorial.webp',
+            'image_position' => 'right center',
+        ],
+        [
+            'name' => 'CukipGym · Senggarang',
+            'region' => 'Area Senggarang, Tanjungpinang Kota',
+            'lat' => 0.9625,
+            'lng' => 104.4300,
+            'hours' => '07:00 – 21:00 · Setiap hari',
+            'image' => 'images/gym-kettlebell-editorial.webp',
+            'image_position' => '65% center',
+        ],
+    ],
+];

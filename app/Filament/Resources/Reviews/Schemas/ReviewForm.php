@@ -13,6 +13,7 @@ class ReviewForm
     {
         return $schema->components([
             Select::make('user_id')->label('User')->relationship('user', 'name')->disabled(),
+            TextInput::make('name')->label('Nama tampilan')->disabled(),
             TextInput::make('rating')->label('Rating (1-5)')->disabled(),
             Select::make('status')->label('Status')
                 ->options(['approved' => 'Tampil', 'rejected' => 'Disembunyikan'])

@@ -16,7 +16,7 @@
     <h2 class="mt-6 text-lg font-semibold">Status Membership</h2>
     <div class="mt-2 rounded border bg-white p-4 text-sm">
         @if ($activeMembership)
-            <p class="font-medium text-green-800">
+            <p class="font-medium text-neutral-900">
                 Member Aktif — {{ $activeMembership->plan->name }}
             </p>
             <p class="mt-1 text-gray-600">
@@ -24,7 +24,7 @@
             </p>
         @else
             <p class="text-gray-600">Anda belum memiliki membership aktif.</p>
-            <a href="{{ route('membership.index') }}" class="mt-2 inline-block text-green-800 underline">
+            <a href="{{ route('membership.index') }}" class="mt-2 inline-block text-neutral-900 underline">
                 Lihat Paket Membership
             </a>
         @endif
@@ -38,9 +38,9 @@
                 <p class="font-medium">{{ $trx->invoice_number }}</p>
                 <span class="rounded px-2 py-1 text-xs font-medium
                     {{ match($trx->status->value) {
-                        'paid' => 'bg-green-100 text-green-800',
-                        'rejected' => 'bg-red-100 text-red-800',
-                        default => 'bg-amber-100 text-amber-800',
+                        'paid' => 'bg-neutral-100 text-neutral-900',
+                        'rejected' => 'bg-neutral-200 text-neutral-900',
+                        default => 'bg-neutral-200 text-neutral-800',
                     } }}">
                     {{ $trx->status->label() }}
                 </span>
@@ -49,7 +49,7 @@
             <p class="text-gray-500">{{ $trx->created_at->translatedFormat('d F Y, H:i') }}</p>
 
             @if ($trx->status->value === 'pending' && ! $trx->payment_proof)
-                <a href="{{ route('membership.invoice', $trx) }}" class="mt-2 inline-block text-sm text-green-800 underline">
+                <a href="{{ route('membership.invoice', $trx) }}" class="mt-2 inline-block text-sm text-neutral-900 underline">
                     Upload bukti transfer
                 </a>
             @endif
@@ -72,7 +72,7 @@
             <form method="POST" action="{{ route('classes.bookings.cancel', $booking) }}">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="text-sm text-red-700 underline">Batalkan</button>
+                <button type="submit" class="text-sm text-neutral-800 underline">Batalkan</button>
             </form>
         </div>
     @empty

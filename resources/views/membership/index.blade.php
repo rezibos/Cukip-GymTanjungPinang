@@ -7,7 +7,7 @@
     <p class="mt-1 text-sm text-gray-600">Pilih paket yang sesuai kebutuhan Anda.</p>
 
     @if (session('error'))
-        <div class="mt-4 rounded border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-800">
+        <div class="mt-4 rounded border border-neutral-400 bg-neutral-100 px-4 py-2 text-sm text-neutral-900">
             {{ session('error') }}
         </div>
     @endif

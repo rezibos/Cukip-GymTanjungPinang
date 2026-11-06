@@ -4,7 +4,7 @@
 
 <div class="flex items-center gap-1 text-sm">
     @if ($rating !== null)
-        <span class="text-amber-500" aria-hidden="true">
+        <span class="text-neutral-200" aria-hidden="true">
             @for ($i = 1; $i <= 5; $i++)
                 <span class="{{ $i <= $filled ? '' : 'text-gray-300' }}">★</span>
             @endfor
