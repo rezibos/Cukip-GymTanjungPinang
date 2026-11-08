@@ -3,15 +3,15 @@
 namespace App\Filament\Pages;
 
 use App\Models\GymProfile;
+use App\Support\CoordinateParser;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Schemas\Schema;
-use App\Support\CoordinateParser;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
 
 class ManageGymProfile extends Page
 {
@@ -21,7 +21,9 @@ class ManageGymProfile extends Page
 
     protected static ?string $title = 'Profil Gym';
 
-    protected static ?int $navigationSort = 0;
+    protected static string|\UnitEnum|null $navigationGroup = 'Konten website';
+
+    protected static ?int $navigationSort = 4;
 
     protected string $view = 'filament.pages.manage-gym-profile';
 

@@ -18,7 +18,17 @@ class ReviewResource extends Resource
 {
     protected static ?string $model = Review::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
+
+    protected static ?string $navigationLabel = 'Review member';
+
+    protected static ?string $modelLabel = 'Review';
+
+    protected static ?string $pluralModelLabel = 'Review member';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Konten website';
+
+    protected static ?int $navigationSort = 3;
 
     public static function canCreate(): bool
     {

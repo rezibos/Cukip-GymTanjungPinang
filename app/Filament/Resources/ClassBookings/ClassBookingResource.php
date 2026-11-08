@@ -18,7 +18,17 @@ class ClassBookingResource extends Resource
 {
     protected static ?string $model = ClassBooking::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
+
+    protected static ?string $navigationLabel = 'Booking kelas';
+
+    protected static ?string $modelLabel = 'Booking kelas';
+
+    protected static ?string $pluralModelLabel = 'Booking kelas';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Kelas & latihan';
+
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'id';
 

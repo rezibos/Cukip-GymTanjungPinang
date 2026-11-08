@@ -18,11 +18,19 @@ class GymClassResource extends Resource
 {
     protected static ?string $model = GymClass::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?string $navigationLabel = 'Kelas & Jadwal (Template)';
+    protected static ?string $navigationLabel = 'Jenis kelas';
+
+    protected static ?string $modelLabel = 'Jenis kelas';
+
+    protected static ?string $pluralModelLabel = 'Jenis kelas';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Kelas & latihan';
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

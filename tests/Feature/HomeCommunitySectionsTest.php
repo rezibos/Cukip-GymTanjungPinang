@@ -39,7 +39,7 @@ class HomeCommunitySectionsTest extends TestCase
 
         $response->assertOk()
             ->assertSeeInOrder(['Calculate Your BMI Now', 'Orang nyata.', 'Kata mereka.', 'Ada pertanyaan?', '<footer', 'Sponsor &amp; partner'], false)
-            ->assertSee('Identitas contoh')
+            ->assertDontSee('Identitas contoh')
             ->assertSee('Contoh review untuk pratinjau tampilan.')
             ->assertSee('Raka')
             ->assertSee('Nadia')

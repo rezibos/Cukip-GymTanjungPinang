@@ -18,7 +18,17 @@ class MembershipResource extends Resource
 {
     protected static ?string $model = Membership::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
+
+    protected static ?string $navigationLabel = 'Membership';
+
+    protected static ?string $modelLabel = 'Membership';
+
+    protected static ?string $pluralModelLabel = 'Membership';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'id';
 

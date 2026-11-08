@@ -18,7 +18,17 @@ class MembershipPlanResource extends Resource
 {
     protected static ?string $model = MembershipPlan::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTicket;
+
+    protected static ?string $navigationLabel = 'Paket membership';
+
+    protected static ?string $modelLabel = 'Paket membership';
+
+    protected static ?string $pluralModelLabel = 'Paket membership';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Konten website';
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'name';
 

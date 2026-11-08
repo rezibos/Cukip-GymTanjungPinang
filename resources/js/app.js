@@ -19,6 +19,26 @@ document.querySelectorAll('[data-password-toggle]').forEach((button) => {
 
 const menuButton = document.getElementById('menu-button');
 
+document.querySelectorAll('[data-class-schedule]').forEach((schedule) => {
+    const buttons = Array.from(schedule.querySelectorAll('[data-class-day]'));
+    const sessions = Array.from(schedule.querySelectorAll('[data-class-session]'));
+    const emptyState = schedule.querySelector('[data-class-empty]');
+    const count = schedule.querySelector('[data-class-count]');
+
+    const selectDay = (day) => {
+        let visibleCount = 0;
+        sessions.forEach((session) => {
+            session.hidden = day !== 'all' && session.dataset.classDate !== day;
+            visibleCount += session.hidden ? 0 : 1;
+        });
+        buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.classDay === day)));
+        emptyState.hidden = visibleCount > 0;
+        count.textContent = `${visibleCount} sesi tersedia`;
+    };
+
+    buttons.forEach((button) => button.addEventListener('click', () => selectDay(button.dataset.classDay)));
+});
+
 document.querySelectorAll('[data-plan-picker]').forEach((picker) => {
     const buttons = Array.from(picker.querySelectorAll('[data-plan-period]'));
     const options = Array.from(picker.querySelectorAll('[data-plan-option]'));

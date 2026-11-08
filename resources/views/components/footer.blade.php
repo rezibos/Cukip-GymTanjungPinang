@@ -15,7 +15,6 @@
         <div class="py-10" role="region" aria-labelledby="sponsors-title">
             <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
                 <h3 id="sponsors-title" class="text-[.65rem] font-semibold uppercase tracking-[.22em] text-white/55">Sponsor & partner</h3>
-                <span class="rounded-full border border-white/15 px-2.5 py-1 text-[.55rem] text-white/35">Identitas contoh</span>
             </div>
             <ul class="mt-7 grid grid-cols-2 items-center gap-x-7 gap-y-8 text-white/55 sm:grid-cols-4 sm:gap-8" aria-label="Contoh sponsor">
                 <li class="flex items-center justify-center gap-2.5">

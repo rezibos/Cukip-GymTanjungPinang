@@ -18,12 +18,19 @@ class ClassSessionResource extends Resource
 {
     protected static ?string $model = ClassSession::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
     protected static ?string $recordTitleAttribute = 'id';
 
-    protected static ?string $navigationLabel = 'Sesi Kelas';
+    protected static ?string $navigationLabel = 'Jadwal sesi';
+
     protected static ?string $modelLabel = 'Sesi Kelas';
+
+    protected static ?string $pluralModelLabel = 'Jadwal sesi';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Kelas & latihan';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

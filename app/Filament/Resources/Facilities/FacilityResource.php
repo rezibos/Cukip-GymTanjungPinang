@@ -18,7 +18,17 @@ class FacilityResource extends Resource
 {
     protected static ?string $model = Facility::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
+
+    protected static ?string $navigationLabel = 'Fasilitas';
+
+    protected static ?string $modelLabel = 'Fasilitas';
+
+    protected static ?string $pluralModelLabel = 'Fasilitas';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Konten website';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'name';
 

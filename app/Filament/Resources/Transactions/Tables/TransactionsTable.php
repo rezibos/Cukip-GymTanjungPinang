@@ -9,7 +9,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -21,22 +20,24 @@ class TransactionsTable
         return $table
             ->columns([
                 TextColumn::make('invoice_number')->label('Invoice')->searchable(),
-                TextColumn::make('user.name')->label('User')->searchable(),
+                TextColumn::make('user.name')->label('Member')->searchable(),
                 TextColumn::make('membership.plan.name')->label('Paket'),
                 TextColumn::make('amount')->label('Jumlah')->sortable()
-                    ->formatStateUsing(fn ($state) => 'Rp' . number_format($state, 0, ',', '.')),
-                IconColumn::make('payment_proof')->label('Bukti')->boolean()
-                    ->getStateUsing(fn (Transaction $record) => (bool) $record->payment_proof),
+                    ->formatStateUsing(fn ($state) => 'Rp'.number_format($state, 0, ',', '.')),
+                TextColumn::make('payment_proof')->label('Bukti transfer')->badge()
+                    ->getStateUsing(fn (Transaction $record): string => $record->payment_proof ? 'Diunggah' : 'Belum ada')
+                    ->color('gray'),
                 TextColumn::make('status')->label('Status')->badge()
                     ->color(fn (TransactionStatus $state) => match ($state) {
-                        TransactionStatus::Paid => 'success',
+                        TransactionStatus::Paid => 'primary',
                         TransactionStatus::Rejected => 'danger',
-                        TransactionStatus::Pending => 'warning',
+                        TransactionStatus::Pending => 'gray',
                     })
                     ->formatStateUsing(fn (TransactionStatus $state) => $state->label()),
                 TextColumn::make('created_at')->label('Tanggal')->dateTime('d/m/Y H:i')->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->searchPlaceholder('Cari invoice atau member...')
             ->filters([
                 SelectFilter::make('status')->options([
                     'pending' => 'Menunggu Konfirmasi',
@@ -82,7 +83,7 @@ class TransactionsTable
                     }),
 
                 EditAction::make()->label('Detail'),
-                DeleteAction::make(),
+                DeleteAction::make()->label('Hapus'),
             ]);
     }
 }

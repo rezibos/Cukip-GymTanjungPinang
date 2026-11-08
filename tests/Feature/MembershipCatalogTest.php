@@ -44,6 +44,48 @@ class MembershipCatalogTest extends TestCase
             ->assertSee('Monthly')->assertSee('Yearly')->assertSee('2,4')->assertSee('4,8');
     }
 
+    public function test_membership_page_shows_both_billing_periods_and_the_correct_checkout_links(): void
+    {
+        $this->seed(MembershipPlanSeeder::class);
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('membership.index'));
+
+        $response->assertOk()->assertSee('Bulanan')->assertSee('Tahunan')
+            ->assertSee('Day Pass')->assertSee('Regular')->assertSee('VIP')
+            ->assertSee('Premium Equipment')->assertSee('Private Training')
+            ->assertSee('data-plan-selected="monthly"', false)
+            ->assertSee('data-plan-option="yearly" data-active="false"', false);
+        foreach (MembershipPlan::where('is_active', true)->get() as $plan) {
+            $response->assertSee(route('membership.checkout', $plan), false)
+                ->assertSee($plan->formatted_price);
+        }
+    }
+
+    #[TestWith([30, 'monthly'])]
+    #[TestWith([365, 'yearly'])]
+    public function test_a_single_billing_period_is_visible_without_a_switch(int $duration, string $period): void
+    {
+        MembershipPlan::factory()->create(['name' => 'Regular', 'duration_days' => $duration, 'is_active' => true]);
+
+        $response = $this->get(route('membership.index'));
+
+        $response->assertOk()->assertSee('Regular')
+            ->assertSee('data-plan-selected="'.$period.'"', false)
+            ->assertSee('data-plan-option="'.$period.'" data-active="true"', false)
+            ->assertDontSee('data-plan-period=', false);
+    }
+
+    public function test_an_empty_membership_catalog_shows_an_explanation_and_hides_inactive_plans(): void
+    {
+        MembershipPlan::factory()->create(['name' => 'Paket lama tersembunyi', 'is_active' => false]);
+
+        $response = $this->get(route('membership.index'));
+
+        $response->assertOk()->assertSee('Paket membership sedang diperbarui.')
+            ->assertDontSee('Paket lama tersembunyi')->assertDontSee('data-plan-period=', false);
+    }
+
     #[TestWith(['Day Pass', 50000, 1])]
     #[TestWith(['Regular', 250000, 30])]
     #[TestWith(['VIP', 500000, 30])]
