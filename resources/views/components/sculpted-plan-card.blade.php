@@ -29,7 +29,11 @@
         </ul>
         <p class="mt-auto pt-6 text-[.6rem] font-semibold uppercase tracking-[.14em] text-[#909087]">{{ $plan->duration_days }} days access</p>
     </div>
-    <a href="{{ auth()->check() ? route('membership.checkout', $plan) : route('login') }}" class="sculpted-plan-arrow group focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]" aria-label="Pilih {{ $plan->name }}">
-        <svg class="size-10 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
-    </a>
+    <form method="POST" action="{{ route('cart.store', $plan) }}" class="sculpted-plan-arrow group" data-cart-add>
+        @csrf
+        <button type="submit" class="grid size-full cursor-pointer place-items-center rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] disabled:cursor-wait disabled:opacity-65" aria-label="Masukkan {{ $plan->name }} ke keranjang">
+            <svg class="col-start-1 row-start-1 size-10 transition duration-200 group-hover:translate-x-5 group-hover:opacity-0 group-focus-within:translate-x-5 group-focus-within:opacity-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>
+            <svg class="col-start-1 row-start-1 size-7 -translate-x-5 opacity-0 transition duration-200 group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:translate-x-0 group-focus-within:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L21 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+        </button>
+    </form>
 </article>
