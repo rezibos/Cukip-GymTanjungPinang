@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\ClassSessions\Tables;
 
-use App\Models\ClassSession;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -22,9 +23,25 @@ class ClassSessionsTable
                     ->counts(['bookings' => fn ($q) => $q->where('status', 'booked')]),
             ])
             ->defaultSort('date')
+            ->recordUrl(null)
             ->filters([
                 SelectFilter::make('gym_class_id')->label('Kelas')->relationship('gymClass', 'name'),
             ])
-            ->recordActions([EditAction::make(), DeleteAction::make()]);
+            ->recordActions([
+                EditAction::make()
+                    ->label('Ubah')
+                    ->modal()
+                    ->modalHeading('Ubah Sesi Kelas')
+                    ->modalDescription('Perbarui jadwal sesi kelas di bawah ini.')
+                    ->modalSubmitActionLabel('Simpan')
+                    ->modalCancelActionLabel('Batal')
+                    ->modalFooterActionsAlignment(Alignment::End)
+                    ->modalWidth(Width::FourExtraLarge)
+                    ->stickyModalHeader()
+                    ->stickyModalFooter(),
+                DeleteAction::make(),
+            ])
+            ->recordActionsColumnLabel('Action')
+            ->recordActionsAlignment('center');
     }
 }

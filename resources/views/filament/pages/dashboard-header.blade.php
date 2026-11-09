@@ -15,7 +15,7 @@
         </div>
         <div class="admin-welcome-actions">
             <a href="{{ \App\Filament\Resources\Transactions\TransactionResource::getUrl('index') }}" class="admin-action-primary">Periksa transaksi <span aria-hidden="true">↗</span></a>
-            <a href="{{ \App\Filament\Resources\ClassSessions\ClassSessionResource::getUrl('create') }}" class="admin-action-secondary">Tambah sesi <span aria-hidden="true">＋</span></a>
+            <a href="{{ \App\Filament\Resources\ClassSessions\ClassSessionResource::getUrl('index', ['action' => 'create']) }}" class="admin-action-secondary">Tambah sesi <span aria-hidden="true">＋</span></a>
         </div>
     </div>
     <div class="admin-dashboard-links">

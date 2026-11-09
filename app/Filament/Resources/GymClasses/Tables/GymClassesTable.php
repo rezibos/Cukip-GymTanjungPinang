@@ -10,6 +10,8 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -29,6 +31,7 @@ class GymClassesTable
                 TextColumn::make('capacity')->label('Kapasitas'),
                 IconColumn::make('is_active')->label('Aktif')->boolean(),
             ])
+            ->recordUrl(null)
             ->headerActions([
                 Action::make('generateSessions')
                     ->label('Generate Sesi')
@@ -66,12 +69,27 @@ class GymClassesTable
                         }
 
                         Notification::make()
-                            ->title($created . ' sesi baru berhasil dibuat')
+                            ->title($created.' sesi baru berhasil dibuat')
                             ->body($created === 0 ? 'Semua sesi pada periode ini sudah ada sebelumnya.' : null)
                             ->success()
                             ->send();
                     }),
             ])
-            ->recordActions([EditAction::make(), DeleteAction::make()]);
+            ->recordActions([
+                EditAction::make()
+                    ->label('Ubah')
+                    ->modal()
+                    ->modalHeading('Ubah Jenis Kelas')
+                    ->modalDescription('Perbarui data jenis kelas di bawah ini.')
+                    ->modalSubmitActionLabel('Simpan')
+                    ->modalCancelActionLabel('Batal')
+                    ->modalFooterActionsAlignment(Alignment::End)
+                    ->modalWidth(Width::FourExtraLarge)
+                    ->stickyModalHeader()
+                    ->stickyModalFooter(),
+                DeleteAction::make(),
+            ])
+            ->recordActionsColumnLabel('Action')
+            ->recordActionsAlignment('center');
     }
 }

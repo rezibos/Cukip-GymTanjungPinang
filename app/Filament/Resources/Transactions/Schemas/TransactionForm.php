@@ -17,7 +17,8 @@ class TransactionForm
             TextInput::make('invoice_number')->label('Nomor Invoice')->disabled(),
             Select::make('user_id')->label('User')->relationship('user', 'name')->disabled(),
             TextInput::make('amount')->label('Jumlah')->disabled()
-                ->formatStateUsing(fn ($state) => 'Rp' . number_format((int) $state, 0, ',', '.')),
+                ->formatStateUsing(fn ($state) => 'Rp'.number_format((int) $state, 0, ',', '.')),
+            TextInput::make('quantity')->label('Kuantitas')->disabled(),
 
             ViewField::make('payment_proof')
                 ->label('Bukti Transfer')

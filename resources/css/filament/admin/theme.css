@@ -272,13 +272,22 @@
     font-weight: 600;
 }
 
+.fi-ta-table:has(> tbody > tr > td:last-child .fi-ta-actions)
+    > thead
+    > tr
+    > .fi-ta-header-cell:last-child {
+    text-align: center;
+}
+
 .fi-ta-text-item.fi-color-gray {
     color: #262626;
 }
 
+
 .fi-ta-row:hover {
     background: #fafafa;
 }
+
 
 .fi-btn {
     border-radius: .75rem;

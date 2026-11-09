@@ -9,9 +9,12 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\DB;
 
 class TransactionsTable
 {
@@ -22,6 +25,7 @@ class TransactionsTable
                 TextColumn::make('invoice_number')->label('Invoice')->searchable(),
                 TextColumn::make('user.name')->label('Member')->searchable(),
                 TextColumn::make('membership.plan.name')->label('Paket'),
+                TextColumn::make('quantity')->label('Qty')->alignCenter(),
                 TextColumn::make('amount')->label('Jumlah')->sortable()
                     ->formatStateUsing(fn ($state) => 'Rp'.number_format($state, 0, ',', '.')),
                 TextColumn::make('payment_proof')->label('Bukti transfer')->badge()
@@ -37,6 +41,7 @@ class TransactionsTable
                 TextColumn::make('created_at')->label('Tanggal')->dateTime('d/m/Y H:i')->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(null)
             ->searchPlaceholder('Cari invoice atau member...')
             ->filters([
                 SelectFilter::make('status')->options([
@@ -51,11 +56,15 @@ class TransactionsTable
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalDescription('Membership user akan otomatis diaktifkan setelah ini.')
+                    ->modalDescription('Semua transaksi dalam checkout yang sama akan dilunasi dan membership-nya diaktifkan.')
                     ->visible(fn (Transaction $record) => $record->status === TransactionStatus::Pending)
                     ->action(function (Transaction $record) {
-                        $record->update(['status' => TransactionStatus::Paid, 'paid_at' => now()]);
-                        $record->membership->activate();
+                        DB::transaction(function () use ($record): void {
+                            foreach ($record->checkoutGroup() as $transaction) {
+                                $transaction->update(['status' => TransactionStatus::Paid, 'paid_at' => now()]);
+                                $transaction->membership->activate();
+                            }
+                        });
 
                         Notification::make()
                             ->title('Transaksi ditandai lunas, membership user telah aktif')
@@ -73,17 +82,33 @@ class TransactionsTable
                     ])
                     ->visible(fn (Transaction $record) => $record->status === TransactionStatus::Pending)
                     ->action(function (Transaction $record, array $data) {
-                        $record->update([
-                            'status' => TransactionStatus::Rejected,
-                            'admin_note' => $data['admin_note'],
-                        ]);
-                        $record->membership->update(['status' => 'cancelled']);
+                        DB::transaction(function () use ($record, $data): void {
+                            foreach ($record->checkoutGroup() as $transaction) {
+                                $transaction->update([
+                                    'status' => TransactionStatus::Rejected,
+                                    'admin_note' => $data['admin_note'],
+                                ]);
+                                $transaction->membership->update(['status' => 'cancelled']);
+                            }
+                        });
 
                         Notification::make()->title('Transaksi ditolak')->warning()->send();
                     }),
 
-                EditAction::make()->label('Detail'),
+                EditAction::make()
+                    ->label('Detail')
+                    ->modal()
+                    ->modalHeading('Detail Transaksi')
+                    ->modalDescription('Periksa dan perbarui transaksi di bawah ini.')
+                    ->modalSubmitActionLabel('Simpan')
+                    ->modalCancelActionLabel('Batal')
+                    ->modalFooterActionsAlignment(Alignment::End)
+                    ->modalWidth(Width::FourExtraLarge)
+                    ->stickyModalHeader()
+                    ->stickyModalFooter(),
                 DeleteAction::make()->label('Hapus'),
-            ]);
+            ])
+            ->recordActionsColumnLabel('Action')
+            ->recordActionsAlignment('center');
     }
 }
