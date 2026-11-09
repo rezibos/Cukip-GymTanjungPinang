@@ -2,7 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\ClassBookings\Pages\ListClassBookings;
+use App\Filament\Resources\ClassSessions\Pages\ListClassSessions;
+use App\Filament\Resources\Facilities\Pages\ListFacilities;
+use App\Filament\Resources\GymClasses\Pages\ListGymClasses;
+use App\Filament\Resources\MembershipPlans\Pages\ListMembershipPlans;
+use App\Filament\Resources\Memberships\Pages\ListMemberships;
+use App\Filament\Resources\Reviews\Pages\ListReviews;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
+use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Widgets\LatestTransactions;
 use App\Filament\Widgets\RevenueChart;
 use App\Filament\Widgets\StatsOverview;
@@ -11,10 +19,17 @@ use App\Models\GymClass;
 use App\Models\Membership;
 use App\Models\MembershipPlan;
 use App\Models\User;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
@@ -22,9 +37,51 @@ class AdminDashboardTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guests_are_redirected_to_the_admin_login(): void
+    public function test_guests_are_redirected_from_admin_to_the_shared_login(): void
     {
         $this->get('/admin')->assertRedirect('/admin/login');
+        $this->get('/admin/login')->assertRedirect(route('login'))
+            ->assertSessionHas('url.intended', url('/admin'));
+        $this->get(route('login'))->assertOk()->assertSee('Masuk akun');
+    }
+
+    #[TestWith(['admin', 'filament.admin.pages.dashboard'])]
+    #[TestWith(['user', 'home'])]
+    public function test_shared_login_redirects_each_role_to_its_default_page(string $role, string $route): void
+    {
+        $user = User::factory()->create(['role' => $role]);
+
+        $response = $this->post(route('login'), ['email' => $user->email, 'password' => 'password']);
+
+        $response->assertRedirect(route($route));
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_shared_login_returns_admins_to_the_requested_resource(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->get('/admin/transactions')->assertRedirect('/admin/login');
+        $this->get('/admin/login')->assertRedirect(route('login'));
+
+        $response = $this->post(route('login'), ['email' => $admin->email, 'password' => 'password']);
+
+        $response->assertRedirect(url('/admin/transactions'));
+        $this->assertAuthenticatedAs($admin);
+        $this->get('/admin/transactions')->assertOk();
+    }
+
+    public function test_invalid_admin_credentials_keep_the_shared_login_and_intended_destination(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->withSession(['url.intended' => url('/admin/transactions')])
+            ->from(route('login'))
+            ->post(route('login'), ['email' => $admin->email, 'password' => 'incorrect-password']);
+
+        $response->assertRedirect(route('login'))
+            ->assertSessionHasErrors(['email' => 'Email atau password salah.'])
+            ->assertSessionHas('url.intended', url('/admin/transactions'));
+        $this->assertGuest();
     }
 
     public function test_regular_users_cannot_access_admin_data(): void
@@ -44,10 +101,194 @@ class AdminDashboardTest extends TestCase
         $response->assertOk()->assertSee('CukipGym')->assertSee('Ringkasan operasional.')
             ->assertSee('Admin Pinang')->assertSee('Operasional')->assertSee('Konten website')
             ->assertSee('Periksa transaksi')->assertSee('Tambah sesi')->assertSee('Lihat website')
-            ->assertSee('/admin/class-sessions/create', false)->assertSee('/admin/transactions', false)
+            ->assertSee('/admin/class-sessions?action=create', false)->assertSee('/admin/transactions', false)
             ->assertSee('data-admin-sidebar-toggle', false)
             ->assertSee('aria-controls="fi-main-sidebar"', false)
             ->assertSee('Tutup menu navigasi')->assertSee('Buka menu navigasi');
+    }
+
+    /**
+     * @param  class-string<ListRecords>  $pageClass
+     */
+    #[DataProvider('modalCreatePages')]
+    public function test_admin_create_actions_open_indonesian_modals(string $pageClass, string $heading): void
+    {
+        $this->signInAdmin();
+
+        $component = Livewire::test($pageClass)->assertActionExists('create');
+        $action = $component->instance()->getAction('create');
+
+        $this->assertInstanceOf(CreateAction::class, $action);
+        $this->assertSame('Tambah', $action->getLabel());
+        $this->assertTrue($action->hasModal());
+        $this->assertSame($heading, $action->getModalHeading());
+        $this->assertNull($action->getModalIcon());
+        $this->assertSame('Simpan', $action->getModalSubmitActionLabel());
+        $this->assertSame('Batal', $action->getModalCancelActionLabel());
+        $this->assertSame(Alignment::End, $action->getModalFooterActionsAlignment());
+        $this->assertSame(Width::FourExtraLarge, $action->getModalWidth());
+        $this->assertTrue($action->isModalHeaderSticky());
+        $this->assertTrue($action->isModalFooterSticky());
+        $this->assertFalse($action->canCreateAnother());
+
+        $component->assertSee('wire:click="mountAction(\'create\')"', false);
+        $component->mountAction('create')
+            ->assertActionMounted('create');
+    }
+
+    public function test_membership_creation_dispatches_sweetalert_success_instead_of_a_filament_notification(): void
+    {
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $plan = MembershipPlan::factory()->create();
+
+        Livewire::test(ListMemberships::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'membership_plan_id' => $plan->id,
+                'status' => 'active',
+                'start_date' => '2026-11-09',
+                'end_date' => '2026-12-09',
+            ])
+            ->assertDispatched('admin-record-created')
+            ->assertNotNotified();
+
+        $this->assertDatabaseHas('memberships', [
+            'user_id' => $member->id,
+            'membership_plan_id' => $plan->id,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_selecting_a_membership_plan_automatically_fills_its_dates(): void
+    {
+        Carbon::setTestNow('2026-11-09 12:00:00');
+
+        try {
+            $this->signInAdmin();
+            $plan = MembershipPlan::factory()->create(['duration_days' => 7]);
+
+            $component = Livewire::test(ListMemberships::class)
+                ->mountAction('create')
+                ->fillForm(['membership_plan_id' => $plan->id])
+                ->assertActionDataSet([
+                    'start_date' => '2026-11-09',
+                    'end_date' => '2026-11-16',
+                ]);
+
+            $component
+                ->fillForm(['start_date' => '2026-12-01'])
+                ->assertActionDataSet(['end_date' => '2026-12-08']);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    #[TestWith(['2026-11-01', '2026-11-01'])]
+    #[TestWith(['2026-11-01', '2026-10-31'])]
+    public function test_membership_end_date_must_be_after_the_start_date(string $startDate, string $endDate): void
+    {
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $plan = MembershipPlan::factory()->create();
+
+        Livewire::test(ListMemberships::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'membership_plan_id' => $plan->id,
+                'status' => 'active',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ])
+            ->assertHasFormErrors(['end_date' => 'after'])
+            ->assertNotDispatched('admin-record-created');
+
+        $this->assertDatabaseCount('memberships', 0);
+    }
+
+    #[TestWith(['2026-11-02'])]
+    #[TestWith(['2027-01-01'])]
+    public function test_membership_end_date_accepts_the_next_day_or_a_later_year(string $endDate): void
+    {
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $plan = MembershipPlan::factory()->create();
+
+        Livewire::test(ListMemberships::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'membership_plan_id' => $plan->id,
+                'status' => 'active',
+                'start_date' => '2026-11-01',
+                'end_date' => $endDate,
+            ])
+            ->assertHasNoFormErrors()
+            ->assertDispatched('admin-record-created');
+
+        $this->assertDatabaseHas('memberships', [
+            'user_id' => $member->id,
+            'start_date' => '2026-11-01 00:00:00',
+            'end_date' => $endDate.' 00:00:00',
+        ]);
+    }
+
+    public function test_membership_deletion_uses_sweetalert_confirmation_and_success_event(): void
+    {
+        $admin = $this->signInAdmin();
+        $membership = $this->createMembership($admin);
+        $component = Livewire::test(ListMemberships::class);
+        $action = $component->instance()->getTable()->getAction('delete')->record($membership);
+
+        $this->assertFalse($action->isConfirmationRequired());
+        $this->assertFalse($action->hasModal());
+        $this->assertNull($action->getKeyBindings());
+        $this->assertStringContainsString('confirmAdminDelete', $action->getAlpineClickHandler());
+        $this->assertStringContainsString("mountAction('delete'", $action->getAlpineClickHandler());
+
+        $component
+            ->callAction(TestAction::make('delete')->table($membership))
+            ->assertDispatched('admin-record-deleted')
+            ->assertNotNotified();
+
+        $this->assertModelMissing($membership);
+    }
+
+    /**
+     * @param  class-string<ListRecords>  $pageClass
+     */
+    #[DataProvider('modalEditPages')]
+    public function test_admin_edit_actions_open_indonesian_modals(string $pageClass, string $heading, string $label): void
+    {
+        $this->signInAdmin();
+
+        $action = Livewire::test($pageClass)->instance()->getTable()->getAction('edit');
+
+        $this->assertInstanceOf(EditAction::class, $action);
+        $this->assertSame($label, $action->getLabel());
+        $this->assertTrue($action->hasModal());
+        $this->assertNull($action->getUrl());
+        $this->assertSame($heading, $action->getModalHeading());
+        $this->assertNull($action->getModalIcon());
+        $this->assertSame('Simpan', $action->getModalSubmitActionLabel());
+        $this->assertSame('Batal', $action->getModalCancelActionLabel());
+        $this->assertSame(Alignment::End, $action->getModalFooterActionsAlignment());
+        $this->assertSame(Width::FourExtraLarge, $action->getModalWidth());
+        $this->assertTrue($action->isModalHeaderSticky());
+        $this->assertTrue($action->isModalFooterSticky());
+    }
+
+    /**
+     * @param  class-string<ListRecords>  $pageClass
+     */
+    #[DataProvider('nonClickableAdminTables')]
+    public function test_admin_table_rows_are_not_clickable(string $pageClass): void
+    {
+        $this->signInAdmin();
+
+        $table = Livewire::test($pageClass)->instance()->getTable();
+
+        $this->assertTrue($table->hasCustomRecordUrl());
+        $this->assertNull($table->getRecordUrl([]));
     }
 
     #[TestWith(['transactions'])]
@@ -182,5 +423,56 @@ class AdminDashboardTest extends TestCase
         $plan = MembershipPlan::factory()->create();
 
         return $user->memberships()->create(['membership_plan_id' => $plan->id, 'status' => 'active', 'start_date' => '2026-11-01', 'end_date' => '2026-11-30']);
+    }
+
+    /**
+     * @return array<string, array{class-string<ListRecords>, string}>
+     */
+    public static function modalCreatePages(): array
+    {
+        return [
+            'membership' => [ListMemberships::class, 'Tambah Membership'],
+            'pengguna' => [ListUsers::class, 'Tambah Pengguna'],
+            'sesi kelas' => [ListClassSessions::class, 'Tambah Sesi Kelas'],
+            'booking kelas' => [ListClassBookings::class, 'Tambah Booking Kelas'],
+            'jenis kelas' => [ListGymClasses::class, 'Tambah Jenis Kelas'],
+            'fasilitas' => [ListFacilities::class, 'Tambah Fasilitas'],
+            'paket membership' => [ListMembershipPlans::class, 'Tambah Paket Membership'],
+        ];
+    }
+
+    /**
+     * @return array<string, array{class-string<ListRecords>, string, string}>
+     */
+    public static function modalEditPages(): array
+    {
+        return [
+            'membership' => [ListMemberships::class, 'Ubah Membership', 'Ubah'],
+            'pengguna' => [ListUsers::class, 'Ubah Pengguna', 'Ubah'],
+            'sesi kelas' => [ListClassSessions::class, 'Ubah Sesi Kelas', 'Ubah'],
+            'jenis kelas' => [ListGymClasses::class, 'Ubah Jenis Kelas', 'Ubah'],
+            'fasilitas' => [ListFacilities::class, 'Ubah Fasilitas', 'Ubah'],
+            'paket membership' => [ListMembershipPlans::class, 'Ubah Paket Membership', 'Ubah'],
+            'review' => [ListReviews::class, 'Ubah Review', 'Ubah'],
+            'transaksi' => [ListTransactions::class, 'Detail Transaksi', 'Detail'],
+        ];
+    }
+
+    /**
+     * @return array<string, array{class-string<ListRecords>}>
+     */
+    public static function nonClickableAdminTables(): array
+    {
+        return [
+            'transaksi' => [ListTransactions::class],
+            'membership' => [ListMemberships::class],
+            'pengguna' => [ListUsers::class],
+            'sesi kelas' => [ListClassSessions::class],
+            'booking kelas' => [ListClassBookings::class],
+            'jenis kelas' => [ListGymClasses::class],
+            'fasilitas' => [ListFacilities::class],
+            'paket membership' => [ListMembershipPlans::class],
+            'review' => [ListReviews::class],
+        ];
     }
 }

@@ -1,6 +1,148 @@
 import { initReviewCarousels } from './review-carousel';
+import { initNotifications, showNotification } from './notifications';
 
 initReviewCarousels();
+initNotifications();
+
+const updateCartTotals = (result) => {
+    document.querySelectorAll('[data-cart-link]').forEach((cartLink) => {
+        cartLink.setAttribute('aria-label', `Buka keranjang, ${result.cart_count} paket`);
+    });
+    document.querySelectorAll('[data-cart-count]').forEach((cartCount) => {
+        cartCount.textContent = result.cart_count;
+        cartCount.classList.toggle('hidden', result.cart_count === 0);
+    });
+    document.querySelectorAll('[data-cart-total-quantity]').forEach((totalQuantity) => {
+        totalQuantity.textContent = result.cart_count;
+    });
+    document.querySelectorAll('[data-cart-total]').forEach((total) => {
+        total.textContent = result.formatted_total;
+    });
+};
+
+const submitCartForm = async (form, formData = new FormData(form)) => {
+    const response = await fetch(form.getAttribute('action'), {
+        method: 'POST',
+        body: formData,
+        headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.message ?? 'Keranjang belum berhasil diperbarui.');
+    }
+
+    return result;
+};
+
+document.querySelectorAll('[data-cart-add]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const button = form.querySelector('button[type="submit"]');
+        button?.setAttribute('disabled', '');
+
+        try {
+            const result = await submitCartForm(form);
+            updateCartTotals(result);
+            showNotification(result.title, result.message);
+        } catch (error) {
+            showNotification('Belum masuk keranjang', error.message, 'error');
+        } finally {
+            button?.removeAttribute('disabled');
+        }
+    });
+});
+
+document.querySelectorAll('[data-cart-quantity-form]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const submitter = event.submitter;
+        const item = form.closest('[data-cart-item]');
+
+        if (!submitter || !item) {
+            return;
+        }
+
+        const buttons = Array.from(form.querySelectorAll('button[type="submit"]'));
+        const formData = new FormData(form);
+        formData.set('operation', submitter.value);
+        buttons.forEach((button) => button.setAttribute('disabled', ''));
+
+        try {
+            const result = await submitCartForm(form, formData);
+            const decrease = form.querySelector('[data-cart-decrease]');
+            const increase = form.querySelector('[data-cart-increase]');
+
+            item.querySelector('[data-item-quantity]').textContent = result.quantity;
+            item.querySelector('[data-item-subtotal]').textContent = result.formatted_subtotal;
+            decrease.disabled = result.quantity <= 1;
+            increase.disabled = false;
+            updateCartTotals(result);
+        } catch (error) {
+            showNotification('Jumlah belum berubah', error.message, 'error');
+        } finally {
+            buttons.forEach((button) => {
+                if (button.matches('[data-cart-decrease]')) {
+                    button.disabled = Number(item.querySelector('[data-item-quantity]').textContent) <= 1;
+                } else {
+                    button.disabled = false;
+                }
+            });
+        }
+    });
+});
+
+document.querySelectorAll('[data-cart-remove]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const button = form.querySelector('button[type="submit"]');
+        const item = form.closest('[data-cart-item]');
+        button?.setAttribute('disabled', '');
+
+        try {
+            const result = await submitCartForm(form);
+            item.remove();
+            updateCartTotals(result);
+            showNotification(result.title, result.message);
+
+            if (result.cart_count === 0) {
+                window.location.reload();
+            }
+        } catch (error) {
+            showNotification('Paket belum dihapus', error.message, 'error');
+            button?.removeAttribute('disabled');
+        }
+    });
+});
+
+document.querySelectorAll('[data-floating-help]').forEach((helpMenu) => {
+    const summary = helpMenu.querySelector('summary');
+
+    helpMenu.addEventListener('toggle', () => {
+        summary?.setAttribute('aria-expanded', String(helpMenu.open));
+    });
+
+    document.addEventListener('click', (event) => {
+        if (helpMenu.open && !helpMenu.contains(event.target)) {
+            helpMenu.open = false;
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || !helpMenu.open) {
+            return;
+        }
+
+        helpMenu.open = false;
+        summary?.focus();
+    });
+});
 
 document.querySelectorAll('[data-password-toggle]').forEach((button) => {
     const input = document.getElementById(button.getAttribute('aria-controls'));

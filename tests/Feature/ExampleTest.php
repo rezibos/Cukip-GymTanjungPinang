@@ -17,6 +17,11 @@ class ExampleTest extends TestCase
             ->assertOk()
             ->assertSee('Bukan cuma.')
             ->assertSee('Calculate Your BMI Now')
-            ->assertSee('Perjalananmu');
+            ->assertSee('Perjalananmu')
+            ->assertSee('data-floating-actions', false)
+            ->assertSee('Lihat paket membership')
+            ->assertSee('Buka bantuan cepat')
+            ->assertSee(route('membership.index'), false)
+            ->assertSee(route('home').'#faq', false);
     }
 }

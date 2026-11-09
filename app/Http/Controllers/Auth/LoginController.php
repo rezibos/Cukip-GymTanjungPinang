@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,16 +27,20 @@ class LoginController extends Controller
 
         $request->session()->regenerate(); // cegah session fixation
 
-        return redirect()->intended(route('home'));
+        return redirect()->intended(
+            $request->user()->isAdmin() ? route('filament.admin.pages.dashboard') : route('home'),
+        );
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request): RedirectResponse
     {
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('success', 'Anda sudah logout.');
+        return redirect()->route('home')
+            ->with('success', 'Kamu berhasil keluar.')
+            ->with('notification_title', 'Sampai jumpa!');
     }
 }

@@ -16,7 +16,7 @@ class ProfileController extends Controller
         $memberships = $user->memberships()->with('plan')->latest()->get();
 
         // Riwayat transaksi, terbaru dulu
-        $transactions = $user->transactions()->with('membership.plan')->latest()->get();
+        $transactions = $user->transactions()->with(['membership.plan', 'payment'])->latest()->get();
 
         // Booking kelas yang akan datang (tanggal sesi >= hari ini, status masih booked)
         $upcomingBookings = $user->classBookings()

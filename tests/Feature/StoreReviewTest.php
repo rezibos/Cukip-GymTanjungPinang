@@ -20,8 +20,14 @@ class StoreReviewTest extends TestCase
             ->assertRedirect(route('login'));
 
         $this->assertDatabaseCount('reviews', 0);
-        $this->get(route('login'))->assertOk()->assertSee('Selamat datang')->assertDontSee('<footer', false);
-        $this->get(route('register'))->assertOk()->assertSee('Mulai perjalananmu')->assertDontSee('<footer', false);
+        $this->get(route('login'))->assertOk()->assertSee('CukipGym')->assertSee('Masuk akun')
+            ->assertDontSee('<footer', false)->assertDontSee('id="menu-button"', false)
+            ->assertDontSee('data-floating-actions', false)
+            ->assertDontSee('gym-cable-row-editorial.webp');
+        $this->get(route('register'))->assertOk()->assertSee('CukipGym')->assertSee('Buat akun')
+            ->assertDontSee('<footer', false)->assertDontSee('id="menu-button"', false)
+            ->assertDontSee('data-floating-actions', false)
+            ->assertDontSee('gym-kettlebell-editorial.webp');
         $this->get('/')->assertOk()->assertSee('Tulis review')->assertSee('Masuk untuk menulis review.');
     }
 

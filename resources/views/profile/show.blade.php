@@ -68,7 +68,7 @@
                             </div>
                         @elseif ($pendingTransaction)
                             <h3 class="mt-7 text-3xl font-semibold leading-tight tracking-[-.04em]">Satu langkah lagi.</h3>
-                            <p class="mt-3 max-w-sm text-sm leading-7 text-white/55">{{ $pendingTransaction->payment_proof ? 'Bukti pembayaran sudah diunggah. Pantau status konfirmasi pada invoice.' : 'Lanjutkan pembayaran dan unggah bukti transfer untuk memproses membershipmu.' }}</p>
+                            <p class="mt-3 max-w-sm text-sm leading-7 text-white/55">{{ $pendingTransaction->payment ? 'Lanjutkan pembayaran aman melalui Midtrans untuk memproses membershipmu.' : ($pendingTransaction->payment_proof ? 'Bukti pembayaran sudah diunggah. Pantau status konfirmasi pada invoice.' : 'Lanjutkan pembayaran dan unggah bukti transfer untuk memproses membershipmu.') }}</p>
                             <a href="{{ route('membership.invoice', $pendingTransaction) }}" class="mt-6 inline-flex w-fit items-center gap-6 rounded-full bg-white px-5 py-3 text-xs font-semibold text-[#171717] transition hover:bg-[#d4d4d4]">{{ $pendingTransaction->payment_proof ? 'Lihat pembayaran' : 'Lanjutkan pembayaran' }} <span aria-hidden="true">↗</span></a>
                         @else
                             <h3 class="mt-7 text-3xl font-semibold leading-tight tracking-[-.04em]">Rutinitas baru,<br><span class="text-white/45">mulai dari sini.</span></h3>
