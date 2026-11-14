@@ -8,6 +8,7 @@ use App\Filament\Resources\Facilities\Pages\ListFacilities;
 use App\Filament\Resources\GymClasses\Pages\ListGymClasses;
 use App\Filament\Resources\MembershipPlans\Pages\ListMembershipPlans;
 use App\Filament\Resources\Memberships\Pages\ListMemberships;
+use App\Filament\Resources\PersonalTrainers\Pages\ListPersonalTrainers;
 use App\Filament\Resources\Reviews\Pages\ListReviews;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
 use App\Filament\Resources\Users\Pages\ListUsers;
@@ -101,10 +102,37 @@ class AdminDashboardTest extends TestCase
         $response->assertOk()->assertSee('CukipGym')->assertSee('Ringkasan operasional.')
             ->assertSee('Admin Pinang')->assertSee('Operasional')->assertSee('Konten website')
             ->assertSee('Periksa transaksi')->assertSee('Tambah sesi')->assertSee('Lihat website')
+            ->assertSee('Tambah personal trainer')->assertSee('/admin/personal-trainers?action=create', false)
             ->assertSee('/admin/class-sessions?action=create', false)->assertSee('/admin/transactions', false)
             ->assertSee('data-admin-sidebar-toggle', false)
             ->assertSee('aria-controls="fi-main-sidebar"', false)
             ->assertSee('Tutup menu navigasi')->assertSee('Buka menu navigasi');
+    }
+
+    public function test_admin_can_add_a_personal_trainer_without_certificate_photos(): void
+    {
+        $this->signInAdmin();
+
+        Livewire::test(ListPersonalTrainers::class)
+            ->callAction('create', [
+                'name' => 'Kak Adi',
+                'specialization' => 'Strength Training',
+                'description' => 'Pendampingan teknik latihan kekuatan untuk pemula.',
+                'experience_years' => 4,
+                'certifications' => ['Certified Personal Trainer'],
+                'certification_documents' => [],
+                'session_price' => 200000,
+                'session_minutes' => 120,
+                'is_active' => true,
+            ])
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('personal_trainers', [
+            'name' => 'Kak Adi',
+            'session_price' => 200000,
+            'session_minutes' => 120,
+        ]);
+        $this->get(route('classes.index'))->assertOk()->assertSee('Kak Adi');
     }
 
     /**

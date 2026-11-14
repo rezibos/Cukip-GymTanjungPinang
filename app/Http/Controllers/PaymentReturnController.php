@@ -41,7 +41,7 @@ class PaymentReturnController extends Controller
                     report($exception);
                 }
 
-                $payment->loadMissing(['transactions.membership.plan']);
+                $payment->loadMissing(['transactions.membership.plan', 'trainerBookings.slot.trainer']);
             }
 
             $transaction = $payment?->transactions()->oldest('id')->first();
@@ -53,7 +53,7 @@ class PaymentReturnController extends Controller
     public function history(Request $request): View
     {
         $payments = $this->accessiblePayments($request)
-            ->with(['transactions.membership.plan'])
+            ->with(['transactions.membership.plan', 'trainerBookings.slot.trainer'])
             ->latest()
             ->get();
 

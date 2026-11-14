@@ -117,5 +117,114 @@
     </div>
 </section>
 
+@if ($trainers->isNotEmpty())
+    @php
+        $trainerImages = ['images/gym-kettlebell-editorial.webp', 'images/gym-cable-row-editorial.webp', 'images/gympinang-hero-color.png', 'images/gym-equipment-editorial.webp'];
+    @endphp
+    <section id="personal-trainer" class="bg-white px-5 py-20 text-[#171717] sm:px-8 lg:px-12 lg:py-28" aria-labelledby="personal-trainer-title" data-navbar-tone="light">
+        <div class="mx-auto max-w-[90rem]">
+            <div class="grid gap-8 lg:grid-cols-[1fr_.55fr] lg:items-end">
+                <div>
+                    <p class="section-kicker">Private training</p>
+                    <h2 id="personal-trainer-title" class="mt-6 text-[clamp(2.8rem,5.5vw,5.8rem)] font-semibold leading-[1.04] tracking-[-.065em]">Temukan pelatih.<br><span class="text-[#858585]">Maksimalkan potensi.</span></h2>
+                </div>
+                <p class="max-w-md text-sm leading-7 text-[#737373] lg:justify-self-end">Pilih pelatih, tentukan sesi dari kalender, lalu selesaikan pembayaran. Satu slot berlaku untuk satu sesi latihan privat.</p>
+            </div>
+
+            <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                @foreach ($trainers as $trainer)
+                    <x-personal-trainer-card :trainer="$trainer" :fallback-image="$trainerImages[$loop->index % count($trainerImages)]" />
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
 <div class="relative -mb-px h-16 overflow-hidden bg-white sm:h-24" aria-hidden="true"><svg class="absolute inset-0 h-full w-full text-[#0a0a0a]" viewBox="0 0 1440 160" preserveAspectRatio="none" fill="currentColor"><path d="M0 94C260 28 470 34 740 104S1200 166 1440 62V160H0Z"/></svg></div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-trainer-dialog-open]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.getElementById(button.dataset.trainerDialogOpen)?.showModal();
+        });
+    });
+
+    document.querySelectorAll('[data-trainer-dialog-close]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            button.closest('dialog')?.close();
+        });
+    });
+
+    document.querySelectorAll('[data-trainer-booking-form]').forEach(function (form) {
+        const total = form.querySelector('[data-trainer-total]');
+        const count = form.querySelector('[data-trainer-count]');
+        const submitButton = form.querySelector('[data-trainer-submit]');
+        const dateButtons = form.querySelectorAll('[data-trainer-date-button]');
+        const datePanels = form.querySelectorAll('[data-trainer-date-panel]');
+        const price = Number(form.dataset.sessionPrice);
+        const dateRail = form.querySelector('[data-trainer-date-rail]');
+        const previousDates = form.querySelector('[data-trainer-calendar-prev]');
+        const nextDates = form.querySelector('[data-trainer-calendar-next]');
+
+        if (dateRail) {
+            const updateCalendarArrows = function () {
+                previousDates.disabled = dateRail.scrollLeft <= 1;
+                nextDates.disabled = dateRail.scrollLeft + dateRail.clientWidth >= dateRail.scrollWidth - 1;
+            };
+            const scrollDates = function (direction) {
+                dateRail.scrollBy({ left: direction * Math.max(160, dateRail.clientWidth - 80), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+            };
+            previousDates.addEventListener('click', function () { scrollDates(-1); });
+            nextDates.addEventListener('click', function () { scrollDates(1); });
+            dateRail.addEventListener('scroll', updateCalendarArrows, { passive: true });
+            new ResizeObserver(updateCalendarArrows).observe(dateRail);
+        }
+
+        const updateDateColors = function () {
+            dateButtons.forEach(function (button) {
+                const panel = Array.from(datePanels).find(function (item) {
+                    return item.dataset.trainerDatePanel === button.dataset.trainerDateButton;
+                });
+                const hasSelectedSession = Boolean(panel?.querySelector('input[name="slot_ids[]"]:checked'));
+                const isHighlighted = button.disabled || hasSelectedSession || button.getAttribute('aria-pressed') === 'true';
+
+                ['border-[#171717]', 'bg-[#171717]', 'text-white'].forEach(function (className) {
+                    button.classList.toggle(className, isHighlighted);
+                });
+                ['border-black/10', 'bg-white', 'text-[#737373]'].forEach(function (className) {
+                    button.classList.toggle(className, !isHighlighted);
+                });
+            });
+        };
+
+        dateButtons.forEach(function (dateButton) {
+            dateButton.addEventListener('click', function () {
+                dateButtons.forEach(function (button) {
+                    if (button.disabled) { return; }
+                    button.setAttribute('aria-pressed', 'false');
+                });
+
+                dateButton.setAttribute('aria-pressed', 'true');
+                updateDateColors();
+
+                datePanels.forEach(function (panel) {
+                    panel.hidden = panel.dataset.trainerDatePanel !== dateButton.dataset.trainerDateButton;
+                });
+            });
+        });
+
+        form.addEventListener('change', function () {
+            const selected = form.querySelectorAll('input[name="slot_ids[]"]:checked').length;
+            count.textContent = selected;
+            total.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(selected * price);
+            submitButton.disabled = selected === 0;
+            updateDateColors();
+        });
+        updateDateColors();
+    });
+});
+</script>
+@endpush

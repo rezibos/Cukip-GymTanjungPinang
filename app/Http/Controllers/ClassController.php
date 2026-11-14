@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassSession;
+use App\Models\PersonalTrainer;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
@@ -26,7 +29,22 @@ class ClassController extends Controller
             ? auth()->user()->classBookings()->where('status', 'booked')->pluck('class_session_id')->all()
             : [];
         $canBook = auth()->user()?->isMember() ?? false;
+        $trainers = PersonalTrainer::query()
+            ->where('is_active', true)
+            ->with(['slots' => function (HasMany $query): void {
+                $query->where('starts_at', '>', now())
+                    ->where('starts_at', '<=', now()->addDays(60))
+                    ->where(function (Builder $availability): void {
+                        $availability->where('status', 'available')
+                            ->orWhere('status', 'booked')
+                            ->orWhere(fn (Builder $held): Builder => $held->where('status', 'held')->where('held_until', '>=', now()))
+                            ->orWhere(fn (Builder $held): Builder => $held->where('status', 'held')->where('held_until', '<', now()));
+                    })
+                    ->orderBy('starts_at');
+            }])
+            ->orderBy('name')
+            ->get();
 
-        return view('classes.index', compact('sessions', 'start', 'end', 'myBookedSessionIds', 'canBook'));
+        return view('classes.index', compact('sessions', 'start', 'end', 'myBookedSessionIds', 'canBook', 'trainers'));
     }
 }

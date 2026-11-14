@@ -232,74 +232,35 @@
 </section>
 </div>
 
-@if ($instructors->isNotEmpty())
-    @php
-        $trainerImages = [
-            'images/gym-kettlebell-editorial.webp',
-            'images/gym-cable-row-editorial.webp',
-            'images/gympinang-hero-color.png',
-            'images/gym-equipment-editorial.webp',
-        ];
-    @endphp
+@php
+    $trainerImages = [
+        'images/gym-kettlebell-editorial.webp',
+        'images/gym-cable-row-editorial.webp',
+        'images/gympinang-hero-color.png',
+        'images/gym-equipment-editorial.webp',
+    ];
+@endphp
 
     <div class="relative h-12 overflow-hidden bg-[#f5f5f5] sm:h-20 lg:h-28" aria-hidden="true">
         <svg class="absolute inset-0 h-full w-full text-[#171717]" viewBox="0 0 1440 112" preserveAspectRatio="none" fill="currentColor">
             <path d="M0 0C360 144 1080 144 1440 0V112H0Z"/>
         </svg>
     </div>
-    <section class="trainer-section relative isolate overflow-hidden bg-[#171717] px-5 pb-12 pt-8 text-white sm:px-8 sm:pb-16 sm:pt-10 lg:px-12 lg:pb-20 lg:pt-12" aria-labelledby="trainers-title" data-navbar-tone="dark">
-        <div class="mx-auto max-w-[80rem]">
-            <div class="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
-                <p class="trainer-kicker scroll-reveal text-[.65rem] font-semibold uppercase tracking-[.24em] text-white/45">Coach CukipGym</p>
-                <h2 id="trainers-title" class="text-[clamp(2.15rem,4.4vw,4.1rem)] font-bold leading-[.95] tracking-[-.065em]">Latihanmu.<br><span class="text-white/35">Dipandu tim kami.</span></h2>
-                <p class="max-w-xl text-sm leading-6 text-white/55">Kenali instruktur yang mendampingi kelas dan membantu setiap gerakan terasa lebih terarah.</p>
+    <section class="relative isolate overflow-hidden bg-[#171717] px-5 py-16 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24" aria-labelledby="trainers-title" data-navbar-tone="dark">
+        <div class="mx-auto grid max-w-[80rem] gap-10 lg:grid-cols-[1fr_.75fr] lg:items-center">
+            <div>
+                <p class="text-[.65rem] font-semibold uppercase tracking-[.24em] text-white/45">Personal trainer CukipGym</p>
+                <h2 id="trainers-title" class="mt-5 text-[clamp(2.6rem,5vw,5.2rem)] font-bold leading-[.92] tracking-[-.065em]">Tim yang siap.<br><span class="text-white/35">Mendampingi progresmu.</span></h2>
+                <p class="mt-6 max-w-xl text-sm leading-7 text-white/55">CukipGym memiliki tim personal trainer untuk sesi privat yang lebih terarah. Lihat profil, sertifikasi, harga, dan jadwal yang tersedia di halaman Kelas.</p>
+                <a href="{{ route('classes.index') }}#personal-trainer" class="mt-8 inline-flex min-h-12 items-center gap-8 rounded-full bg-white px-6 text-xs font-semibold text-[#171717] transition hover:bg-[#c29670] hover:text-white">Temukan personal trainer <span aria-hidden="true">↗</span></a>
             </div>
-
-            <div class="trainer-carousel reveal relative mx-auto mt-6 max-w-4xl" data-trainer-carousel role="region" aria-roledescription="carousel" aria-label="Instruktur CukipGym" tabindex="0">
-                <p class="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 text-center text-[clamp(3.75rem,11vw,8.75rem)] font-bold leading-[.68] tracking-[-.09em] text-white/[0.055]" aria-hidden="true">Tim<br><span class="whitespace-nowrap">CukipGym.</span></p>
-                <div class="relative h-full" aria-live="polite">
-                    @foreach ($instructors as $instructor)
-                        <article class="trainer-card overflow-hidden rounded-[1.75rem] shadow-[0_30px_80px_rgba(40,45,55,.18)]" data-trainer-card>
-                            <div class="trainer-card-inner">
-                                <div class="trainer-card-face trainer-card-front">
-                                    <img src="{{ asset($trainerImages[$loop->index % count($trainerImages)]) }}" alt="Visual kelas bersama {{ $instructor->instructor }}" class="h-full w-full rounded-[1.75rem] object-cover" loading="lazy">
-                                    <div class="absolute inset-x-0 bottom-0 rounded-b-[1.75rem] bg-gradient-to-t from-[#111318]/95 via-[#111318]/55 to-transparent px-6 pb-7 pt-24 text-white sm:px-8 sm:pb-8">
-                                        <p class="text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{{ $instructor->instructor }}</p>
-                                        <p class="mt-2 text-xs uppercase tracking-[.16em] text-white/65">Instruktur {{ $instructor->name }}</p>
-                                    </div>
-                                    <span class="pointer-events-none absolute right-5 top-5 grid size-12 place-items-center rounded-full bg-white text-xl text-[#171717]" aria-hidden="true">+</span>
-                                </div>
-                                <div class="trainer-card-face trainer-card-back flex flex-col rounded-[1.75rem] bg-[#f5f5f5] p-5 text-[#171717] sm:p-7">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-lg font-bold tracking-[-.06em]">CukipGym</span>
-                                        <span class="pointer-events-none grid size-10 place-items-center rounded-full bg-[#e8eaf0] text-2xl text-[#171717]" aria-hidden="true">×</span>
-                                    </div>
-                                    <div class="mt-auto flex flex-col gap-2 pb-2">
-                                        <h3 class="text-[clamp(1.8rem,3vw,2.5rem)] font-semibold leading-tight tracking-[-.05em]">{{ $instructor->instructor }}</h3>
-                                        <p class="text-sm font-medium">{{ $instructor->name }}</p>
-                                        @if ($instructor->description)
-                                            <p class="mt-2 text-sm leading-6 text-[#646873]">{{ $instructor->description }}</p>
-                                        @endif
-                                        <a href="{{ route('classes.index') }}" class="mt-3 inline-flex w-fit items-center gap-3 text-sm font-semibold text-[#171717] underline decoration-[#171717]/25 underline-offset-4 transition hover:decoration-[#171717]">Lihat jadwal kelas <span aria-hidden="true">↗</span></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </article>
-                    @endforeach
-                </div>
-
-                <button type="button" class="trainer-nav trainer-nav-prev absolute left-0 top-1/2 z-20 grid size-12 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-white/10 text-xl text-white backdrop-blur transition hover:bg-white hover:text-[#171717] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:left-[8%] lg:left-[14%]" data-trainer-prev aria-label="Instruktur sebelumnya">‹</button>
-                <button type="button" class="trainer-nav trainer-nav-next absolute right-0 top-1/2 z-20 grid size-12 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-white/10 text-xl text-white backdrop-blur transition hover:bg-white hover:text-[#171717] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:right-[8%] lg:right-[14%]" data-trainer-next aria-label="Instruktur berikutnya">›</button>
-
-                <div class="absolute inset-x-0 bottom-0 z-20 flex justify-center gap-2" aria-hidden="true">
-                    @foreach ($instructors as $instructor)
-                        <span class="trainer-dot h-1.5 w-1.5 rounded-full bg-white/20 transition-all duration-300" data-trainer-dot></span>
-                    @endforeach
-                </div>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2">
+                @foreach ($trainerImages as $trainerImage)
+                    <img src="{{ asset($trainerImage) }}" alt="Tim personal trainer CukipGym" class="aspect-[4/5] w-full rounded-[1.25rem] object-cover grayscale" loading="lazy">
+                @endforeach
             </div>
         </div>
     </section>
-@endif
 
 <section class="bg-[#171717] px-5 py-16 text-white sm:px-8 sm:py-20 lg:px-12 lg:py-24" aria-label="Statistik CukipGym" data-navbar-tone="dark">
     <div class="mx-auto grid max-w-[90rem] gap-12 text-center sm:grid-cols-3 sm:gap-6">

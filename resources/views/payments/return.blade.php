@@ -14,7 +14,15 @@
             'subtotal' => $item->amount,
         ])
         : collect();
-    $orderItems = $checkoutItems->isNotEmpty() ? $checkoutItems : $transactionItems;
+    $trainerItems = $payment
+        ? $payment->trainerBookings->map(fn ($booking) => [
+            'name' => 'Sesi privat '.$booking->slot->trainer->name.' · '.$booking->slot->starts_at->translatedFormat('d M Y, H:i'),
+            'quantity' => 1,
+            'subtotal' => $booking->amount,
+        ])
+        : collect();
+    $orderItems = $checkoutItems->isNotEmpty() ? $checkoutItems : ($transactionItems->isNotEmpty() ? $transactionItems : $trainerItems);
+    $isTrainerPayment = $trainerItems->isNotEmpty();
 @endphp
 
 @section('content')
@@ -28,7 +36,7 @@
                 <p class="mt-5 text-sm leading-7 text-[#737373]">Pesanan ini tidak tersimpan pada browser atau akun yang sedang digunakan.</p>
             @elseif ($isPaid)
                 <h1 class="mt-5 text-4xl font-semibold tracking-[-.055em]">Pembayaran berhasil.</h1>
-                <p class="mt-5 text-sm leading-7 text-[#737373]">Membership sudah diproses. Detail pesanan tetap dapat kamu lihat dari riwayat pesanan.</p>
+                <p class="mt-5 text-sm leading-7 text-[#737373]">{{ $isTrainerPayment ? 'Jadwal latihan privatmu sudah dikonfirmasi.' : 'Membership sudah diproses.' }} Detail pesanan tetap dapat kamu lihat dari riwayat pesanan.</p>
                 @if ($payment->payment_confirmation_sent_at && $payment->customer_email)
                     <p class="mt-3 text-xs leading-6 text-[#27845a]">Konfirmasi pembayaran sudah dikirim ke {{ $payment->customer_email }}.</p>
                 @endif
@@ -58,7 +66,7 @@
                             <div class="flex items-start justify-between gap-5">
                                 <div>
                                     <p class="text-sm font-semibold">{{ $item['name'] }}</p>
-                                    <p class="mt-1 text-xs text-[#858585]">{{ $item['quantity'] }} periode</p>
+                                    <p class="mt-1 text-xs text-[#858585]">{{ $isTrainerPayment ? '1 sesi privat' : $item['quantity'].' periode' }}</p>
                                 </div>
                                 <p class="shrink-0 text-sm font-semibold">Rp{{ number_format($item['subtotal'], 0, ',', '.') }}</p>
                             </div>

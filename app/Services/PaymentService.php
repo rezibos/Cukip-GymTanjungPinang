@@ -32,15 +32,22 @@ class PaymentService
             return $payment;
         }
 
-        $payment->loadMissing(['user', 'transactions.membership.plan']);
+        $payment->loadMissing(['user', 'transactions.membership.plan', 'trainerBookings.slot.trainer']);
 
         $checkoutItems = collect($payment->checkout_items ?? []);
 
-        if ($payment->transactions->isEmpty() && $checkoutItems->isEmpty()) {
+        if ($payment->transactions->isEmpty() && $checkoutItems->isEmpty() && $payment->trainerBookings->isEmpty()) {
             throw new RuntimeException('Pembayaran tidak memiliki rincian transaksi.');
         }
 
-        $itemDetails = $checkoutItems->isNotEmpty()
+        $itemDetails = $payment->trainerBookings->isNotEmpty()
+            ? $payment->trainerBookings->map(fn ($booking): array => [
+                'id' => 'trainer-slot-'.$booking->trainer_slot_id,
+                'price' => $booking->amount,
+                'quantity' => 1,
+                'name' => Str::limit('Sesi privat '.$booking->slot->trainer->name, 50, ''),
+            ])->all()
+            : ($checkoutItems->isNotEmpty()
             ? $checkoutItems->map(fn (array $item): array => [
                 'id' => 'plan-'.$item['membership_plan_id'],
                 'price' => $item['price'],
@@ -54,7 +61,7 @@ class PaymentService
                     'quantity' => $transaction->quantity,
                     'name' => Str::limit($transaction->membership->plan->name, 50, ''),
                 ];
-            })->all();
+            })->all());
 
         $response = $this->gateway->createTransaction([
             'transaction_details' => [
@@ -106,7 +113,7 @@ class PaymentService
 
         $shouldSendPaymentConfirmation = DB::transaction(function () use ($payment, $statusResponse, $midtransStatus): bool {
             $lockedPayment = Payment::query()
-                ->with(['transactions.membership.plan'])
+                ->with(['transactions.membership.plan', 'trainerBookings.slot'])
                 ->lockForUpdate()
                 ->findOrFail($payment->id);
 
@@ -128,7 +135,7 @@ class PaymentService
             if ($resolvedStatus === PaymentStatus::Paid) {
                 $this->markPaid($lockedPayment);
 
-                return true;
+                return $lockedPayment->transactions->isNotEmpty();
             }
 
             if ($resolvedStatus === PaymentStatus::Refunded) {
@@ -187,6 +194,11 @@ class PaymentService
                 if ($transaction->membership->status === MembershipStatus::PendingPayment) {
                     $transaction->membership->activate();
                 }
+            }
+
+            foreach ($payment->trainerBookings as $booking) {
+                $booking->update(['status' => 'confirmed']);
+                $booking->slot->update(['status' => 'booked', 'held_until' => null]);
             }
         }
     }
@@ -310,6 +322,11 @@ class PaymentService
             ]);
 
             $transaction->membership->update(['status' => MembershipStatus::Cancelled]);
+        }
+
+        foreach ($payment->trainerBookings as $booking) {
+            $booking->update(['status' => 'cancelled']);
+            $booking->slot->update(['status' => 'available', 'held_until' => null]);
         }
     }
 }

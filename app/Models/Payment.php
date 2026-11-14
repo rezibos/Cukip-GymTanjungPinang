@@ -66,4 +66,9 @@ class Payment extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public function trainerBookings(): HasMany
+    {
+        return $this->hasMany(TrainerBooking::class);
+    }
 }

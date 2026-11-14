@@ -19,8 +19,10 @@
                     $checkoutItems = collect($payment->checkout_items ?? []);
                     $firstCheckoutItem = $checkoutItems->first();
                     $firstTransaction = $payment->transactions->first();
-                    $itemName = $firstCheckoutItem['name'] ?? $firstTransaction?->membership?->plan?->name ?? 'Membership CukipGym';
-                    $itemCount = $checkoutItems->sum('quantity') ?: $payment->transactions->sum('quantity');
+                    $firstTrainerBooking = $payment->trainerBookings->first();
+                    $itemName = $firstCheckoutItem['name'] ?? $firstTransaction?->membership?->plan?->name ?? ($firstTrainerBooking ? 'Sesi privat '.$firstTrainerBooking->slot->trainer->name : 'Membership CukipGym');
+                    $itemCount = $checkoutItems->sum('quantity') ?: ($payment->transactions->sum('quantity') ?: $payment->trainerBookings->count());
+                    $itemUnit = $firstTrainerBooking ? 'sesi' : 'periode';
                 @endphp
                 <article class="grid gap-6 rounded-[1.5rem] border border-black/10 bg-white p-6 sm:grid-cols-[1fr_auto] sm:items-center sm:p-7">
                     <div>
@@ -29,7 +31,7 @@
                             <span class="rounded-full bg-[#f0f0ec] px-3 py-1 text-[.62rem] font-semibold">{{ $payment->status->label() }}</span>
                         </div>
                         <p class="mt-3 break-all text-[.65rem] text-[#858585]">{{ $payment->order_id }}</p>
-                        <p class="mt-1 text-[.65rem] text-[#a3a3a3]">{{ $itemCount }} periode · {{ $payment->created_at->translatedFormat('d M Y, H:i') }}</p>
+                        <p class="mt-1 text-[.65rem] text-[#a3a3a3]">{{ $itemCount }} {{ $itemUnit }} · {{ $payment->created_at->translatedFormat('d M Y, H:i') }}</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-4 sm:flex-col sm:items-end">
                         <p class="text-lg font-semibold">Rp{{ number_format($payment->gross_amount, 0, ',', '.') }}</p>

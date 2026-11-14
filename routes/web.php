@@ -13,6 +13,7 @@ use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentReturnController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\TrainerBookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -59,6 +60,10 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/classes/bookings/{booking}', [ClassBookingController::class, 'cancel'])
         ->name('classes.bookings.cancel');
+
+    Route::post('/personal-trainer-bookings', [TrainerBookingController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('trainer-bookings.store');
 
     Route::get('/cart/checkout', [CartCheckoutController::class, 'create'])->name('cart.checkout');
     Route::post('/cart/checkout', [CartCheckoutController::class, 'store'])->name('cart.checkout.store');
