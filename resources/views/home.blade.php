@@ -27,7 +27,7 @@
         </div>
 
         <div class="reveal is-visible flex flex-col items-start gap-5 lg:items-end" style="--reveal-delay: 300ms">
-            <a href="{{ route('membership.index') }}" class="group inline-flex items-center gap-5 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-semibold text-[#171717] transition hover:-translate-y-1 hover:bg-[#d4d4d4] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+            <a href="{{ route('membership.index') }}" class="group inline-flex items-center gap-5 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-semibold text-[#171717] transition hover:-translate-y-1 hover:bg-[#d4d4d4] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" aria-label="Lihat paket membership">
                 Mulai sekarang
                 <span class="grid size-11 place-items-center rounded-full bg-white text-[#171717] transition group-hover:rotate-45" aria-hidden="true">
                     <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -464,7 +464,7 @@
     </svg>
 </div>
 
-<section class="membership-backdrop relative isolate overflow-hidden bg-white px-5 py-20 text-[#171717] sm:px-8 lg:px-12 lg:py-28" aria-labelledby="plans-title" data-navbar-tone="light" data-plan-picker>
+<section class="membership-backdrop relative isolate overflow-hidden bg-white px-5 py-20 text-[#171717] sm:px-8 lg:px-12 lg:py-28" aria-labelledby="plans-title" data-navbar-tone="light">
     <div class="pointer-events-none absolute -right-48 -top-56 size-[36rem] rounded-full border border-black/[.06] p-14 sm:-right-24" aria-hidden="true">
         <div class="size-full rounded-full border border-black/[.05] p-14">
             <div class="size-full rounded-full border border-black/[.04]"></div>
@@ -473,35 +473,27 @@
     <div class="pointer-events-none absolute -bottom-64 -left-48 size-[40rem] rounded-full border border-black/[.05] p-20" aria-hidden="true">
         <div class="size-full rounded-full border border-black/[.04]"></div>
     </div>
-    <div class="relative mx-auto max-w-[76rem]">
+    <div class="relative mx-auto max-w-[90rem]">
         <div class="grid gap-6 lg:grid-cols-[1fr_.65fr] lg:items-end">
             <div>
                 <p class="section-kicker">Paket membership</p>
                 <h2 id="plans-title" class="reveal mt-6 text-[clamp(2.6rem,4.5vw,4.25rem)] font-bold leading-[1.02] tracking-[-.06em]">Pilih akses.<br><span class="text-[#737373]">Mulai bergerak.</span></h2>
             </div>
-            <p class="reveal max-w-sm text-justify text-sm leading-7 text-[#73736d] lg:justify-self-end" style="--reveal-delay: 100ms">Mulai dari satu hari atau bangun rutinitas jangka panjang. Semua paket dibuat sederhana, transparan, dan mudah dipilih.</p>
+            <p class="reveal max-w-sm text-justify text-sm leading-7 text-[#73736d] lg:justify-self-end" style="--reveal-delay: 100ms">Pilih masa aktif yang cocok dengan ritmemu. Semua paket mendapat akses gym yang sama; paket jangka panjang dilengkapi bonus pembelian khusus.</p>
         </div>
 
-        @if ($plans->contains(fn ($plan) => $plan->duration_days >= 300))
-            <div class="mt-9 flex flex-col items-center gap-3">
-                <div class="inline-flex rounded-xl border border-[#171717]/10 bg-[#e5e5e5] p-1" role="group" aria-label="Durasi paket jangka panjang">
-                    <button type="button" class="plan-period-button rounded-lg px-6 py-2.5 text-xs font-semibold transition" data-plan-period="monthly" aria-pressed="true">Monthly</button>
-                    <button type="button" class="plan-period-button rounded-lg px-6 py-2.5 text-xs font-semibold transition" data-plan-period="yearly" aria-pressed="false">Yearly</button>
-                </div>
-                <p class="text-[.65rem] text-[#737373]">Day Pass tetap berlaku untuk satu hari.</p>
+        <div class="mx-auto max-w-[76rem]" data-membership-slider>
+            <div class="membership-plan-rail mt-10" aria-label="Pilihan paket membership" data-membership-carousel data-membership-swipe>
+                @foreach ($plans as $plan)
+                    <x-sculpted-plan-card :plan="$plan" :featured="$plan->badge === 'Best Value'" />
+                @endforeach
             </div>
-        @endif
 
-        <div class="mt-9 grid gap-x-7 gap-y-10 lg:grid-cols-3 lg:gap-x-8">
-            @foreach ($plans->groupBy('name') as $planVariants)
-                <div class="plan-slot">
-                    @foreach ($planVariants as $plan)
-                        <div class="plan-option" data-plan-option="{{ $plan->duration_days >= 300 ? 'yearly' : ($plan->duration_days >= 28 ? 'monthly' : 'all') }}" data-active="{{ $plan->duration_days >= 300 ? 'false' : 'true' }}" aria-hidden="{{ $plan->duration_days >= 300 ? 'true' : 'false' }}" @if ($plan->duration_days >= 300) inert @endif>
-                            <x-sculpted-plan-card :plan="$plan" :featured="$plan->name === 'VIP'" />
-                        </div>
-                    @endforeach
+            @if ($plans->isNotEmpty())
+                <div class="mt-7 flex justify-center">
+                    <x-membership-carousel-controls />
                 </div>
-            @endforeach
+            @endif
         </div>
     </div>
 </section>
@@ -731,9 +723,9 @@
         $frequentlyAskedQuestions = [
             ['question' => 'Baru pertama kali ke gym, boleh ikut?', 'answer' => 'Tentu. Kamu bisa mulai sesuai kemampuan dan membangun rutinitas secara bertahap. Kenali area latihan terlebih dahulu dan tanyakan kepada tim gym jika membutuhkan arahan penggunaan alat.'],
             ['question' => 'Bagaimana cara mendaftar membership?', 'answer' => 'Pilih paket, isi data diri, lalu selesaikan pembayaran tanpa perlu login. Setelah pembayaran berhasil, kredensial akun dikirim ke emailmu untuk memantau membership.'],
-            ['question' => 'Bisa mencoba latihan untuk satu hari?', 'answer' => 'Bisa. Pilih Day Pass untuk akses satu hari. Paket ini cocok untuk mengenal suasana gym sebelum memilih membership dengan durasi yang lebih panjang.'],
-            ['question' => 'Apa saja fasilitas yang tersedia?', 'answer' => 'Tersedia area latihan beban, peralatan kardio, dan fasilitas pendukung latihan. Cek daftar fasilitas pada paket pilihanmu karena akses dan manfaat setiap paket dapat berbeda.'],
-            ['question' => 'Apakah tersedia kelas kebugaran?', 'answer' => 'Kamu bisa melihat pilihan dan jadwal pada halaman Kelas. Periksa juga fasilitas paket membership untuk memastikan akses kelas sudah termasuk dalam paketmu.'],
+            ['question' => 'Bisa mencoba latihan untuk satu hari?', 'answer' => 'Bisa. Pilih 1 Day Pass untuk akses satu hari. Paket ini cocok untuk mengenal suasana gym sebelum memilih membership dengan durasi yang lebih panjang.'],
+            ['question' => 'Apa saja fasilitas yang tersedia?', 'answer' => 'Tersedia area latihan beban, peralatan kardio, dan fasilitas pendukung latihan. Semua paket membership mendapat akses fasilitas gym yang sama.'],
+            ['question' => 'Apakah tersedia kelas kebugaran?', 'answer' => 'Kamu bisa melihat pilihan dan jadwal yang tersedia pada halaman Kelas.'],
             ['question' => 'Jam berapa gym buka?', 'answer' => 'Jam operasional ditampilkan pada informasi setiap cabang di peta. Pilih penanda lokasi yang ingin kamu kunjungi untuk melihat jam buka serta area cabangnya.'],
             ['question' => 'Di mana saya melihat masa aktif membership?', 'answer' => 'Masuk ke akunmu dan buka halaman profil untuk melihat status pembayaran serta masa aktif membership. Kamu bisa memilih paket berikutnya melalui halaman Membership.'],
         ];

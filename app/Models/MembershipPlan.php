@@ -10,11 +10,27 @@ class MembershipPlan extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'duration_days', 'price', 'description', 'is_active'];
+    protected $fillable = [
+        'name',
+        'duration_days',
+        'price',
+        'original_price',
+        'discount_label',
+        'badge',
+        'description',
+        'benefits',
+        'is_active',
+    ];
 
     protected function casts(): array
     {
-        return ['price' => 'integer', 'duration_days' => 'integer', 'is_active' => 'boolean'];
+        return [
+            'price' => 'integer',
+            'original_price' => 'integer',
+            'duration_days' => 'integer',
+            'benefits' => 'array',
+            'is_active' => 'boolean',
+        ];
     }
 
     public function memberships(): HasMany
@@ -27,11 +43,12 @@ class MembershipPlan extends Model
         return 'Rp'.number_format($this->price, 0, ',', '.');
     }
 
-    /**
-     * @return list<string>
-     */
-    public function getFeaturesAttribute(): array
+    public function getFormattedOriginalPriceAttribute(): ?string
     {
-        return config('membership.catalog')[$this->name]['features'] ?? [];
+        if ($this->original_price === null) {
+            return null;
+        }
+
+        return 'Rp'.number_format($this->original_price, 0, ',', '.');
     }
 }

@@ -1,8 +1,10 @@
 import { initReviewCarousels } from './review-carousel';
 import { initNotifications, showNotification } from './notifications';
+import { initMembershipCarousels } from './membership-carousel';
 
 initReviewCarousels();
 initNotifications();
+initMembershipCarousels();
 
 const updateCartTotals = (result) => {
     document.querySelectorAll('[data-cart-link]').forEach((cartLink) => {
@@ -181,52 +183,6 @@ document.querySelectorAll('[data-class-schedule]').forEach((schedule) => {
     buttons.forEach((button) => button.addEventListener('click', () => selectDay(button.dataset.classDay)));
 });
 
-document.querySelectorAll('[data-plan-picker]').forEach((picker) => {
-    const buttons = Array.from(picker.querySelectorAll('[data-plan-period]'));
-    const options = Array.from(picker.querySelectorAll('[data-plan-option]'));
-
-    const selectPeriod = (period) => {
-        if (!buttons.some((button) => button.dataset.planPeriod === period)) {
-            return;
-        }
-
-        picker.dataset.planSelected = period;
-        buttons.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.planPeriod === period)));
-        options.forEach((option) => {
-            const isActive = option.dataset.planOption === 'all' || option.dataset.planOption === period;
-            option.dataset.active = String(isActive);
-            option.setAttribute('aria-hidden', String(!isActive));
-            option.inert = !isActive;
-        });
-    };
-
-    buttons.forEach((button) => {
-        button.addEventListener('click', () => {
-            selectPeriod(button.dataset.planPeriod);
-        });
-
-        button.addEventListener('keydown', (event) => {
-            const index = buttons.indexOf(button);
-            let nextIndex = index;
-
-            if (event.key === 'ArrowRight') {
-                nextIndex = (index + 1) % buttons.length;
-            } else if (event.key === 'ArrowLeft') {
-                nextIndex = (index - 1 + buttons.length) % buttons.length;
-            } else {
-                return;
-            }
-
-            event.preventDefault();
-            selectPeriod(buttons[nextIndex].dataset.planPeriod);
-            buttons[nextIndex].focus();
-        });
-    });
-
-    const restorePeriod = () => selectPeriod(picker.dataset.planSelected ?? 'monthly');
-    restorePeriod();
-    window.addEventListener('pageshow', restorePeriod);
-});
 const mobileMenu = document.getElementById('mobile-menu');
 
 if (menuButton && mobileMenu) {
@@ -453,6 +409,28 @@ window.addEventListener('resize', measureJourney, { passive: true });
 document.fonts.ready.then(measureJourney);
 
 let scrollFrameRequested = false;
+let lastScrollY = window.scrollY;
+
+// ======== Hide navbar on scroll down, show on scroll up ========
+const navbar = document.querySelector('[data-navbar]');
+const SCROLL_THRESHOLD = 60; // px dari atas sebelum mulai disembunyikan
+
+const updateNavbarVisibility = () => {
+    if (!navbar) return;
+    const currentScrollY = window.scrollY;
+    const scrollingDown = currentScrollY > lastScrollY;
+
+    if (currentScrollY < SCROLL_THRESHOLD) {
+        // Selalu tampilkan navbar di dekat atas halaman
+        navbar.classList.remove('navbar-hidden');
+    } else if (scrollingDown) {
+        navbar.classList.add('navbar-hidden');
+    } else {
+        navbar.classList.remove('navbar-hidden');
+    }
+
+    lastScrollY = currentScrollY;
+};
 
 const updateScrollEffects = () => {
     if (joiningJourney && journeyScrollSection && journeyCamera) {
@@ -501,6 +479,8 @@ const updateScrollEffects = () => {
 };
 
 window.addEventListener('scroll', () => {
+    updateNavbarVisibility();
+
     if (scrollFrameRequested) {
         return;
     }

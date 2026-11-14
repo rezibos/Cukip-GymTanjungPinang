@@ -17,7 +17,7 @@ class HomeController extends Controller
     {
         $profile = GymProfile::current();
         $facilities = Facility::orderBy('name')->take(8)->get();
-        $plans = MembershipPlan::where('is_active', true)->orderBy('price')->get();
+        $plans = MembershipPlan::where('is_active', true)->orderBy('duration_days')->get();
         $reviews = Review::approved()->with('user')->latest()->take(6)->get();
         $user = auth()->user();
         $canReview = $user?->everHadMembership() ?? false;

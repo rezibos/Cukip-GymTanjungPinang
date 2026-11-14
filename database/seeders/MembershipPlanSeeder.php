@@ -11,23 +11,24 @@ class MembershipPlanSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function (): void {
+            $activePlanIds = [];
+
             foreach (config('membership.catalog') as $name => $plan) {
-                MembershipPlan::updateOrCreate(['name' => $name, 'duration_days' => $plan['duration_days']], [
+                $membershipPlan = MembershipPlan::updateOrCreate(['name' => $name, 'duration_days' => $plan['duration_days']], [
                     'price' => $plan['price'],
+                    'original_price' => $plan['original_price'],
+                    'discount_label' => $plan['discount_label'],
+                    'badge' => $plan['badge'],
                     'description' => $plan['description'],
+                    'benefits' => $plan['benefits'],
                     'is_active' => true,
                 ]);
 
-                if (isset($plan['yearly_price'])) {
-                    MembershipPlan::updateOrCreate(['name' => $name, 'duration_days' => 365], [
-                        'price' => $plan['yearly_price'],
-                        'description' => $plan['description'],
-                        'is_active' => true,
-                    ]);
-                }
+                $activePlanIds[] = $membershipPlan->id;
             }
 
-            MembershipPlan::whereIn('name', ['Paket Harian', 'Paket Mingguan', 'Paket Bulanan', 'Paket Tahunan'])
+            MembershipPlan::query()
+                ->whereNotIn('id', $activePlanIds)
                 ->update(['is_active' => false]);
         });
     }

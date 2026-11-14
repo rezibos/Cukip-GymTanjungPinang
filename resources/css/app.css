@@ -19,6 +19,18 @@
     color-scheme: light;
 }
 
+/* ===================== Navbar hide/show on scroll ===================== */
+[data-navbar] {
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-navbar].navbar-hidden {
+    transform: translateY(-110%);
+    opacity: 0;
+    pointer-events: none;
+}
+
 .swal2-popup.gym-notification.swal2-toast {
     grid-template-columns: 1.5rem minmax(0, 1fr) 1.5rem;
     column-gap: .65rem;
@@ -574,38 +586,54 @@ body {
     box-shadow: 0 0 0 8px #ffffff;
 }
 
-.plan-slot {
+.membership-plan-rail {
     display: grid;
-    min-width: 0;
-    align-items: start;
-    overflow-anchor: none;
+    grid-auto-columns: 100%;
+    grid-auto-flow: column;
+    gap: 1.25rem;
+    overflow: hidden;
+    padding: 3.5rem .25rem 1rem;
+    scroll-behavior: smooth;
+    touch-action: pan-y;
 }
 
-.plan-option {
-    grid-area: 1 / 1;
-    min-width: 0;
+.membership-plan-rail[data-membership-swipe] {
+    cursor: grab;
 }
 
-.plan-option[data-active="false"] {
-    visibility: hidden;
-    pointer-events: none;
+.membership-plan-rail[data-membership-swipe].is-dragging {
+    cursor: grabbing;
+    user-select: none;
 }
 
-[data-plan-picker] .plan-period-button {
-    position: relative;
-    z-index: 1;
-    min-height: 44px;
-    touch-action: manipulation;
+.membership-carousel-controls {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.membership-carousel-button {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border: 1px solid #171717;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #171717;
     cursor: pointer;
+    transition: background-color 180ms ease, color 180ms ease, opacity 180ms ease;
 }
 
-.plan-period-button[aria-pressed="true"] {
+.membership-carousel-button:hover:not(:disabled) {
     background: #171717;
     color: #ffffff;
 }
 
-.plan-period-button[aria-pressed="false"] {
-    color: #737373;
+.membership-carousel-button:disabled {
+    border-color: rgb(23 23 23 / .18);
+    color: rgb(23 23 23 / .28);
+    cursor: not-allowed;
 }
 
 .sculpted-plan {
@@ -614,9 +642,11 @@ body {
     --plan-header-height: 350px;
     position: relative;
     width: 100%;
+    min-width: 0;
     max-width: 28rem;
     margin-inline: auto;
     filter: drop-shadow(0 12px 18px rgb(23 23 23 / .045));
+    scroll-snap-align: start;
 }
 
 .sculpted-plan-featured {
@@ -625,49 +655,100 @@ body {
     color: #ffffff;
 }
 
-.sculpted-plan-featured .sculpted-plan-top p,
-.sculpted-plan-featured .sculpted-plan-bottom li {
-    color: #c7c7c7;
-}
-
-.sculpted-plan-featured .sculpted-plan-top .text-right > p:first-child,
-.sculpted-plan-featured .sculpted-plan-bottom > p:first-child {
-    color: #ffffff;
-}
-
-.sculpted-plan-featured .sculpted-plan-bottom > p:first-child {
-    border-color: rgb(255 255 255 / .22);
-}
-
-.sculpted-plan-featured .sculpted-plan-bottom li > span,
-.sculpted-plan-featured .sculpted-plan-bottom > p:last-child {
-    color: #aaaaaa;
-}
-
 .sculpted-plan-badge {
     position: absolute;
-    right: 1.5rem;
-    top: 1.25rem;
-    padding: .35rem .65rem;
-    border-radius: 2rem;
-    background: #ededed;
-    color: #666666;
-    font-size: .6rem;
-    font-weight: 500;
+    z-index: 0;
+    top: -2.75rem;
+    left: 50%;
+    width: clamp(10.5rem, 64%, 15rem);
+    min-height: 4.75rem;
+    padding: 1rem 1.25rem 2rem;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / .15);
+    border-bottom: none;
+    border-radius: 1.35rem 1.35rem .45rem .45rem;
+    background: rgb(23 23 23 / .82);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: 0 -6px 24px rgb(0 0 0 / .22), inset 0 1px 0 rgb(255 255 255 / .12);
+    color: #ffffff;
+    font-size: .8rem;
+    font-weight: 800;
+    letter-spacing: .2em;
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow: 0 1px 4px rgb(0 0 0 / .5);
+    transform: translateX(-50%);
+}
+
+/* shimmer sweep animation */
+.sculpted-plan-badge::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        110deg,
+        transparent 20%,
+        rgb(255 255 255 / .08) 45%,
+        rgb(255 255 255 / .22) 50%,
+        rgb(255 255 255 / .08) 55%,
+        transparent 80%
+    );
+    content: '';
+    animation: badge-shimmer 2.6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes badge-shimmer {
+    0%   { transform: translateX(-140%); }
+    60%  { transform: translateX(140%); }
+    100% { transform: translateX(140%); }
 }
 
 .sculpted-plan-featured .sculpted-plan-badge {
-    background: #e5e5e5;
-    color: #242424;
+    border-color: rgb(255 255 255 / .2);
+    background: rgb(10 10 10 / .75);
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgb(0 0 0 / .6);
 }
 
 .sculpted-plan-top {
     position: relative;
     height: var(--plan-header-height);
-    padding: 3.75rem 1.75rem 3rem;
+    padding: 2.5rem 1.75rem 3rem;
     border: 1px solid var(--plan-border);
     border-radius: 1.75rem;
     background: var(--plan-surface);
+}
+
+.sculpted-plan-discount {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: .5rem .75rem;
+    border: 1px solid rgb(255 248 241 / .46);
+    border-radius: .65rem;
+    background: linear-gradient(135deg, rgb(125 85 61 / .88) 0%, rgb(194 150 112 / .76) 58%, rgb(151 101 70 / .82) 100%);
+    backdrop-filter: blur(10px);
+    color: #fffaf5;
+    box-shadow: 0 8px 20px rgb(102 67 47 / .2), inset 0 1px 0 rgb(255 255 255 / .28);
+    font-size: .5rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sculpted-plan-discount-label {
+    padding-right: .3rem;
+}
+
+.sculpted-plan-discount-value {
+    padding-left: .3rem;
+    font-size: .62rem;
+    letter-spacing: .02em;
 }
 
 .sculpted-plan-bottom {
@@ -703,17 +784,73 @@ body {
 
 .sculpted-plan-arrow:hover {
     background: #444444;
-    color: #fff;
+    color: #ffffff;
+}
+
+.sculpted-plan-bottom > p:first-child {
+    border-top-width: 1px;
+}
+
+.sculpted-plan-featured .sculpted-plan-top p,
+.sculpted-plan-featured .sculpted-plan-bottom li {
+    color: #c7c7c7;
+}
+
+.sculpted-plan-featured .sculpted-plan-top .text-right > p:first-child,
+.sculpted-plan-featured .sculpted-plan-bottom > p:first-child {
+    color: #ffffff;
+}
+
+.sculpted-plan-featured .sculpted-plan-bottom > p:first-child {
+    border-color: rgb(255 255 255 / .24);
+}
+
+.sculpted-plan-featured .sculpted-plan-bottom li > span,
+.sculpted-plan-featured .sculpted-plan-bottom > p:last-child {
+    color: #aaaaaa;
+}
+
+.sculpted-plan-featured .sculpted-plan-discount {
+    border-color: rgb(255 235 218 / .38);
+    background: linear-gradient(135deg, rgb(166 116 82 / .9) 0%, rgb(211 168 130 / .82) 58%, rgb(158 107 75 / .88) 100%);
+    color: #fffaf5;
+    box-shadow: 0 8px 22px rgb(0 0 0 / .28), inset 0 1px 0 rgb(255 255 255 / .25);
+}
+
+.sculpted-plan-featured .sculpted-plan-discount-value {
+    border-color: rgb(255 248 241 / .48);
 }
 
 .sculpted-plan-featured .sculpted-plan-arrow {
-    background: #e5e5e5;
     border-color: #e5e5e5;
+    background: #e5e5e5;
     color: #242424;
 }
 
 .sculpted-plan-featured .sculpted-plan-arrow:hover {
+    border-color: #ffffff;
     background: #ffffff;
+}
+
+@media (min-width: 48rem) {
+    .membership-plan-rail {
+        grid-auto-columns: calc((100% - 1.25rem) / 2);
+    }
+}
+
+@media (min-width: 80rem) {
+    .membership-plan-rail {
+        grid-auto-columns: calc((100% - 2.5rem) / 3);
+        gap: 1.25rem;
+        padding-inline: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sculpted-plan-arrow,
+    .sculpted-plan-arrow svg {
+        transition: none;
+    }
 }
 
 .joining-journey-card {

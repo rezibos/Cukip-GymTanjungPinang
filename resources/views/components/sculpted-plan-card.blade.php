@@ -4,31 +4,54 @@
     $priceDivisor = $plan->price >= 1000000 ? 1000000 : 1000;
     $compactPrice = rtrim(rtrim(number_format($plan->price / $priceDivisor, 2, ',', '.'), '0'), ',');
     $priceSuffix = $plan->price >= 1000000 ? 'JT' : 'K';
+    $benefits = array_values(array_filter($plan->benefits ?? []));
+    $discountValue = null;
+
+    if (filled($plan->discount_label)) {
+        preg_match('/(\d+)\s*%/', $plan->discount_label, $discountMatches);
+        $discountValue = isset($discountMatches[1]) ? $discountMatches[1].'%' : $plan->discount_label;
+    }
 @endphp
 
 <article {{ $attributes->class(['sculpted-plan', 'sculpted-plan-featured' => $featured]) }}>
+    @if (filled($plan->badge))
+        <span class="sculpted-plan-badge sculpted-plan-badge-tab">{{ $plan->badge }}</span>
+    @endif
+
     <div class="sculpted-plan-top">
-        @if ($featured || $plan->duration_days === 1)
-            <span class="sculpted-plan-badge">{{ $featured ? 'Recommended' : 'Trial' }}</span>
-        @endif
-        <h3 class="text-[1.65rem] font-semibold tracking-[-.045em]">{{ $plan->name }}</h3>
+        <div class="flex items-start justify-between gap-4">
+            <h3 class="text-[1.65rem] font-semibold tracking-[-.045em]">{{ $plan->name }}</h3>
+            @if ($discountValue)
+                <span class="sculpted-plan-discount" aria-label="DISKON {{ $discountValue }}">
+                    <span class="sculpted-plan-discount-label">DISKON</span>
+                    <span class="sculpted-plan-discount-value">{{ $discountValue }}</span>
+                </span>
+            @endif
+        </div>
+
         <div class="mt-6 grid grid-cols-[1.1fr_1fr] items-start gap-5">
             <p class="text-[.85rem] leading-6 text-[#686862]">{{ $plan->description ?? 'Pilih masa akses yang sesuai dengan rutinitas dan tujuan latihanmu.' }}</p>
             <div class="pt-1 text-right">
                 <p class="whitespace-nowrap text-[clamp(2.2rem,3.1vw,3rem)] font-semibold leading-none tracking-[-.065em]" aria-label="{{ $plan->formatted_price }}" title="{{ $plan->formatted_price }}">{{ $compactPrice }}<span class="ml-0.5 text-[.6em]">{{ $priceSuffix }}</span></p>
-                <p class="mt-3 text-xs text-[#797972]">{{ $plan->duration_days >= 300 ? '/ Year' : ($plan->duration_days >= 28 ? '/ Month' : $plan->duration_days . ' Day') }}</p>
+                @if ($plan->formatted_original_price)
+                    <p class="mt-3 text-xs text-[#797972] line-through decoration-1" title="Harga sebelum diskon">{{ $plan->formatted_original_price }}</p>
+                @endif
             </div>
         </div>
     </div>
+
     <div class="sculpted-plan-bottom">
-        <p class="border-t border-[#171717]/15 pt-5 text-sm font-semibold tracking-[-.015em]">Facilities</p>
+        <p class="border-t border-[#171717]/15 pt-5 text-sm font-semibold tracking-[-.015em]">Benefits</p>
         <ul class="mt-5 flex flex-col gap-2.5">
-            @foreach ($plan->features as $feature)
-                <li class="flex items-start gap-2 text-[.8rem] leading-5 text-[#575751]"><span class="mt-0.5 text-[.65rem] text-[#88887f]" aria-hidden="true">✓</span>{{ $feature }}</li>
-            @endforeach
+            @forelse ($benefits as $benefit)
+                <li class="flex items-start gap-2 text-[.8rem] leading-5 text-[#575751]"><span class="mt-0.5 text-[.65rem] text-[#88887f]" aria-hidden="true">✓</span>{{ $benefit }}</li>
+            @empty
+                <li class="text-[.8rem] leading-5 text-[#85857f]">Tidak ada benefit tambahan</li>
+            @endforelse
         </ul>
-        <p class="mt-auto pt-6 text-[.6rem] font-semibold uppercase tracking-[.14em] text-[#909087]">{{ $plan->duration_days }} days access</p>
+        <p class="mt-auto pt-6 text-[.6rem] font-semibold uppercase tracking-[.14em] text-[#909087]">{{ $plan->duration_days }} hari akses</p>
     </div>
+
     <form method="POST" action="{{ route('cart.store', $plan) }}" class="sculpted-plan-arrow group" data-cart-add>
         @csrf
         <button type="submit" class="grid size-full cursor-pointer place-items-center rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] disabled:cursor-wait disabled:opacity-65" aria-label="Masukkan {{ $plan->name }} ke keranjang">

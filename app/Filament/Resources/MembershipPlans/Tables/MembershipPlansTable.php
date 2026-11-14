@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MembershipPlans\Tables;
 
+use App\Models\MembershipPlan;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
@@ -20,6 +21,9 @@ class MembershipPlansTable
                 TextColumn::make('duration_days')->label('Durasi')->suffix(' hari')->sortable(),
                 TextColumn::make('price')->label('Harga')->sortable()
                     ->formatStateUsing(fn ($state) => 'Rp'.number_format($state, 0, ',', '.')),
+                TextColumn::make('discount_label')->label('Promo')->placeholder('—'),
+                TextColumn::make('benefits')->label('Benefit')
+                    ->state(fn (MembershipPlan $record): string => count($record->benefits ?? []).' bonus'),
                 IconColumn::make('is_active')->label('Aktif')->boolean(),
                 TextColumn::make('memberships_count')->label('Total Dipakai')->counts('memberships'),
             ])

@@ -160,6 +160,35 @@ class AdminDashboardTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_a_membership_package_with_promotional_benefits(): void
+    {
+        $this->signInAdmin();
+
+        Livewire::test(ListMembershipPlans::class)
+            ->callAction('create', [
+                'name' => '6 Month',
+                'duration_days' => 180,
+                'price' => 2400000,
+                'original_price' => 3000000,
+                'discount_label' => '20% OFF',
+                'badge' => 'Pilihan Hemat',
+                'description' => 'Bangun rutinitas latihan selama enam bulan.',
+                'benefits' => [
+                    ['benefit' => '2 sesi personal trainer'],
+                    ['benefit' => 'Gratis kaos CukipGym'],
+                ],
+                'is_active' => true,
+            ])
+            ->assertHasNoFormErrors();
+
+        $plan = MembershipPlan::query()->where('name', '6 Month')->firstOrFail();
+
+        $this->assertSame(3000000, $plan->original_price);
+        $this->assertSame('20% OFF', $plan->discount_label);
+        $this->assertSame('Pilihan Hemat', $plan->badge);
+        $this->assertSame(['2 sesi personal trainer', 'Gratis kaos CukipGym'], $plan->benefits);
+    }
+
     public function test_selecting_a_membership_plan_automatically_fills_its_dates(): void
     {
         Carbon::setTestNow('2026-11-09 12:00:00');

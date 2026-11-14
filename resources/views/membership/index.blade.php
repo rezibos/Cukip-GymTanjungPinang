@@ -1,79 +1,41 @@
 @extends('layouts.app')
 
 @section('title', 'Paket Membership - CukipGym')
-@section('description', 'Pilih Day Pass, Regular, atau VIP CukipGym dan temukan durasi akses yang sesuai dengan rutinitas latihanmu.')
+@section('description', 'Pilih paket membership CukipGym dari 1 hari hingga 18 bulan dan dapatkan bonus khusus pada paket jangka panjang.')
 @section('main-class', 'w-full flex-1 bg-white')
 
 @section('content')
-@php
-    $hasMonthlyPlans = false;
-    $hasYearlyPlans = false;
-    foreach ($plans as $plan) {
-        if ($plan->duration_days >= 300) {
-            $hasYearlyPlans = true;
-        } elseif ($plan->duration_days >= 28) {
-            $hasMonthlyPlans = true;
-        }
-    }
-    $defaultPeriod = $hasMonthlyPlans ? 'monthly' : 'yearly';
-@endphp
-
-<section class="membership-backdrop relative isolate overflow-hidden px-5 pb-16 pt-32 text-[#171717] sm:px-8 lg:px-12 lg:pb-24 lg:pt-40" aria-labelledby="membership-title" data-navbar-tone="light" data-plan-picker data-plan-selected="{{ $defaultPeriod }}">
+<section class="membership-backdrop relative isolate overflow-hidden px-5 pb-16 pt-32 text-[#171717] sm:px-8 lg:px-12 lg:pb-24 lg:pt-40" aria-labelledby="membership-title" data-navbar-tone="light">
     <div class="pointer-events-none absolute -right-48 -top-56 size-[40rem] rounded-full border border-black/[.05] p-16" aria-hidden="true">
         <div class="size-full rounded-full border border-black/[.04] p-16"><div class="size-full rounded-full border border-black/[.04]"></div></div>
     </div>
-    <div class="relative mx-auto max-w-[76rem]">
+    <div class="relative mx-auto max-w-[90rem]">
         <div class="grid gap-8 lg:grid-cols-[1.25fr_.75fr] lg:items-end lg:gap-20">
             <div>
                 <p class="section-kicker">Membership CukipGym</p>
                 <h1 id="membership-title" class="mt-6 text-[clamp(3rem,6.7vw,6.5rem)] font-semibold leading-[.95] tracking-[-.065em]">Pilih ritmemu.<br><span class="text-[#858585]">Mulai bergerak.</span></h1>
             </div>
             <div class="max-w-sm lg:pb-1 lg:justify-self-end">
-                <p class="text-justify text-sm leading-7 text-[#737373]">Mulai dari satu kunjungan atau jadikan latihan bagian dari keseharian. Bandingkan akses, fasilitas, dan durasi untuk menemukan paket yang paling cocok denganmu.</p>
+                <p class="text-justify text-sm leading-7 text-[#737373]">Mulai dari satu kunjungan atau jadikan latihan bagian dari keseharian. Semua paket memakai fasilitas gym yang sama; pilih durasi dan bonus pembelian yang paling cocok untukmu.</p>
                 <a href="#pilihan-paket" class="mt-6 inline-flex items-center gap-3 text-xs font-semibold text-[#404040] transition hover:text-[#858585]">Temukan paketmu <span aria-hidden="true">↓</span></a>
             </div>
         </div>
 
-        <div id="pilihan-paket" class="mt-12 scroll-mt-28 lg:mt-14">
-            <div class="flex flex-col gap-5 border-t border-black/10 pt-7 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold tracking-[-.035em]">Satu tujuan. Pilihanmu.</h2>
-                    <p class="mt-2 text-xs leading-6 text-[#858585]">Day Pass tetap berlaku untuk satu hari.</p>
-                </div>
-                @if ($hasMonthlyPlans && $hasYearlyPlans)
-                    <div class="inline-flex w-fit rounded-full border border-black/10 bg-[#f0f0f0] p-1" role="group" aria-label="Durasi membership">
-                        <button type="button" class="plan-period-button rounded-full px-6 py-2.5 text-xs font-semibold transition" data-plan-period="monthly" aria-pressed="true">Bulanan</button>
-                        <button type="button" class="plan-period-button rounded-full px-6 py-2.5 text-xs font-semibold transition" data-plan-period="yearly" aria-pressed="false">Tahunan</button>
-                    </div>
-                @endif
-            </div>
-
+        <div id="pilihan-paket" class="mx-auto mt-12 max-w-[76rem] scroll-mt-28 lg:mt-14" data-membership-slider>
             @if ($plans->isEmpty())
                 <p class="mt-9 rounded-[1.5rem] border border-black/10 bg-white px-7 py-10 text-sm leading-7 text-[#737373]">Paket membership sedang diperbarui. Silakan cek kembali untuk melihat pilihan yang tersedia.</p>
             @else
-                <div class="mt-9 grid gap-x-7 gap-y-10 lg:grid-cols-3 lg:gap-x-8">
-                    @foreach ($plans->groupBy('name') as $planVariants)
-                        <div class="plan-slot">
-                            @foreach ($planVariants as $plan)
-                                @php
-                                    $planPeriod = $plan->duration_days >= 300 ? 'yearly' : ($plan->duration_days >= 28 ? 'monthly' : 'all');
-                                    $isActive = $planPeriod === 'all' || $planPeriod === $defaultPeriod;
-                                @endphp
-                                <div class="plan-option" data-plan-option="{{ $planPeriod }}" data-active="{{ $isActive ? 'true' : 'false' }}" aria-hidden="{{ $isActive ? 'false' : 'true' }}" @if (! $isActive) inert @endif>
-                                    <x-sculpted-plan-card :plan="$plan" :featured="$plan->name === 'VIP'" />
-                                </div>
-                            @endforeach
-                        </div>
+                <div class="membership-plan-rail mt-10" aria-label="Pilihan paket membership" data-membership-carousel data-membership-swipe>
+                    @foreach ($plans as $plan)
+                        <x-sculpted-plan-card :plan="$plan" :featured="$plan->badge === 'Best Value'" />
                     @endforeach
+                </div>
+                <div class="mt-7 flex justify-center">
+                    <x-membership-carousel-controls />
                 </div>
             @endif
         </div>
 
-        <div class="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3 text-[.7rem] text-[#858585]">
-            <p class="flex items-center gap-2"><span aria-hidden="true">✓</span> Pilih durasi sesuai rutinitas</p>
-            <p class="flex items-center gap-2"><span aria-hidden="true">✓</span> Lihat fasilitas setiap paket</p>
-            <p class="flex items-center gap-2"><span aria-hidden="true">✓</span> Pantau membership dari profil</p>
-        </div>
     </div>
 </section>
 
@@ -88,7 +50,7 @@
                 <li>
                     <span class="grid size-9 place-items-center rounded-full border border-black/15 text-xs text-[#858585]">01</span>
                     <h3 class="mt-5 text-sm font-semibold">Pilih paketmu</h3>
-                    <p class="mt-3 text-xs leading-6 text-[#737373]">Tentukan fasilitas dan masa akses yang sesuai dengan kebutuhan latihan.</p>
+                    <p class="mt-3 text-xs leading-6 text-[#737373]">Tentukan masa aktif dan bonus pembelian yang sesuai dengan rutinitas latihan.</p>
                 </li>
                 <li>
                     <span class="grid size-9 place-items-center rounded-full border border-black/15 text-xs text-[#858585]">02</span>

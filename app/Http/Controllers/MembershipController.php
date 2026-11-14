@@ -20,7 +20,7 @@ class MembershipController extends Controller
 {
     public function index(): View
     {
-        $plans = MembershipPlan::where('is_active', true)->orderBy('price')->get();
+        $plans = MembershipPlan::where('is_active', true)->orderBy('duration_days')->get();
 
         return view('membership.index', compact('plans'));
     }

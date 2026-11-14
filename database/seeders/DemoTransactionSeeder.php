@@ -12,7 +12,7 @@ class DemoTransactionSeeder extends Seeder
 {
     public function run(): void
     {
-        $plan = MembershipPlan::where('name', 'Regular')->firstOrFail();
+        $plan = MembershipPlan::where('name', '1 Month')->firstOrFail();
         $users = User::where('role', 'user')->get();
 
         foreach ($users as $user) {
