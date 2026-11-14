@@ -727,12 +727,13 @@ body {
     flex-shrink: 0;
     overflow: hidden;
     padding: .5rem .75rem;
-    border: 1px solid rgb(255 248 241 / .46);
+    border: 1px solid rgb(255 255 255 / .6);
     border-radius: .65rem;
-    background: linear-gradient(135deg, rgb(125 85 61 / .88) 0%, rgb(194 150 112 / .76) 58%, rgb(151 101 70 / .82) 100%);
+    background: linear-gradient(135deg, #7a8089 0%, #a8aeb7 46%, #717680 54%, #9399a3 100%);
     backdrop-filter: blur(10px);
-    color: #fffaf5;
-    box-shadow: 0 8px 20px rgb(102 67 47 / .2), inset 0 1px 0 rgb(255 255 255 / .28);
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgb(0 0 0 / .14), inset 0 1px 0 rgb(255 255 255 / .55);
+    text-shadow: 0 1px 2px rgb(0 0 0 / .35);
     font-size: .5rem;
     font-weight: 700;
     letter-spacing: .08em;
@@ -811,10 +812,11 @@ body {
 }
 
 .sculpted-plan-featured .sculpted-plan-discount {
-    border-color: rgb(255 235 218 / .38);
-    background: linear-gradient(135deg, rgb(166 116 82 / .9) 0%, rgb(211 168 130 / .82) 58%, rgb(158 107 75 / .88) 100%);
-    color: #fffaf5;
-    box-shadow: 0 8px 22px rgb(0 0 0 / .28), inset 0 1px 0 rgb(255 255 255 / .25);
+    border-color: rgb(255 255 255 / .5);
+    background: linear-gradient(135deg, #888e98 0%, #b8bec8 46%, #7e848f 54%, #a2a8b2 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 22px rgb(0 0 0 / .3), inset 0 1px 0 rgb(255 255 255 / .6);
+    text-shadow: 0 1px 2px rgb(0 0 0 / .4);
 }
 
 .sculpted-plan-featured .sculpted-plan-discount-value {
