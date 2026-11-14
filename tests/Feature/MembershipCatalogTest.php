@@ -57,7 +57,7 @@ class MembershipCatalogTest extends TestCase
             ->assertSee('data-plan-selected="monthly"', false)
             ->assertSee('data-plan-option="yearly" data-active="false"', false);
         foreach (MembershipPlan::where('is_active', true)->get() as $plan) {
-            $response->assertSee(route('membership.checkout', $plan), false)
+            $response->assertSee(route('cart.store', $plan), false)
                 ->assertSee($plan->formatted_price);
         }
     }

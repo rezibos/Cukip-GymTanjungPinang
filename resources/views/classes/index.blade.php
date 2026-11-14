@@ -41,7 +41,7 @@
                 </div>
             </div>
             @guest
-                <a href="{{ route('login') }}" class="inline-flex w-fit shrink-0 items-center gap-6 rounded-full bg-white px-5 py-3 text-xs font-semibold text-[#171717] transition hover:bg-[#d4d4d4]">Masuk untuk booking <span aria-hidden="true">↗</span></a>
+                <a href="{{ route('membership.index') }}#pilihan-paket" class="inline-flex w-fit shrink-0 items-center gap-6 rounded-full bg-white px-5 py-3 text-xs font-semibold text-[#171717] transition hover:bg-[#d4d4d4]">Pilih membership <span aria-hidden="true">↗</span></a>
             @else
                 @if (! $canBook)
                     <a href="{{ route('membership.index') }}" class="inline-flex w-fit shrink-0 items-center gap-6 rounded-full bg-white px-5 py-3 text-xs font-semibold text-[#171717] transition hover:bg-[#d4d4d4]">Pilih membership <span aria-hidden="true">↗</span></a>
@@ -102,7 +102,7 @@
                                     <button type="submit" class="flex min-h-11 w-full items-center justify-between rounded-full bg-[#171717] px-5 text-xs font-semibold text-white transition hover:bg-[#404040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]">Booking kelas <span aria-hidden="true">↗</span></button>
                                 </form>
                             @else
-                                <a href="{{ auth()->check() ? route('membership.index') : route('login') }}" class="mt-5 flex min-h-11 items-center justify-between rounded-full border border-black/15 px-5 text-xs font-semibold transition hover:bg-[#171717] hover:text-white">{{ auth()->check() ? 'Aktifkan membership' : 'Masuk untuk booking' }} <span aria-hidden="true">↗</span></a>
+                                <a href="{{ route('membership.index') }}#pilihan-paket" class="mt-5 flex min-h-11 items-center justify-between rounded-full border border-black/15 px-5 text-xs font-semibold transition hover:bg-[#171717] hover:text-white">{{ auth()->check() ? 'Aktifkan membership' : 'Pilih membership' }} <span aria-hidden="true">↗</span></a>
                             @endif
                         </div>
                     </article>

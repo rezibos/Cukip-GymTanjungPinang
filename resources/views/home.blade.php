@@ -156,23 +156,23 @@
 
         <figure class="about-gallery grid h-[36rem] grid-cols-2 grid-rows-3 gap-2 sm:h-[34rem] sm:grid-cols-12 sm:grid-rows-2 sm:gap-3" data-gallery-assemble>
             <div class="about-gallery-tile group relative col-span-2 overflow-hidden rounded-[1.25rem] sm:col-span-5 sm:row-span-2" style="--tile-index: 0">
-                <img src="{{ asset('images/gym-equipment-editorial.webp') }}" alt="Area dumbbell dan bangku latihan di gym" class="h-full w-full object-cover object-left grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" loading="lazy">
+                <img src="{{ asset('images/gym-equipment-editorial.webp') }}" alt="Area dumbbell dan bangku latihan di gym" class="h-full w-full object-cover object-left transition duration-700 group-hover:scale-105" loading="lazy">
                 <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-5 pb-5 pt-16 text-white sm:px-7 sm:pb-7">
                     <p class="text-[.6rem] font-semibold uppercase tracking-[.2em] text-white/65">Ruang untuk progresmu</p>
                     <p class="mt-2 text-xl font-medium tracking-[-.04em] sm:text-3xl">Latihanmu.<br>Ritmemu.</p>
                 </div>
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-4" style="--tile-index: 1">
-                <img src="{{ asset('images/gym-cable-row-editorial.webp') }}" alt="Member berlatih dengan mesin kabel" class="h-full w-full object-cover object-[38%_center] grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" loading="lazy">
+                <img src="{{ asset('images/gym-cable-row-editorial.webp') }}" alt="Member berlatih dengan mesin kabel" class="h-full w-full object-cover object-[38%_center] transition duration-700 group-hover:scale-105" loading="lazy">
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-3" style="--tile-index: 2">
-                <img src="{{ asset('images/gym-kettlebell-editorial.webp') }}" alt="Latihan kettlebell di area gym" class="h-full w-full object-cover object-center grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" loading="lazy">
+                <img src="{{ asset('images/gym-kettlebell-editorial.webp') }}" alt="Latihan kettlebell di area gym" class="h-full w-full object-cover object-center transition duration-700 group-hover:scale-105" loading="lazy">
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-3" style="--tile-index: 3">
-                <img src="{{ asset('images/gympinang-hero-color.png') }}" alt="Suasana latihan di CukipGym" class="h-full w-full object-cover object-center grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" loading="lazy">
+                <img src="{{ asset('images/gympinang-hero-color.png') }}" alt="Suasana latihan di CukipGym" class="h-full w-full object-cover object-center transition duration-700 group-hover:scale-105" loading="lazy">
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-4" style="--tile-index: 4">
-                <img src="{{ asset('images/gym-equipment-editorial.webp') }}" alt="Detail peralatan beban CukipGym" class="h-full w-full object-cover object-right grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" loading="lazy">
+                <img src="{{ asset('images/gym-equipment-editorial.webp') }}" alt="Detail peralatan beban CukipGym" class="h-full w-full object-cover object-right transition duration-700 group-hover:scale-105" loading="lazy">
             </div>
             <figcaption class="sr-only">Galeri area latihan dan fasilitas {{ $profile->name }}</figcaption>
         </figure>
@@ -262,7 +262,7 @@
                         <article class="trainer-card overflow-hidden rounded-[1.75rem] shadow-[0_30px_80px_rgba(40,45,55,.18)]" data-trainer-card>
                             <div class="trainer-card-inner">
                                 <div class="trainer-card-face trainer-card-front">
-                                    <img src="{{ asset($trainerImages[$loop->index % count($trainerImages)]) }}" alt="Visual kelas bersama {{ $instructor->instructor }}" class="h-full w-full rounded-[1.75rem] object-cover grayscale" loading="lazy">
+                                    <img src="{{ asset($trainerImages[$loop->index % count($trainerImages)]) }}" alt="Visual kelas bersama {{ $instructor->instructor }}" class="h-full w-full rounded-[1.75rem] object-cover" loading="lazy">
                                     <div class="absolute inset-x-0 bottom-0 rounded-b-[1.75rem] bg-gradient-to-t from-[#111318]/95 via-[#111318]/55 to-transparent px-6 pb-7 pt-24 text-white sm:px-8 sm:pb-8">
                                         <p class="text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{{ $instructor->instructor }}</p>
                                         <p class="mt-2 text-xs uppercase tracking-[.16em] text-white/65">Instruktur {{ $instructor->name }}</p>
@@ -365,11 +365,13 @@
         <div class="reveal relative w-full max-w-[27rem] justify-self-center lg:justify-self-end" style="--reveal-delay: 140ms" data-member-story-carousel tabindex="0" aria-label="Galeri ilustrasi transformasi">
             <div class="member-story-stage relative aspect-[9/11] overflow-hidden rounded-[1.5rem] bg-[#e7e7e4] ring-1 ring-black/5">
                 @foreach ($memberStoryVisuals as $storyIndex => $storyVisual)
-                    <figure class="member-story-slide member-transform-card {{ $loop->first ? 'is-active' : '' }} absolute inset-0 cursor-pointer overflow-hidden outline-none" data-member-story-slide data-member-transform tabindex="{{ $loop->first ? '0' : '-1' }}" role="button" aria-label="Lihat ilustrasi transformasi {{ $loop->iteration }}" aria-pressed="false" aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
-                        <img src="{{ asset($storyVisual['before']) }}" alt="Ilustrasi tahap awal transformasi kebugaran" class="absolute inset-0 h-full w-full object-contain" loading="lazy">
+                    <figure class="member-story-slide {{ $loop->first ? 'is-active' : '' }} absolute inset-0 overflow-hidden" data-member-story-slide aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
+                        <img src="{{ asset($storyVisual['before']) }}" alt="Kondisi sebelum menjalani latihan" class="absolute inset-0 h-full w-full object-cover" loading="lazy">
                         <div class="member-transform-after absolute inset-0">
-                            <img src="{{ asset($storyVisual['after']) }}" alt="Ilustrasi tubuh yang lebih bugar setelah menjalani latihan" class="absolute inset-0 h-full w-full object-contain" loading="lazy">
+                            <img src="{{ asset($storyVisual['after']) }}" alt="Kondisi setelah menjalani latihan" class="absolute inset-0 h-full w-full object-cover" loading="lazy">
                         </div>
+                        <div class="member-transform-divider" aria-hidden="true"><span>‹ ›</span></div>
+                        <input class="member-transform-range" type="range" min="0" max="100" value="50" aria-label="Geser untuk membandingkan sebelum dan sesudah" data-member-transform-range>
                     </figure>
                 @endforeach
 
@@ -519,10 +521,10 @@
             <path data-journey-trail pathLength="1" stroke="#45453e" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/>
             <g class="journey-traveler" data-journey-dot>
                 <ellipse cx="0" cy="14" rx="27" ry="6" fill="#171717" opacity=".12"/>
-                <g class="journey-robot-facing">
+                <g class="journey-runner-facing">
                     <g class="journey-walker">
                         <svg x="-60" y="-102" width="120" height="120" viewBox="0 0 512 512" overflow="hidden">
-                            <image class="journey-robot-sprite" href="{{ asset('images/journey-robot-run-sprites.png') }}" width="1536" height="1024"/>
+                            <image class="journey-runner-sprite" href="{{ asset('images/journey-runner-sprites.png') }}" width="1536" height="1024"/>
                         </svg>
                     </g>
                 </g>
@@ -535,9 +537,9 @@
                 <p class="mt-5 text-justify text-base leading-7 text-[#404040]/72">Mulai dengan memilih paket membership yang sesuai dengan jadwal, target, dan ritme latihanmu. Bandingkan pilihan durasi serta harga yang tersedia, lalu tentukan masa akses yang paling cocok untuk rutinitasmu. Baik untuk mencoba sesi pertama maupun membangun kebiasaan jangka panjang, pilih langkah awal yang nyaman untuk kamu jalani secara konsisten.</p>
             </li>
             <li class="joining-journey-card self-end">
-                <p class="text-sm font-semibold">02 / Daftar</p>
+                <p class="text-sm font-semibold">02 / Bayar</p>
                 <h3 class="mt-8 text-3xl font-semibold tracking-[-0.04em]">Aktifkan membership</h3>
-                <p class="mt-5 text-justify text-base leading-7 text-[#404040]/72">Buat akun atau masuk ke akunmu untuk melanjutkan pilihan paket. Periksa detail membership dan total pembayaran sebelum menyelesaikan transaksi sesuai petunjuk yang tersedia. Setelah itu, pantau status pembayaran serta masa aktif membership langsung dari halaman profil. Pastikan status membership sudah aktif sebelum memulai kunjungan latihanmu.</p>
+                <p class="mt-5 text-justify text-base leading-7 text-[#404040]/72">Isi data diri dan selesaikan pembayaran tanpa perlu membuat akun terlebih dahulu. Setelah pembayaran berhasil diverifikasi, email dan password akun akan dikirim ke email yang kamu masukkan. Gunakan akun tersebut untuk memantau membership dan masa aktifnya.</p>
             </li>
             <li class="joining-journey-card">
                 <p class="text-sm font-semibold">03 / Bergerak</p>
@@ -672,7 +674,7 @@
                     <p class="mt-3 max-w-xl text-sm leading-7 text-white/55">Review terhubung dengan akun member yang pernah latihan di CukipGym.</p>
                     <div class="mt-5 flex flex-wrap gap-4 text-sm font-medium">
                         <a href="{{ route('login') }}" class="rounded-full bg-white px-6 py-3 text-[#171717] hover:bg-[#d4d4d4]">Masuk akun</a>
-                        <a href="{{ route('register') }}" class="rounded-full border border-white/20 px-6 py-3 hover:border-white/50">Buat akun</a>
+                        <a href="{{ route('membership.index') }}#pilihan-paket" class="rounded-full border border-white/20 px-6 py-3 hover:border-white/50">Pilih membership</a>
                     </div>
                 @else
                     @if ($canReview)
@@ -728,7 +730,7 @@
     @php
         $frequentlyAskedQuestions = [
             ['question' => 'Baru pertama kali ke gym, boleh ikut?', 'answer' => 'Tentu. Kamu bisa mulai sesuai kemampuan dan membangun rutinitas secara bertahap. Kenali area latihan terlebih dahulu dan tanyakan kepada tim gym jika membutuhkan arahan penggunaan alat.'],
-            ['question' => 'Bagaimana cara mendaftar membership?', 'answer' => 'Pilih paket yang sesuai, lalu buat akun atau masuk untuk melanjutkan pembayaran. Setelah transaksi diproses, kamu bisa memantau status dan masa aktif membership melalui halaman profil.'],
+            ['question' => 'Bagaimana cara mendaftar membership?', 'answer' => 'Pilih paket, isi data diri, lalu selesaikan pembayaran tanpa perlu login. Setelah pembayaran berhasil, kredensial akun dikirim ke emailmu untuk memantau membership.'],
             ['question' => 'Bisa mencoba latihan untuk satu hari?', 'answer' => 'Bisa. Pilih Day Pass untuk akses satu hari. Paket ini cocok untuk mengenal suasana gym sebelum memilih membership dengan durasi yang lebih panjang.'],
             ['question' => 'Apa saja fasilitas yang tersedia?', 'answer' => 'Tersedia area latihan beban, peralatan kardio, dan fasilitas pendukung latihan. Cek daftar fasilitas pada paket pilihanmu karena akses dan manfaat setiap paket dapat berbeda.'],
             ['question' => 'Apakah tersedia kelas kebugaran?', 'answer' => 'Kamu bisa melihat pilihan dan jadwal pada halaman Kelas. Periksa juga fasilitas paket membership untuk memastikan akses kelas sudah termasuk dalam paketmu.'],

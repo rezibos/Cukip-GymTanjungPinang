@@ -83,7 +83,7 @@
                     @endif
                 @elseif ($transaction->status->value === 'paid')
                     <p class="mt-6 rounded-xl bg-white/10 px-4 py-3 text-xs leading-6 text-white/75">Pembayaran sudah dikonfirmasi dan seluruh membership pada invoice ini telah aktif.</p>
-                    <a href="{{ route('profile') }}" class="mt-4 inline-flex text-xs font-semibold underline underline-offset-4">Lihat profil</a>
+                    <a href="{{ route('filament.member.pages.dashboard') }}" class="mt-4 inline-flex text-xs font-semibold underline underline-offset-4">Buka dashboard member</a>
                 @else
                     <p class="mt-6 rounded-xl bg-white/10 px-4 py-3 text-xs leading-6 text-white/75">Pesanan ditolak. Hubungi admin untuk informasi lebih lanjut.</p>
                 @endif

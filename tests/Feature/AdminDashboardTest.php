@@ -46,7 +46,7 @@ class AdminDashboardTest extends TestCase
     }
 
     #[TestWith(['admin', 'filament.admin.pages.dashboard'])]
-    #[TestWith(['user', 'home'])]
+    #[TestWith(['user', 'filament.member.pages.dashboard'])]
     public function test_shared_login_redirects_each_role_to_its_default_page(string $role, string $route): void
     {
         $user = User::factory()->create(['role' => $role]);
@@ -405,6 +405,13 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Cari invoice atau member...')
             ->assertSee('Hapus')
             ->assertActionDoesNotExist('create');
+    }
+
+    public function test_manual_transaction_creation_route_is_not_exposed(): void
+    {
+        $this->signInAdmin();
+
+        $this->get('/admin/transactions/create')->assertNotFound();
     }
 
     private function signInAdmin(): User

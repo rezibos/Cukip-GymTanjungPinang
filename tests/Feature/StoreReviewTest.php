@@ -24,11 +24,9 @@ class StoreReviewTest extends TestCase
             ->assertDontSee('<footer', false)->assertDontSee('id="menu-button"', false)
             ->assertDontSee('data-floating-actions', false)
             ->assertDontSee('gym-cable-row-editorial.webp');
-        $this->get(route('register'))->assertOk()->assertSee('CukipGym')->assertSee('Buat akun')
-            ->assertDontSee('<footer', false)->assertDontSee('id="menu-button"', false)
-            ->assertDontSee('data-floating-actions', false)
-            ->assertDontSee('gym-kettlebell-editorial.webp');
-        $this->get('/')->assertOk()->assertSee('Tulis review')->assertSee('Masuk untuk menulis review.');
+        $this->get('/register')->assertNotFound();
+        $this->get('/')->assertOk()->assertSee('Tulis review')->assertSee('Masuk untuk menulis review.')
+            ->assertSee('Pilih membership')->assertDontSee('Buat akun');
     }
 
     #[TestWith(['pending_payment'])]

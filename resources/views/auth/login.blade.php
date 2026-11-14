@@ -28,5 +28,5 @@
     </button>
 </form>
 
-<p class="mt-6 text-center text-xs leading-6 text-[#737373]">Belum punya akun? <a href="{{ route('register') }}" class="ml-1 font-semibold text-[#171717] underline decoration-[#d4d4d4] underline-offset-4 transition hover:decoration-[#171717]">Daftar</a></p>
+<p class="mt-6 text-center text-xs leading-6 text-[#737373]">Belum punya akun? Pilih membership dan selesaikan pembayaran. Akun akan dikirim ke emailmu.</p>
 @endsection

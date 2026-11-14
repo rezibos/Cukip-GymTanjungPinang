@@ -93,7 +93,7 @@
                 <li>
                     <span class="grid size-9 place-items-center rounded-full border border-black/15 text-xs text-[#858585]">02</span>
                     <h3 class="mt-5 text-sm font-semibold">Selesaikan pembayaran</h3>
-                    <p class="mt-3 text-xs leading-6 text-[#737373]">Masuk ke akunmu, periksa pesanan, lalu ikuti petunjuk pada invoice.</p>
+                    <p class="mt-3 text-xs leading-6 text-[#737373]">Isi data diri, periksa pesanan, lalu selesaikan pembayaran tanpa perlu login.</p>
                 </li>
                 <li>
                     <span class="grid size-9 place-items-center rounded-full border border-black/15 text-xs text-[#858585]">03</span>

@@ -28,7 +28,9 @@ class LoginController extends Controller
         $request->session()->regenerate(); // cegah session fixation
 
         return redirect()->intended(
-            $request->user()->isAdmin() ? route('filament.admin.pages.dashboard') : route('home'),
+            $request->user()->isAdmin()
+                ? route('filament.admin.pages.dashboard')
+                : route('filament.member.pages.dashboard'),
         );
     }
 

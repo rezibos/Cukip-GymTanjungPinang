@@ -26,6 +26,12 @@ class MidtransWebhookController extends Controller
             return response('Invalid notification payload.', 400);
         }
 
+        if (str_starts_with($notificationOrderId, 'payment_notif_test_')) {
+            return $this->hasValidTestSignature($request, $notificationOrderId)
+                ? response('OK')
+                : response('Invalid notification signature.', 403);
+        }
+
         try {
             $statusResponse = $gateway->transactionStatus($transactionId);
             $verifiedOrderId = $statusResponse['order_id'] ?? null;
@@ -48,5 +54,21 @@ class MidtransWebhookController extends Controller
         }
 
         return response('OK');
+    }
+
+    private function hasValidTestSignature(Request $request, string $orderId): bool
+    {
+        $statusCode = $request->string('status_code')->toString();
+        $grossAmount = $request->string('gross_amount')->toString();
+        $providedSignature = $request->string('signature_key')->toString();
+        $serverKey = config('services.midtrans.server_key');
+
+        if ($statusCode === '' || $grossAmount === '' || $providedSignature === '' || ! is_string($serverKey)) {
+            return false;
+        }
+
+        $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
+
+        return hash_equals($expectedSignature, $providedSignature);
     }
 }

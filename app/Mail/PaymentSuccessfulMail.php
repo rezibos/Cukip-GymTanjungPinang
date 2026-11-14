@@ -2,14 +2,14 @@
 
 namespace App\Mail;
 
-use App\Models\User;
+use App\Models\Payment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class AccountCreatedMail extends Mailable
+class PaymentSuccessfulMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -17,8 +17,8 @@ class AccountCreatedMail extends Mailable
      * Create a new message instance.
      */
     public function __construct(
-        public User $user,
-        public string $plainPassword,
+        public Payment $payment,
+        public ?string $plainPassword = null,
     ) {}
 
     /**
@@ -27,7 +27,7 @@ class AccountCreatedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Akun CukipGym Kamu Sudah Dibuat!',
+            subject: 'Pembayaran Berhasil - '.$this->payment->order_id,
         );
     }
 
@@ -37,7 +37,7 @@ class AccountCreatedMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.account-created',
+            view: 'emails.payment-successful',
         );
     }
 }

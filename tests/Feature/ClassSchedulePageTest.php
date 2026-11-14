@@ -14,7 +14,7 @@ class ClassSchedulePageTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guests_see_the_seven_day_schedule_and_a_login_link(): void
+    public function test_guests_see_the_seven_day_schedule_and_a_membership_link(): void
     {
         $this->travelTo(Carbon::parse('2026-11-08 10:00:00'));
         $this->createSession('Kelas Hari Ini', 10, '2026-11-08');
@@ -26,7 +26,7 @@ class ClassSchedulePageTest extends TestCase
 
         $response->assertOk()->assertSee('Kelas Hari Ini')->assertSee('Kelas Hari Terakhir')
             ->assertDontSee('Kelas Kemarin')->assertDontSee('Kelas Minggu Depan')
-            ->assertSee('2 sesi tersedia')->assertSee('Masuk untuk booking')
+            ->assertSee('2 sesi tersedia')->assertSee('Pilih membership')
             ->assertSee('Minggu')->assertSee('Sabtu')
             ->assertSee('data-class-day="2026-11-14"', false);
     }

@@ -675,10 +675,7 @@ document.querySelectorAll('[data-member-story-carousel]').forEach((carousel) => 
             const isActive = slideIndex === activeIndex;
 
             slide.classList.toggle('is-active', isActive);
-            slide.classList.remove('is-revealed');
             slide.setAttribute('aria-hidden', String(!isActive));
-            slide.setAttribute('aria-pressed', 'false');
-            slide.tabIndex = isActive ? 0 : -1;
         });
 
         dots.forEach((dot, dotIndex) => {
@@ -697,27 +694,18 @@ document.querySelectorAll('[data-member-story-carousel]').forEach((carousel) => 
     });
 
     slides.forEach((slide) => {
-        const toggleTransformation = () => {
-            if (!slide.classList.contains('is-active')) {
-                return;
-            }
+        const comparisonRange = slide.querySelector('[data-member-transform-range]');
 
-            const isRevealed = slide.classList.toggle('is-revealed');
-            slide.setAttribute('aria-pressed', String(isRevealed));
-        };
-
-        slide.addEventListener('click', toggleTransformation);
-        slide.addEventListener('keydown', (event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') {
-                return;
-            }
-
-            event.preventDefault();
-            toggleTransformation();
+        comparisonRange?.addEventListener('input', () => {
+            slide.style.setProperty('--member-transform-position', `${comparisonRange.value}%`);
         });
     });
 
     carousel.addEventListener('keydown', (event) => {
+        if (event.target instanceof HTMLInputElement) {
+            return;
+        }
+
         if (event.key === 'ArrowLeft') {
             showMemberStory(activeIndex - 1);
         } else if (event.key === 'ArrowRight') {

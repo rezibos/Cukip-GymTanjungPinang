@@ -4,6 +4,7 @@
         ['label' => 'Fasilitas', 'href' => route('facilities.index'), 'active' => request()->routeIs('facilities.*')],
         ['label' => 'Membership', 'href' => route('membership.index'), 'active' => request()->routeIs('membership.*')],
         ['label' => 'Kelas', 'href' => route('classes.index'), 'active' => request()->routeIs('classes.*')],
+        ['label' => 'Pesanan Saya', 'href' => route('payments.history'), 'active' => request()->routeIs('payments.*')],
     ];
 @endphp
 
@@ -30,8 +31,9 @@
             @auth
                 @if (auth()->user()->isAdmin())
                     <a href="/admin" class="rounded-xl px-4 py-3.5 text-white/75 transition hover:bg-white/10">Admin</a>
+                @else
+                    <a href="{{ route('filament.member.pages.dashboard') }}" class="rounded-xl px-4 py-3.5 text-white/75 transition hover:bg-white/10">Dashboard member</a>
                 @endif
-                <a href="{{ route('profile') }}" class="rounded-xl px-4 py-3.5 text-white/75 transition hover:bg-white/10">Profil</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="w-full rounded-xl px-4 py-3.5 text-left text-[#d4d4d4] transition hover:bg-white/10">Logout</button>

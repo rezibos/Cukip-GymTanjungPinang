@@ -795,7 +795,7 @@ body {
     height: 400svh;
 }
 
-.journey-robot-facing {
+.journey-runner-facing {
     transform: scaleX(var(--robot-facing, 1));
 }
 
@@ -803,22 +803,24 @@ body {
     animation: journey-walk-bob 600ms ease-in-out infinite;
 }
 
-.journey-robot-sprite {
-    animation: journey-robot-run 660ms steps(1, end) infinite;
+.journey-runner-sprite {
+    transform-box: fill-box;
+    transform-origin: top left;
+    animation: journey-runner-run 660ms steps(1, end) infinite;
     animation-play-state: paused;
 }
 
-.journey-traveler.is-walking .journey-robot-sprite {
+.journey-traveler.is-walking .journey-runner-sprite {
     animation-play-state: running;
 }
 
-@keyframes journey-robot-run {
+@keyframes journey-runner-run {
     0% { transform: translate(0, 0); }
-    16.6667% { transform: translate(-512px, 0); }
-    33.3333% { transform: translate(-1024px, 0); }
-    50% { transform: translate(0, -512px); }
-    66.6667% { transform: translate(-512px, -512px); }
-    83.3333% { transform: translate(-1024px, -512px); }
+    16.6667% { transform: translate(-33.3333%, 0); }
+    33.3333% { transform: translate(-66.6667%, 0); }
+    50% { transform: translate(0, -50%); }
+    66.6667% { transform: translate(-33.3333%, -50%); }
+    83.3333% { transform: translate(-66.6667%, -50%); }
 }
 
 @keyframes journey-walk-bob {
@@ -1016,41 +1018,80 @@ body {
 }
 
 .member-transform-after {
-    opacity: 0;
-    transform: scale(1.035);
-    transition:
-        opacity 550ms cubic-bezier(0.22, 1, 0.36, 1),
-        transform 750ms cubic-bezier(0.22, 1, 0.36, 1);
+    clip-path: inset(0 0 0 var(--member-transform-position, 50%));
 }
 
-.member-transform-before-label,
-.member-transform-after-label {
-    transition: opacity 300ms ease, transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+.member-transform-divider {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    bottom: 0;
+    left: var(--member-transform-position, 50%);
+    width: 3px;
+    transform: translateX(-50%);
+    background: #ffffff;
+    box-shadow: 0 0 0 1px rgb(23 23 23 / 0.18), 0 0 12px rgb(0 0 0 / 0.18);
+    pointer-events: none;
 }
 
-.member-transform-after-label {
-    transform: translate3d(0, 0.75rem, 0);
+.member-transform-divider span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    transform: translate(-50%, -50%);
+    border-radius: 9999px;
+    background: white;
+    color: #171717;
+    border: 1px solid rgb(23 23 23 / 0.12);
+    box-shadow: 0 3px 14px rgb(0 0 0 / 0.25);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0;
 }
 
-.member-transform-card:hover .member-transform-after,
-.member-transform-card:focus-visible .member-transform-after,
-.member-transform-card.is-revealed .member-transform-after {
-    opacity: 1;
-    transform: scale(1);
+.member-transform-range {
+    position: absolute;
+    z-index: 15;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: ew-resize;
+    appearance: none;
+    background: transparent;
 }
 
-.member-transform-card:hover .member-transform-before-label,
-.member-transform-card:focus-visible .member-transform-before-label,
-.member-transform-card.is-revealed .member-transform-before-label {
-    opacity: 0;
-    transform: translate3d(0, -0.75rem, 0);
+.member-transform-range::-webkit-slider-runnable-track {
+    height: 100%;
+    background: transparent;
 }
 
-.member-transform-card:hover .member-transform-after-label,
-.member-transform-card:focus-visible .member-transform-after-label,
-.member-transform-card.is-revealed .member-transform-after-label {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
+.member-transform-range::-webkit-slider-thumb {
+    width: 2.75rem;
+    height: 2.75rem;
+    appearance: none;
+    background: transparent;
+}
+
+.member-transform-range::-moz-range-track {
+    height: 100%;
+    background: transparent;
+}
+
+.member-transform-range::-moz-range-thumb {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    background: transparent;
+}
+
+.member-transform-range:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: -4px;
 }
 
 .member-story-dot.is-active {
@@ -1131,11 +1172,6 @@ body {
         transition: none;
     }
 
-    .member-transform-after,
-    .member-transform-before-label,
-    .member-transform-after-label {
-        transition: none;
-    }
 }
 
 @media (hover: none) {

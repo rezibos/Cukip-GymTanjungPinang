@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CartCheckoutController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ClassBookingController;
@@ -13,7 +12,6 @@ use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentReturnController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +23,8 @@ Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/payments/midtrans/notification', MidtransWebhookController::class)
     ->middleware('throttle:120,1')
     ->name('payments.midtrans.notification');
+Route::get('/payments/history', [PaymentReturnController::class, 'history'])
+    ->name('payments.history');
 Route::get('/payments/finish', [PaymentReturnController::class, 'show'])
     ->defaults('result', 'finish')
     ->name('payments.finish');
@@ -42,16 +42,13 @@ Route::post('/cart/guest-checkout', [GuestCheckoutController::class, 'store'])
     ->name('cart.guest-checkout');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
-
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::redirect('/profile', '/member')->name('profile');
     Route::post('/reviews', [ReviewController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('reviews.store');

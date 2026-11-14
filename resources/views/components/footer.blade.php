@@ -9,7 +9,8 @@
                 <a href="{{ route('facilities.index') }}" class="transition hover:text-[#d4d4d4]">Fasilitas</a>
                 <a href="{{ route('membership.index') }}" class="transition hover:text-[#d4d4d4]">Membership</a>
                 <a href="{{ route('classes.index') }}" class="transition hover:text-[#d4d4d4]">Kelas</a>
-                <a href="{{ route('register') }}" class="transition hover:text-[#d4d4d4]">Daftar</a>
+                <a href="{{ route('payments.history') }}" class="transition hover:text-[#d4d4d4]">Pesanan Saya</a>
+                <a href="{{ route('login') }}" class="transition hover:text-[#d4d4d4]">Masuk</a>
             </div>
         </div>
         <div class="py-10" role="region" aria-labelledby="sponsors-title">

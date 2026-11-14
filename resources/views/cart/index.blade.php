@@ -111,21 +111,21 @@
             @csrf
             <div>
                 <label for="checkout-name" class="text-xs font-medium text-[#404040]">Nama Lengkap</label>
-                <input id="checkout-name" name="name" type="text" required autocomplete="name" placeholder="Nama lengkap kamu" class="mt-2 w-full rounded-xl border border-black/10 bg-[#f9f9f7] px-4 py-3 text-sm outline-none placeholder:text-[#b5b5b5] focus:border-[#171717] focus:ring-1 focus:ring-[#171717]">
+                <input id="checkout-name" name="name" type="text" required autocomplete="name" placeholder="Nama lengkap kamu" value="{{ old('name', auth()->user()?->name) }}" class="mt-2 w-full rounded-xl border border-black/10 bg-[#f9f9f7] px-4 py-3 text-sm outline-none placeholder:text-[#b5b5b5] focus:border-[#171717] focus:ring-1 focus:ring-[#171717]">
                 <p class="mt-1.5 hidden text-xs text-red-500" data-error="name"></p>
             </div>
             <div>
                 <label for="checkout-email" class="text-xs font-medium text-[#404040]">Email</label>
-                <input id="checkout-email" name="email" type="email" required autocomplete="email" placeholder="email@contoh.com" class="mt-2 w-full rounded-xl border border-black/10 bg-[#f9f9f7] px-4 py-3 text-sm outline-none placeholder:text-[#b5b5b5] focus:border-[#171717] focus:ring-1 focus:ring-[#171717]">
+                <input id="checkout-email" name="email" type="email" required autocomplete="email" placeholder="email@contoh.com" value="{{ old('email', auth()->user()?->email) }}" class="mt-2 w-full rounded-xl border border-black/10 bg-[#f9f9f7] px-4 py-3 text-sm outline-none placeholder:text-[#b5b5b5] focus:border-[#171717] focus:ring-1 focus:ring-[#171717]">
                 <p class="mt-1.5 hidden text-xs text-red-500" data-error="email"></p>
             </div>
             <div>
                 <label for="checkout-phone" class="text-xs font-medium text-[#404040]">Nomor WhatsApp</label>
-                <input id="checkout-phone" name="phone" type="text" inputmode="numeric" required autocomplete="tel" placeholder="6281234567890" class="mt-2 w-full rounded-xl border border-black/10 bg-[#f9f9f7] px-4 py-3 text-sm outline-none placeholder:text-[#b5b5b5] focus:border-[#171717] focus:ring-1 focus:ring-[#171717]">
+                <input id="checkout-phone" name="phone" type="text" inputmode="numeric" required autocomplete="tel" placeholder="6281234567890" value="{{ old('phone', auth()->user()?->phone) }}" class="mt-2 w-full rounded-xl border border-black/10 bg-[#f9f9f7] px-4 py-3 text-sm outline-none placeholder:text-[#b5b5b5] focus:border-[#171717] focus:ring-1 focus:ring-[#171717]">
                 <p class="mt-1.5 hidden text-xs text-red-500" data-error="phone"></p>
             </div>
 
-            <p class="text-[.65rem] leading-5 text-[#9a9a9a]">Akun akan otomatis dibuat setelah pembayaran berhasil. Kredensial login dikirim via email.</p>
+            <p class="text-[.65rem] leading-5 text-[#9a9a9a]">@auth Data pembayaran akan memakai akunmu saat ini. @else Setelah pembayaran terverifikasi, detail akun akan dikirim jika emailmu belum terdaftar. @endauth</p>
 
             <div id="checkout-error" class="hidden rounded-xl bg-red-50 px-4 py-3 text-xs leading-5 text-red-600"></div>
 
@@ -152,6 +152,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnText = document.getElementById('btn-text');
     const btnSpinner = document.getElementById('btn-spinner');
     const errorBox = document.getElementById('checkout-error');
+    const finishUrl = @json(route('payments.finish'));
+    const pendingUrl = @json(route('payments.pending'));
+    const errorUrl = @json(route('payments.error'));
+
+    function paymentResultUrl(baseUrl, orderId) {
+        const url = new URL(baseUrl, window.location.origin);
+        url.searchParams.set('order_id', orderId);
+
+        return url.toString();
+    }
 
     function openModal() {
         modal.classList.remove('hidden');
@@ -238,20 +248,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            if (!window.snap || typeof window.snap.pay !== 'function') {
+                errorBox.textContent = 'Popup Midtrans gagal dimuat. Periksa koneksi internet, lalu coba lagi dari invoice.';
+                errorBox.classList.remove('hidden');
+                setLoading(false);
+
+                if (data.invoice_url) {
+                    setTimeout(() => window.location.href = data.invoice_url, 2500);
+                }
+
+                return;
+            }
+
             closeModal();
 
             window.snap.pay(data.snap_token, {
                 onSuccess: function () {
-                    window.location.href = '{{ route("payments.finish") }}';
+                    window.location.href = paymentResultUrl(finishUrl, data.order_id);
                 },
                 onPending: function () {
-                    window.location.href = '{{ route("payments.pending") }}';
+                    window.location.href = paymentResultUrl(pendingUrl, data.order_id);
                 },
                 onError: function () {
-                    window.location.href = '{{ route("payments.error") }}';
+                    window.location.href = paymentResultUrl(errorUrl, data.order_id);
                 },
                 onClose: function () {
-                    window.location.href = '{{ route("payments.pending") }}';
+                    window.location.href = data.invoice_url;
                 },
             });
         } catch (err) {

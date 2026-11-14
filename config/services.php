@@ -43,4 +43,9 @@ return [
         'is_3ds' => env('MIDTRANS_IS_3DS', true),
     ],
 
+    'gympinang_api' => [
+        'url' => env('GYMPINANG_API_URL', 'http://localhost:5000/api'),
+        'key' => env('GYMPINANG_API_KEY'),
+    ],
+
 ];
