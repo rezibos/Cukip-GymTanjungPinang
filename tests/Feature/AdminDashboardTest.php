@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\FacilityCategory;
+use App\Filament\Pages\Dashboard as AdminDashboard;
 use App\Filament\Resources\ClassBookings\Pages\ListClassBookings;
 use App\Filament\Resources\ClassSessions\Pages\ListClassSessions;
 use App\Filament\Resources\Facilities\Pages\ListFacilities;
@@ -98,21 +99,51 @@ class AdminDashboardTest extends TestCase
         $this->get('/admin/transactions')->assertForbidden();
     }
 
-    public function test_admin_dashboard_renders_the_brand_navigation_and_operational_shortcuts(): void
+    public function test_admin_dashboard_renders_the_operational_summary_layout(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'name' => 'Admin Pinang']);
+        $this->createMembership(User::factory()->create());
 
         $response = $this->actingAs($admin)->get('/admin');
 
         $response->assertOk()->assertSee('CukipGym')->assertSee('Ringkasan operasional.')
-            ->assertSee('Admin Pinang')->assertSee('Operasional')->assertSee('Konten website')
-            ->assertSee('Periksa transaksi')->assertSee('Tambah sesi')->assertSee('Lihat website')
-            ->assertSee('Tambah personal trainer')->assertSee('/admin/personal-trainers?action=create', false)
-            ->assertSee('Tambah fasilitas')->assertSee('/admin/facilities?action=create', false)
-            ->assertSee('/admin/class-sessions?action=create', false)->assertSee('/admin/transactions', false)
+            ->assertSee('Operasional')->assertSee('Konten website')
+            ->assertSee('Member Aktif')->assertSee('Instruktur Aktif')
+            ->assertSee('Income Bulan Ini')->assertSee('Booking Kelas Bulan Ini')
+            ->assertSee('Rangkuman membership')->assertSee('Membership chart')
+            ->assertSee('Instruktur chart')->assertSee('Total income')->assertSee('Kelas hari ini')
+            ->assertSee('Pilih warna atau nama untuk melihat detail.')
+            ->assertSee('selectItem(0)', false)
+            ->assertDontSee('Halo, Admin Pinang.')->assertDontSee('Transaksi Terbaru')
             ->assertSee('data-admin-sidebar-toggle', false)
             ->assertSee('aria-controls="fi-main-sidebar"', false)
             ->assertSee('Tutup menu navigasi')->assertSee('Buka menu navigasi');
+    }
+
+    public function test_admin_dashboard_period_controls_cross_month_and_year_boundaries(): void
+    {
+        Carbon::setTestNow('2026-01-15 12:00:00');
+
+        try {
+            $this->signInAdmin();
+
+            Livewire::test(AdminDashboard::class)
+                ->assertSet('summaryMonth', 1)
+                ->assertSet('summaryYear', 2026)
+                ->assertSet('incomeYear', 2026)
+                ->call('previousSummaryMonth')
+                ->assertSet('summaryMonth', 12)
+                ->assertSet('summaryYear', 2025)
+                ->call('nextSummaryMonth')
+                ->assertSet('summaryMonth', 1)
+                ->assertSet('summaryYear', 2026)
+                ->call('previousIncomeYear')
+                ->assertSet('incomeYear', 2025)
+                ->call('nextIncomeYear')
+                ->assertSet('incomeYear', 2026);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_admin_can_add_a_personal_trainer_without_certificate_photos(): void
