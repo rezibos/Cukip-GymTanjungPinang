@@ -2,9 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\GymLocations\Pages\ListGymLocations;
 use App\Models\GymLocation;
+use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class GymLocationManagementTest extends TestCase
@@ -36,5 +41,34 @@ class GymLocationManagementTest extends TestCase
         GymLocation::factory()->create(['name' => 'Nonaktif', 'sort_order' => 1, 'is_active' => false]);
 
         $this->assertSame([$first->id, $second->id], GymLocation::active()->ordered()->pluck('id')->all());
+    }
+
+    public function test_admin_can_create_a_gym_location_with_a_photo(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::bootCurrentPanel();
+        Livewire::withoutLazyLoading();
+
+        Livewire::test(ListGymLocations::class)
+            ->callAction('create', [
+                'name' => 'CukipGym · Dompak',
+                'address' => 'Dompak, Tanjungpinang',
+                'latitude' => 0.875,
+                'longitude' => 104.45,
+                'opening_hours' => '06:00 - 22:00',
+                'whatsapp' => '6281234567890',
+                'image_path' => UploadedFile::fake()->image('dompak.jpg', 1200, 900),
+                'image_position' => 'center',
+                'sort_order' => 7,
+                'is_active' => true,
+            ])
+            ->assertHasNoFormErrors();
+
+        $location = GymLocation::query()->where('name', 'CukipGym · Dompak')->firstOrFail();
+
+        Storage::disk('public')->assertExists($location->image_path);
     }
 }
