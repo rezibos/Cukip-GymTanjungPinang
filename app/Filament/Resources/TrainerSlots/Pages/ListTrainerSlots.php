@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\TrainerSlots\Pages;
 
 use App\Filament\Resources\TrainerSlots\TrainerSlotResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListTrainerSlots extends ListRecords
@@ -13,7 +12,7 @@ class ListTrainerSlots extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            TrainerSlotResource::makeCreateAction(),
         ];
     }
 }

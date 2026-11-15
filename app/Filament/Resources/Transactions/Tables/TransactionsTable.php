@@ -39,6 +39,9 @@ class TransactionsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
             ->searchPlaceholder('Cari invoice atau member...')
             ->filters([
                 SelectFilter::make('status')->options([

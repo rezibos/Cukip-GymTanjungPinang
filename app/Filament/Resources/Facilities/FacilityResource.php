@@ -9,8 +9,11 @@ use App\Filament\Resources\Facilities\Schemas\FacilityForm;
 use App\Filament\Resources\Facilities\Tables\FacilitiesTable;
 use App\Models\Facility;
 use BackedEnum;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
@@ -40,6 +43,23 @@ class FacilityResource extends Resource
     public static function table(Table $table): Table
     {
         return FacilitiesTable::configure($table);
+    }
+
+    public static function makeCreateAction(): CreateAction
+    {
+        return CreateAction::make()
+            ->label('Tambah')
+            ->icon(Heroicon::Plus)
+            ->modal()
+            ->modalHeading('Tambah Fasilitas')
+            ->modalDescription('Lengkapi data fasilitas baru di bawah ini.')
+            ->modalSubmitActionLabel('Simpan')
+            ->modalCancelActionLabel('Batal')
+            ->modalFooterActionsAlignment(Alignment::End)
+            ->modalWidth(Width::FourExtraLarge)
+            ->stickyModalHeader()
+            ->stickyModalFooter()
+            ->createAnother(false);
     }
 
     public static function getRelations(): array

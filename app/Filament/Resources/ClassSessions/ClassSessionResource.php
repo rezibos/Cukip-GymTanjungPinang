@@ -9,8 +9,11 @@ use App\Filament\Resources\ClassSessions\Schemas\ClassSessionForm;
 use App\Filament\Resources\ClassSessions\Tables\ClassSessionsTable;
 use App\Models\ClassSession;
 use BackedEnum;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
@@ -40,6 +43,23 @@ class ClassSessionResource extends Resource
     public static function table(Table $table): Table
     {
         return ClassSessionsTable::configure($table);
+    }
+
+    public static function makeCreateAction(): CreateAction
+    {
+        return CreateAction::make()
+            ->label('Tambah')
+            ->icon(Heroicon::Plus)
+            ->modal()
+            ->modalHeading('Tambah Sesi Kelas')
+            ->modalDescription('Lengkapi jadwal sesi kelas baru di bawah ini.')
+            ->modalSubmitActionLabel('Simpan')
+            ->modalCancelActionLabel('Batal')
+            ->modalFooterActionsAlignment(Alignment::End)
+            ->modalWidth(Width::FourExtraLarge)
+            ->stickyModalHeader()
+            ->stickyModalFooter()
+            ->createAnother(false);
     }
 
     public static function getRelations(): array

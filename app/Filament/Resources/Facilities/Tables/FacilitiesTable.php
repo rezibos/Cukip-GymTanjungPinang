@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\Facilities\Tables;
 
 use App\Enums\FacilityCategory;
+use App\Filament\Resources\Facilities\FacilityResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class FacilitiesTable
@@ -23,6 +25,18 @@ class FacilitiesTable
                 TextColumn::make('description')->label('Keterangan')->placeholder('-'),
             ])
             ->recordUrl(null)
+            ->searchPlaceholder('Cari fasilitas...')
+            ->filters([
+                SelectFilter::make('category')
+                    ->label('Kategori')
+                    ->options(FacilityCategory::options()),
+            ])
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->toolbarActions([
+                FacilityResource::makeCreateAction(),
+            ])
             ->recordActions([
                 EditAction::make()
                     ->label('Ubah')

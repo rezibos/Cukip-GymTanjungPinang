@@ -9,8 +9,11 @@ use App\Filament\Resources\TrainerSlots\Schemas\TrainerSlotForm;
 use App\Filament\Resources\TrainerSlots\Tables\TrainerSlotsTable;
 use App\Models\TrainerSlot;
 use BackedEnum;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
@@ -35,6 +38,23 @@ class TrainerSlotResource extends Resource
     public static function table(Table $table): Table
     {
         return TrainerSlotsTable::configure($table);
+    }
+
+    public static function makeCreateAction(): CreateAction
+    {
+        return CreateAction::make()
+            ->label('Tambah')
+            ->icon(Heroicon::Plus)
+            ->modal()
+            ->modalHeading('Tambah Jadwal Trainer')
+            ->modalDescription('Lengkapi jadwal personal trainer baru di bawah ini.')
+            ->modalSubmitActionLabel('Simpan')
+            ->modalCancelActionLabel('Batal')
+            ->modalFooterActionsAlignment(Alignment::End)
+            ->modalWidth(Width::FourExtraLarge)
+            ->stickyModalHeader()
+            ->stickyModalFooter()
+            ->createAnother(false);
     }
 
     public static function getRelations(): array

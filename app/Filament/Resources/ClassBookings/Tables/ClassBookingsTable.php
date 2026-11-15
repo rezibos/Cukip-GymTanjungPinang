@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ClassBookings\Tables;
 
 use App\Enums\BookingStatus;
+use App\Filament\Resources\ClassBookings\ClassBookingResource;
 use App\Models\ClassBooking;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -25,8 +26,15 @@ class ClassBookingsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari nama member...')
             ->filters([
                 SelectFilter::make('status')->options(['booked' => 'Terdaftar', 'cancelled' => 'Dibatalkan']),
+            ])
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->toolbarActions([
+                ClassBookingResource::makeCreateAction(),
             ])
             ->recordActions([
                 Action::make('cancel')

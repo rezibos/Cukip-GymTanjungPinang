@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -26,8 +27,15 @@ class UsersTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->searchPlaceholder('Cari nama atau email...')
             ->filters([
                 SelectFilter::make('role')->options(['user' => 'user', 'admin' => 'admin']),
+            ])
+            ->toolbarActions([
+                UserResource::makeCreateAction(),
             ])
             ->recordActions([
                 EditAction::make()

@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\PersonalTrainers\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\PersonalTrainers\PersonalTrainerResource;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -24,13 +24,18 @@ class PersonalTrainersTable
             ->filters([
                 //
             ])
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->searchPlaceholder('Cari nama atau spesialisasi...')
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->label('Ubah'),
+                DeleteAction::make()->label('Hapus'),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+                PersonalTrainerResource::makeCreateAction(),
+            ])
+            ->recordActionsColumnLabel('Action')
+            ->recordActionsAlignment('center');
     }
 }

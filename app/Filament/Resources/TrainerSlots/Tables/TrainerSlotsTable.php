@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\TrainerSlots\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\TrainerSlots\TrainerSlotResource;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TrainerSlotsTable
@@ -20,15 +20,30 @@ class TrainerSlotsTable
                 TextColumn::make('status')->label('Status')->badge(),
             ])
             ->filters([
-                //
+                SelectFilter::make('personal_trainer_id')
+                    ->label('Pelatih')
+                    ->relationship('trainer', 'name')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'available' => 'Tersedia',
+                        'held' => 'Ditahan pembayaran',
+                        'booked' => 'Sudah dibooking',
+                    ]),
             ])
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->searchPlaceholder('Cari pelatih...')
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->label('Ubah'),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
+                TrainerSlotResource::makeCreateAction(),
+            ])
+            ->recordActionsColumnLabel('Action')
+            ->recordActionsAlignment('center');
     }
 }

@@ -11,6 +11,7 @@ use App\Filament\Resources\MembershipPlans\Pages\ListMembershipPlans;
 use App\Filament\Resources\Memberships\Pages\ListMemberships;
 use App\Filament\Resources\PersonalTrainers\Pages\ListPersonalTrainers;
 use App\Filament\Resources\Reviews\Pages\ListReviews;
+use App\Filament\Resources\TrainerSlots\Pages\ListTrainerSlots;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Widgets\LatestTransactions;
@@ -200,7 +201,8 @@ class AdminDashboardTest extends TestCase
         $plan = MembershipPlan::factory()->create();
 
         Livewire::test(ListMemberships::class)
-            ->callAction('create', [
+            ->assertTableActionExists('create')
+            ->callTableAction('create', data: [
                 'user_id' => $member->id,
                 'membership_plan_id' => $plan->id,
                 'status' => 'active',
@@ -394,6 +396,38 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin)->get('/admin/'.$path)->assertOk()->assertSee('CukipGym');
     }
 
+    public function test_gym_class_toolbar_keeps_generate_and_create_actions_available(): void
+    {
+        $this->signInAdmin();
+
+        Livewire::test(ListGymClasses::class)
+            ->assertTableActionExists('generateSessions')
+            ->assertTableActionExists('create');
+
+        Livewire::test(ListClassSessions::class)
+            ->assertTableActionExists('create');
+
+        Livewire::test(ListClassBookings::class)
+            ->assertTableActionExists('create');
+
+        Livewire::test(ListFacilities::class)
+            ->assertTableActionExists('create')
+            ->assertTableFilterExists('category');
+    }
+
+    public function test_class_session_occupancy_uses_dash_when_there_are_no_bookings(): void
+    {
+        $admin = $this->signInAdmin();
+        $gymClass = GymClass::factory()->create();
+        $emptySession = $gymClass->sessions()->create(['date' => '2026-11-16', 'capacity' => 10]);
+        $bookedSession = $gymClass->sessions()->create(['date' => '2026-11-17', 'capacity' => 10]);
+        $admin->classBookings()->create(['class_session_id' => $bookedSession->id, 'status' => 'booked']);
+
+        Livewire::test(ListClassSessions::class)
+            ->assertTableColumnFormattedStateSet('active_bookings_count', '-', $emptySession)
+            ->assertTableColumnFormattedStateSet('active_bookings_count', 1, $bookedSession);
+    }
+
     public function test_stat_cards_show_actual_paid_revenue_and_current_operational_counts(): void
     {
         $this->travelTo(Carbon::parse('2026-11-08 10:00:00'));
@@ -503,6 +537,29 @@ class AdminDashboardTest extends TestCase
         $this->get('/admin/transactions/create')->assertNotFound();
     }
 
+    /**
+     * @param  class-string<ListRecords>  $pageClass
+     */
+    #[DataProvider('selectableAdminTables')]
+    public function test_key_admin_tables_support_multiple_selection(string $pageClass): void
+    {
+        $this->signInAdmin();
+
+        $component = Livewire::test($pageClass);
+
+        $this->assertTrue($component->instance()->getTable()->isSelectionEnabled());
+        $this->assertFalse($component->instance()->getTable()->shouldDeselectAllRecordsWhenFiltered());
+    }
+
+    public function test_trainer_schedule_can_be_filtered_by_trainer_and_status(): void
+    {
+        $this->signInAdmin();
+
+        Livewire::test(ListTrainerSlots::class)
+            ->assertTableFilterExists('personal_trainer_id')
+            ->assertTableFilterExists('status');
+    }
+
     private function signInAdmin(): User
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -529,6 +586,7 @@ class AdminDashboardTest extends TestCase
         return [
             'membership' => [ListMemberships::class, 'Tambah Membership'],
             'pengguna' => [ListUsers::class, 'Tambah Pengguna'],
+            'jadwal trainer' => [ListTrainerSlots::class, 'Tambah Jadwal Trainer'],
             'sesi kelas' => [ListClassSessions::class, 'Tambah Sesi Kelas'],
             'booking kelas' => [ListClassBookings::class, 'Tambah Booking Kelas'],
             'jenis kelas' => [ListGymClasses::class, 'Tambah Jenis Kelas'],
@@ -569,6 +627,23 @@ class AdminDashboardTest extends TestCase
             'fasilitas' => [ListFacilities::class],
             'paket membership' => [ListMembershipPlans::class],
             'review' => [ListReviews::class],
+        ];
+    }
+
+    /**
+     * @return array<string, array{class-string<ListRecords>}>
+     */
+    public static function selectableAdminTables(): array
+    {
+        return [
+            'transaksi' => [ListTransactions::class],
+            'membership' => [ListMemberships::class],
+            'pengguna' => [ListUsers::class],
+            'personal trainer' => [ListPersonalTrainers::class],
+            'jadwal trainer' => [ListTrainerSlots::class],
+            'jadwal sesi' => [ListClassSessions::class],
+            'booking kelas' => [ListClassBookings::class],
+            'fasilitas' => [ListFacilities::class],
         ];
     }
 }

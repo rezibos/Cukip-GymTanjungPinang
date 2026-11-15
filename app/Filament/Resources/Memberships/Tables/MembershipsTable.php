@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Memberships\Tables;
 
 use App\Enums\MembershipStatus;
+use App\Filament\Resources\Memberships\MembershipResource;
 use App\Models\Membership;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -34,6 +35,10 @@ class MembershipsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->searchPlaceholder('Cari nama...')
             ->filters([
                 SelectFilter::make('status')->options([
                     'pending_payment' => 'Menunggu Pembayaran',
@@ -42,6 +47,9 @@ class MembershipsTable
                     'expired' => 'Kedaluwarsa',
                     'cancelled' => 'Dibatalkan',
                 ]),
+            ])
+            ->toolbarActions([
+                MembershipResource::makeCreateAction(),
             ])
             ->recordActions([
                 EditAction::make()

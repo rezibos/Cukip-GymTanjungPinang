@@ -36,3 +36,41 @@ document.addEventListener('admin-record-deleted', () => {
         confirmButtonColor: '#171717',
     });
 });
+
+const globallySelectableResources = [
+    '.fi-resource-transactions',
+    '.fi-resource-memberships',
+    '.fi-resource-users',
+    '.fi-resource-personal-trainers',
+    '.fi-resource-trainer-slots',
+    '.fi-resource-class-sessions',
+    '.fi-resource-class-bookings',
+    '.fi-resource-facilities',
+].join(', ');
+
+document.addEventListener('click', async (event) => {
+    const checkbox = event.target.closest('.fi-ta-page-checkbox');
+
+    if (!checkbox || !checkbox.closest(globallySelectableResources)) {
+        return;
+    }
+
+    const tableElement = checkbox.closest('.fi-ta');
+    const table = tableElement && window.Alpine?.$data(tableElement);
+
+    if (!table?.selectAllRecords || !table?.deselectAllRecords) {
+        return;
+    }
+
+    const shouldSelectAll = table.getSelectedRecordsCount() === 0;
+
+    event.stopImmediatePropagation();
+
+    if (shouldSelectAll) {
+        await table.selectAllRecords();
+
+        return;
+    }
+
+    table.deselectAllRecords();
+}, true);

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ClassSessions\Tables;
 
+use App\Filament\Resources\ClassSessions\ClassSessionResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
@@ -20,12 +21,20 @@ class ClassSessionsTable
                 TextColumn::make('gymClass.name')->label('Kelas')->searchable(),
                 TextColumn::make('capacity')->label('Kapasitas'),
                 TextColumn::make('active_bookings_count')->label('Terisi')
-                    ->counts(['bookings' => fn ($q) => $q->where('status', 'booked')]),
+                    ->counts(['bookings as active_bookings_count' => fn ($q) => $q->where('status', 'booked')])
+                    ->formatStateUsing(fn (?int $state): int|string => $state > 0 ? $state : '-'),
             ])
             ->defaultSort('date')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari kelas...')
             ->filters([
                 SelectFilter::make('gym_class_id')->label('Kelas')->relationship('gymClass', 'name'),
+            ])
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->toolbarActions([
+                ClassSessionResource::makeCreateAction(),
             ])
             ->recordActions([
                 EditAction::make()

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\GymClasses\Tables;
 
 use App\Enums\DayOfWeek;
+use App\Filament\Resources\GymClasses\GymClassResource;
 use App\Models\ClassSession;
 use App\Models\GymClass;
 use Filament\Actions\Action;
@@ -32,11 +33,13 @@ class GymClassesTable
                 IconColumn::make('is_active')->label('Aktif')->boolean(),
             ])
             ->recordUrl(null)
-            ->headerActions([
+            ->searchPlaceholder('Cari nama kelas atau instruktur...')
+            ->toolbarActions([
                 Action::make('generateSessions')
                     ->label('Generate Sesi')
                     ->icon('heroicon-o-calendar-days')
-                    ->color('success')
+                    ->color('gray')
+                    ->outlined()
                     ->schema([
                         TextInput::make('weeks')->label('Berapa minggu ke depan?')
                             ->numeric()->integer()->minValue(1)->maxValue(12)->default(4)->required(),
@@ -74,6 +77,7 @@ class GymClassesTable
                             ->success()
                             ->send();
                     }),
+                GymClassResource::makeCreateAction(),
             ])
             ->recordActions([
                 EditAction::make()
