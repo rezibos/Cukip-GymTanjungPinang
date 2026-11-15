@@ -396,6 +396,27 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin)->get('/admin/'.$path)->assertOk()->assertSee('CukipGym');
     }
 
+    public function test_about_page_focuses_on_about_gallery_footer_and_sponsor_sections(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get('/admin/manage-gym-profile')
+            ->assertOk()
+            ->assertSee('gym-profile-page', false)
+            ->assertSee('gym-profile-form', false)
+            ->assertSeeInOrder(['Tentang CukipGym', 'Edit', 'Tentang CukipGym'])
+            ->assertSee('Halaman Awal')
+            ->assertDontSee('Profil dan lokasi gym')
+            ->assertDontSee('Nama Gym')
+            ->assertDontSee('Jam Operasional')
+            ->assertDontSee('Tempel Lokasi dari Google Maps')
+            ->assertSee('Konten Tentang')
+            ->assertSee('Galeri Tentang')
+            ->assertSee('Footer')
+            ->assertSee('Sponsor &amp; partner', false);
+    }
+
     public function test_gym_class_toolbar_keeps_generate_and_create_actions_available(): void
     {
         $this->signInAdmin();
