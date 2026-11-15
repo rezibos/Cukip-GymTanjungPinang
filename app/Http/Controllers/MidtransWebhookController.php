@@ -61,13 +61,13 @@ class MidtransWebhookController extends Controller
         $statusCode = $request->string('status_code')->toString();
         $grossAmount = $request->string('gross_amount')->toString();
         $providedSignature = $request->string('signature_key')->toString();
-        $serverKey = config('services.midtrans.server_key');
+        $signatureKey = config('services.midtrans.signature_key');
 
-        if ($statusCode === '' || $grossAmount === '' || $providedSignature === '' || ! is_string($serverKey)) {
+        if ($statusCode === '' || $grossAmount === '' || $providedSignature === '' || ! is_string($signatureKey)) {
             return false;
         }
 
-        $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
+        $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$signatureKey);
 
         return hash_equals($expectedSignature, $providedSignature);
     }

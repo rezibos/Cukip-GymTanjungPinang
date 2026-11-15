@@ -388,6 +388,7 @@ class AdminDashboardTest extends TestCase
     #[TestWith(['facilities'])]
     #[TestWith(['membership-plans'])]
     #[TestWith(['reviews'])]
+    #[TestWith(['manage-homepage'])]
     #[TestWith(['manage-gym-profile'])]
     public function test_admin_resource_pages_render_with_the_shared_theme(string $path): void
     {
@@ -434,6 +435,16 @@ class AdminDashboardTest extends TestCase
         Livewire::test(ListFacilities::class)
             ->assertTableActionExists('create')
             ->assertTableFilterExists('category');
+
+        Livewire::test(ListMembershipPlans::class)
+            ->assertTableActionExists('create')
+            ->assertTableFilterExists('is_active');
+
+        Livewire::test(ListReviews::class)
+            ->assertTableActionExists('create')
+            ->assertTableFilterExists('status')
+            ->assertTableFilterExists('name')
+            ->assertTableFilterExists('rating');
     }
 
     public function test_class_session_occupancy_uses_dash_when_there_are_no_bookings(): void
@@ -447,6 +458,38 @@ class AdminDashboardTest extends TestCase
         Livewire::test(ListClassSessions::class)
             ->assertTableColumnFormattedStateSet('active_bookings_count', '-', $emptySession)
             ->assertTableColumnFormattedStateSet('active_bookings_count', 1, $bookedSession);
+    }
+
+    public function test_reviews_can_be_filtered_by_status_name_and_rating(): void
+    {
+        $this->signInAdmin();
+        $approvedReview = User::factory()->create()->reviews()->create([
+            'name' => 'Maya Contoh',
+            'rating' => 5,
+            'review' => 'Pelatihnya ramah.',
+            'status' => 'approved',
+        ]);
+        $rejectedReview = User::factory()->create()->reviews()->create([
+            'name' => 'Rizky Contoh',
+            'rating' => 3,
+            'review' => 'Tempatnya nyaman.',
+            'status' => 'rejected',
+        ]);
+
+        Livewire::test(ListReviews::class)
+            ->filterTable('status', 'approved')
+            ->assertCanSeeTableRecords([$approvedReview])
+            ->assertCanNotSeeTableRecords([$rejectedReview]);
+
+        Livewire::test(ListReviews::class)
+            ->filterTable('name', 'Rizky Contoh')
+            ->assertCanSeeTableRecords([$rejectedReview])
+            ->assertCanNotSeeTableRecords([$approvedReview]);
+
+        Livewire::test(ListReviews::class)
+            ->filterTable('rating', '5')
+            ->assertCanSeeTableRecords([$approvedReview])
+            ->assertCanNotSeeTableRecords([$rejectedReview]);
     }
 
     public function test_stat_cards_show_actual_paid_revenue_and_current_operational_counts(): void
@@ -665,6 +708,8 @@ class AdminDashboardTest extends TestCase
             'jadwal sesi' => [ListClassSessions::class],
             'booking kelas' => [ListClassBookings::class],
             'fasilitas' => [ListFacilities::class],
+            'paket membership' => [ListMembershipPlans::class],
+            'review member' => [ListReviews::class],
         ];
     }
 }

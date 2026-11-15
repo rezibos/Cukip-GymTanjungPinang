@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Reviews\Tables;
 
+use App\Filament\Resources\Reviews\ReviewResource;
+use App\Models\Review;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -27,8 +29,38 @@ class ReviewsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari member atau review...')
             ->filters([
-                SelectFilter::make('status')->options(['approved' => 'approved', 'rejected' => 'rejected']),
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'approved' => 'Tampil',
+                        'rejected' => 'Disembunyikan',
+                    ]),
+                SelectFilter::make('name')
+                    ->label('Nama tampilan')
+                    ->options(fn (): array => Review::query()
+                        ->whereNotNull('name')
+                        ->distinct()
+                        ->orderBy('name')
+                        ->pluck('name', 'name')
+                        ->all())
+                    ->searchable(),
+                SelectFilter::make('rating')
+                    ->label('Rating')
+                    ->options([
+                        '5' => '5 bintang',
+                        '4' => '4 bintang',
+                        '3' => '3 bintang',
+                        '2' => '2 bintang',
+                        '1' => '1 bintang',
+                    ]),
+            ])
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->toolbarActions([
+                ReviewResource::makeCreateAction(),
             ])
             ->recordActions([
                 Action::make('reject')->label('Sembunyikan')->icon('heroicon-o-eye-slash')->color('warning')

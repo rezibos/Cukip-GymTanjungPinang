@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MembershipPlans\Tables;
 
+use App\Filament\Resources\MembershipPlans\MembershipPlanResource;
 use App\Models\MembershipPlan;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -9,6 +10,7 @@ use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class MembershipPlansTable
@@ -29,6 +31,21 @@ class MembershipPlansTable
             ])
             ->defaultSort('price')
             ->recordUrl(null)
+            ->searchPlaceholder('Cari paket membership...')
+            ->filters([
+                SelectFilter::make('is_active')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Aktif',
+                        '0' => 'Nonaktif',
+                    ]),
+            ])
+            ->selectable()
+            ->trackDeselectedRecords(false)
+            ->deselectAllRecordsWhenFiltered(false)
+            ->toolbarActions([
+                MembershipPlanResource::makeCreateAction(),
+            ])
             ->recordActions([
                 EditAction::make()
                     ->label('Ubah')

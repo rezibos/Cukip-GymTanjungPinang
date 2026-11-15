@@ -21,9 +21,12 @@ class MidtransWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_signed_midtrans_test_notification_returns_ok_without_transaction_lookup(): void
+    public function test_signed_midtrans_test_notification_uses_dedicated_signature_key(): void
     {
-        config(['services.midtrans.server_key' => 'sandbox-server-key']);
+        config([
+            'services.midtrans.server_key' => 'sandbox-api-server-key',
+            'services.midtrans.signature_key' => 'sandbox-signature-key',
+        ]);
         $gateway = new FakePaymentGateway;
         $this->app->instance(PaymentGateway::class, $gateway);
         $orderId = 'payment_notif_test_M332158236_example';
@@ -35,7 +38,7 @@ class MidtransWebhookTest extends TestCase
             'order_id' => $orderId,
             'status_code' => $statusCode,
             'gross_amount' => $grossAmount,
-            'signature_key' => hash('sha512', $orderId.$statusCode.$grossAmount.'sandbox-server-key'),
+            'signature_key' => hash('sha512', $orderId.$statusCode.$grossAmount.'sandbox-signature-key'),
         ]);
 
         $response->assertOk()->assertSeeText('OK');
@@ -44,7 +47,10 @@ class MidtransWebhookTest extends TestCase
 
     public function test_midtrans_test_notification_with_invalid_signature_is_rejected(): void
     {
-        config(['services.midtrans.server_key' => 'sandbox-server-key']);
+        config([
+            'services.midtrans.server_key' => 'sandbox-api-server-key',
+            'services.midtrans.signature_key' => 'sandbox-signature-key',
+        ]);
         $gateway = new FakePaymentGateway;
         $this->app->instance(PaymentGateway::class, $gateway);
 

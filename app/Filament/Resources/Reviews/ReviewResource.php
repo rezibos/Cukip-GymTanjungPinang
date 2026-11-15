@@ -9,6 +9,7 @@ use App\Filament\Resources\Reviews\Schemas\ReviewForm;
 use App\Filament\Resources\Reviews\Tables\ReviewsTable;
 use App\Models\Review;
 use BackedEnum;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -45,6 +46,13 @@ class ReviewResource extends Resource
     public static function table(Table $table): Table
     {
         return ReviewsTable::configure($table);
+    }
+
+    public static function makeCreateAction(): CreateAction
+    {
+        return CreateAction::make()
+            ->label('Tambah')
+            ->icon(Heroicon::Plus);
     }
 
     public static function getRelations(): array

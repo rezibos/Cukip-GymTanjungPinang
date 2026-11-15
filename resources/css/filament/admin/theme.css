@@ -199,6 +199,52 @@
     color: #525252;
 }
 
+/* Website content forms */
+.gym-profile-page .fi-page-header-main-ctn,
+.homepage-content-page .fi-page-header-main-ctn {
+    gap: .75rem;
+}
+
+.gym-profile-page .fi-header,
+.homepage-content-page .fi-header {
+    border: 1px solid #dcdcdc;
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    background: #ffffff;
+}
+
+.gym-profile-form,
+.homepage-content-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.gym-profile-column {
+    min-width: 0;
+}
+
+.gym-profile-photo-field .filepond--root {
+    min-height: 10rem;
+}
+
+.gym-profile-photo-field .filepond--drop-label {
+    min-height: 8rem;
+}
+
+.gym-profile-save,
+.homepage-content-save {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .gym-profile-page .fi-header,
+    .homepage-content-page .fi-header {
+        padding: 1rem;
+    }
+}
+
 .fi-section:not(.fi-section-not-contained),
 .fi-ta-ctn,
 .fi-wi-stats-overview-stat {
@@ -315,6 +361,15 @@
     box-shadow: 0 0 0 3px rgb(23 23 23 / .07);
 }
 
+.fi-ta-filters .fi-input-wrp:focus-within {
+    border-color: #cfcfcf;
+    box-shadow: 0 0 0 3px rgb(23 23 23 / .05);
+}
+
+.fi-ta-filters .fi-select-input-placeholder {
+    color: #303030;
+}
+
 .fi-input {
     color: #262626;
     font-size: .8rem;
@@ -429,22 +484,22 @@
 }
 
 /* Standard resource list layout */
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-page-header-main-ctn {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-page-header-main-ctn {
     gap: .75rem;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-header {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-header {
     border: 1px solid #dcdcdc;
     border-radius: 1rem;
     padding: 1rem 1.25rem;
     background: #ffffff;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-header .fi-header-actions-ctn {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-header .fi-header-actions-ctn {
     display: none;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-ctn {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-ctn {
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -452,7 +507,7 @@
     --tw-ring-shadow: 0 0 #0000;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-header-ctn {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-header-ctn {
     position: relative;
     z-index: 1;
     margin-bottom: .75rem;
@@ -461,18 +516,18 @@
     background: #ffffff;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-header-toolbar {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-header-toolbar {
     gap: 1.25rem;
     border-bottom: 0;
     padding: .7rem 1.35rem .7rem .85rem;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-header-toolbar > .fi-ta-actions {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-header-toolbar > .fi-ta-actions {
     order: 2;
     flex-shrink: 0;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-header-toolbar > div:last-child {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-header-toolbar > div:last-child {
     order: 1;
     flex: 1;
     min-width: 0;
@@ -480,23 +535,33 @@
     padding-inline-end: .25rem;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-search-field {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-search-field {
     flex: 1;
     min-width: 12rem;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-search-field .fi-input-wrp {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-search-field .fi-input-wrp {
     width: 100%;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-content-ctn {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-content-ctn {
     overflow: hidden;
     border: 1px solid #dcdcdc;
     border-radius: 1rem 1rem 0 0;
     background: #ffffff;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-empty-state {
+.fi-resource-reviews .fi-ta-content-ctn {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+}
+
+.fi-resource-reviews .fi-ta-table {
+    min-width: 82rem;
+}
+
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-empty-state {
     display: grid;
     place-items: center;
     min-height: 18rem;
@@ -506,7 +571,7 @@
     background: #ffffff;
 }
 
-:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-pagination {
+:is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-pagination {
     margin-top: -1px;
     border: 1px solid #dcdcdc;
     border-radius: 0 0 1rem 1rem;
@@ -515,29 +580,29 @@
 }
 
 @media (max-width: 640px) {
-    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-header {
+    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-header {
         padding: .9rem 1rem;
     }
 
-    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-header-toolbar {
+    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-header-toolbar {
         align-items: stretch;
     }
 
-    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-header-toolbar > div:last-child {
+    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-header-toolbar > div:last-child {
         width: 100%;
     }
 
-    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-search-field {
+    :is(.fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-gym-classes, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-search-field {
         min-width: 0;
     }
 }
 
 /* Table selection state */
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-table > thead .fi-ta-selection-cell {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-table > thead .fi-ta-selection-cell {
     background: #f3f3f3;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-selection-indicator {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-selection-indicator {
     align-items: center;
     gap: .75rem;
     margin-bottom: .75rem;
@@ -547,16 +612,16 @@
     background: #ffffff;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-selection-indicator > :first-child {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-selection-indicator > :first-child {
     color: #333333;
     font-weight: 600;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-selection-indicator-actions-ctn {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-selection-indicator-actions-ctn {
     align-items: center;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-selection-indicator-actions-ctn .fi-link {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-selection-indicator-actions-ctn .fi-link {
     border-radius: .55rem;
     padding: .35rem .6rem;
     background: #f5f5f5;
@@ -564,14 +629,14 @@
 }
 
 @media (max-width: 640px) {
-    :is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-selection-indicator {
+    :is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-selection-indicator {
         align-items: stretch;
         padding: .75rem;
     }
 }
 
 /* Active table filters */
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators {
     align-items: center;
     justify-content: flex-start;
     gap: .625rem;
@@ -582,7 +647,7 @@
     background: #ffffff;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators > :first-child {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators > :first-child {
     flex: 0 1 auto;
     flex-direction: row;
     align-items: center;
@@ -590,17 +655,17 @@
     gap: .625rem;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators-label {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators-label {
     color: #555555;
     font-size: .8125rem;
     font-weight: 600;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators-badges-ctn {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators-badges-ctn {
     gap: .375rem;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators .fi-badge {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators .fi-badge {
     min-height: 2rem;
     border-radius: .65rem;
     padding: .4rem .7rem;
@@ -610,7 +675,7 @@
     font-weight: 500;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators .fi-badge-delete-btn {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators .fi-badge-delete-btn {
     display: inline-grid;
     width: 1rem;
     height: 1rem;
@@ -622,20 +687,20 @@
     background: transparent;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators .fi-badge-delete-btn .fi-badge-delete-btn-icon {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators .fi-badge-delete-btn .fi-badge-delete-btn-icon {
     margin: 0;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators .fi-badge .fi-badge-delete-btn-icon {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators .fi-badge .fi-badge-delete-btn-icon {
     color: #dc2626;
     transition: color 180ms cubic-bezier(.22, 1, .36, 1);
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators .fi-badge-delete-btn:hover .fi-badge-delete-btn-icon {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators .fi-badge-delete-btn:hover .fi-badge-delete-btn-icon {
     color: #991b1b;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn {
     display: inline-grid;
     flex: 0 0 2rem;
     place-items: center;
@@ -654,28 +719,28 @@
     transition: background-color 180ms cubic-bezier(.22, 1, .36, 1), color 180ms cubic-bezier(.22, 1, .36, 1);
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn > svg {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn > svg {
     width: 1rem;
     height: 1rem;
     margin: 0;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn:hover {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn:hover {
     background: #171717;
     color: #ffffff;
 }
 
-:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators:has(.fi-ta-filter-indicators-badges-ctn > .fi-badge:only-child) > :nth-child(2).fi-icon-btn {
+:is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators:has(.fi-ta-filter-indicators-badges-ctn > .fi-badge:only-child) > :nth-child(2).fi-icon-btn {
     display: none;
 }
 
 @media (max-width: 640px) {
-    :is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators {
+    :is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators {
         align-items: flex-start;
         padding-inline: .75rem;
     }
 
-    :is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities) .fi-ta-filter-indicators > :first-child {
+    :is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-filter-indicators > :first-child {
         flex: 1;
         flex-wrap: wrap;
     }

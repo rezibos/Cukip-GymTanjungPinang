@@ -9,8 +9,11 @@ use App\Filament\Resources\MembershipPlans\Schemas\MembershipPlanForm;
 use App\Filament\Resources\MembershipPlans\Tables\MembershipPlansTable;
 use App\Models\MembershipPlan;
 use BackedEnum;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
@@ -40,6 +43,23 @@ class MembershipPlanResource extends Resource
     public static function table(Table $table): Table
     {
         return MembershipPlansTable::configure($table);
+    }
+
+    public static function makeCreateAction(): CreateAction
+    {
+        return CreateAction::make()
+            ->label('Tambah')
+            ->icon(Heroicon::Plus)
+            ->modal()
+            ->modalHeading('Tambah Paket Membership')
+            ->modalDescription('Lengkapi data paket membership baru di bawah ini.')
+            ->modalSubmitActionLabel('Simpan')
+            ->modalCancelActionLabel('Batal')
+            ->modalFooterActionsAlignment(Alignment::End)
+            ->modalWidth(Width::FourExtraLarge)
+            ->stickyModalHeader()
+            ->stickyModalFooter()
+            ->createAnother(false);
     }
 
     public static function getRelations(): array

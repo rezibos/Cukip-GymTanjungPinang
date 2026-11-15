@@ -46,6 +46,8 @@ const globallySelectableResources = [
     '.fi-resource-class-sessions',
     '.fi-resource-class-bookings',
     '.fi-resource-facilities',
+    '.fi-resource-membership-plans',
+    '.fi-resource-reviews',
 ].join(', ');
 
 document.addEventListener('click', async (event) => {
