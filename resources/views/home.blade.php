@@ -7,34 +7,34 @@
 @section('content')
 <div class="relative">
 <section class="hero-shell sticky top-0 isolate flex min-h-svh items-end overflow-hidden bg-[#111111] text-white" aria-labelledby="hero-title" data-color-hero data-navbar-tone="dark">
-    <div class="hero-image-layer hero-image-gray absolute inset-0 -z-30 bg-cover bg-[62%_center] sm:bg-center" style="background-image: url('{{ asset('images/gympinang-hero-gray.png') }}')" aria-hidden="true"></div>
-    <div class="hero-image-layer hero-image-color absolute inset-0 -z-20 bg-cover bg-[62%_center] sm:bg-center" style="background-image: url('{{ asset('images/gympinang-hero-color.png') }}')" aria-hidden="true"></div>
+    <div class="hero-image-layer hero-image-gray absolute inset-0 -z-30 bg-cover bg-[62%_center] grayscale sm:bg-center" style="background-image: url('{{ $profile->contentImageUrl('hero_image') }}'), url('{{ asset('images/gympinang-hero-color.png') }}')" aria-hidden="true"></div>
+    <div class="hero-image-layer hero-image-color absolute inset-0 -z-20 bg-cover bg-[62%_center] sm:bg-center" style="background-image: url('{{ $profile->contentImageUrl('hero_image') }}'), url('{{ asset('images/gympinang-hero-color.png') }}')" aria-hidden="true"></div>
     <div class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(8,8,8,.92)_0%,rgba(20,20,20,.7)_42%,rgba(25,25,25,.12)_78%),linear-gradient(0deg,rgba(5,5,5,.78)_0%,transparent_48%)]" aria-hidden="true"></div>
     <div class="pointer-events-none absolute inset-x-0 bottom-0 -z-[5] h-[38%] bg-black/[0.01] backdrop-blur-[5px] [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_45%)] [mask-image:linear-gradient(to_bottom,transparent,black_45%)]" aria-hidden="true"></div>
 
     <div class="relative z-10 mx-auto grid w-full max-w-[90rem] gap-10 px-5 pb-10 pt-36 sm:px-8 sm:pb-14 lg:grid-cols-[1fr_auto] lg:items-end lg:px-12">
         <div class="max-w-4xl">
             <div class="reveal is-visible flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/75 sm:text-sm">
-                Gym lokal Tanjungpinang
+                {{ $profile->content('hero_eyebrow') }}
             </div>
             <h1 id="hero-title" class="reveal is-visible mt-5 text-[clamp(4.25rem,9vw,8.5rem)] font-bold leading-[0.82] tracking-[-0.075em]" style="--reveal-delay: 100ms">
-                Bukan cuma.<br>
-                <span class="hero-outline">Latihan.</span>
+                {{ $profile->content('hero_title_primary') }}<br>
+                <span class="hero-outline">{{ $profile->content('hero_title_secondary') }}</span>
             </h1>
             <p class="reveal is-visible mt-7 max-w-lg text-sm leading-7 text-white/72 sm:text-base" style="--reveal-delay: 200ms">
-                Ruang untuk membangun tubuh, disiplin, dan versi terbaik dirimu. Mulai hari ini satu repetisi, satu progres.
+                {{ $profile->content('hero_description') }}
             </p>
         </div>
 
         <div class="reveal is-visible flex flex-col items-start gap-5 lg:items-end" style="--reveal-delay: 300ms">
             <a href="{{ route('membership.index') }}" class="group inline-flex items-center gap-5 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-semibold text-[#171717] transition hover:-translate-y-1 hover:bg-[#d4d4d4] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" aria-label="Lihat paket membership">
-                Mulai sekarang
+                {{ $profile->content('hero_cta_label') }}
                 <span class="grid size-11 place-items-center rounded-full bg-white text-[#171717] transition group-hover:rotate-45" aria-hidden="true">
                     <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </span>
             </a>
             <a href="#tentang" class="inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/70 transition hover:text-white">
-                Jelajahi GymPinang
+                {{ $profile->content('hero_about_label') }}
                 <span class="grid size-9 place-items-center rounded-full border border-white/35" aria-hidden="true">↓</span>
             </a>
         </div>
@@ -122,31 +122,31 @@
     </div>
     <div class="relative mx-auto flex max-w-[80rem] flex-col gap-12 lg:gap-16">
         <div class="reveal flex items-center justify-between gap-5 text-[.6rem] font-semibold uppercase tracking-[0.22em] text-[#737373]">
-            <p>Tentang {{ $profile->name }}</p>
-            <p>Tanjungpinang, Indonesia</p>
+            <p>{{ $profile->content('about_eyebrow') }}</p>
+            <p>{{ $profile->content('about_location_label') }}</p>
         </div>
 
         <div class="grid gap-9 lg:grid-cols-[1.1fr_.9fr] lg:items-end lg:gap-20">
             <h2 id="about-title" class="about-title-reveal reveal relative text-[clamp(3.5rem,7.5vw,7rem)] font-bold leading-[0.82] tracking-[-0.065em]" data-about-title>
                 <span class="about-title-outline flex flex-col gap-[0.3em]">
-                    <span>Tempatmu</span>
-                    <span>menjadi</span>
-                    <span>lebih kuat.</span>
+                    <span>{{ $profile->content('about_title_line_one') }}</span>
+                    <span>{{ $profile->content('about_title_line_two') }}</span>
+                    <span>{{ $profile->content('about_title_line_three') }}</span>
                 </span>
                 <span class="about-title-half absolute inset-0 flex flex-col gap-[0.3em]" aria-hidden="true">
-                    <span>Tempatmu</span>
-                    <span>menjadi</span>
-                    <span class="text-[#85857f]">lebih kuat.</span>
+                    <span>{{ $profile->content('about_title_line_one') }}</span>
+                    <span>{{ $profile->content('about_title_line_two') }}</span>
+                    <span class="text-[#85857f]">{{ $profile->content('about_title_line_three') }}</span>
                 </span>
                 <span class="about-title-fill absolute inset-0 flex flex-col gap-[0.3em]" aria-hidden="true">
-                    <span>Tempatmu</span>
-                    <span>menjadi</span>
-                    <span class="text-[#85857f]">lebih kuat.</span>
+                    <span>{{ $profile->content('about_title_line_one') }}</span>
+                    <span>{{ $profile->content('about_title_line_two') }}</span>
+                    <span class="text-[#85857f]">{{ $profile->content('about_title_line_three') }}</span>
                 </span>
             </h2>
             <div class="reveal flex max-w-lg flex-col gap-6 lg:pb-2" style="--reveal-delay: 120ms">
-                <p class="text-lg leading-8 text-[#525252]">Dari latihan pertamamu sampai rutinitas yang kamu banggakan. {{ $profile->name }} adalah ruang untuk bergerak, membangun kekuatan, dan terus berkembang.</p>
-                <p class="text-sm leading-7 text-[#737373]">Temukan peralatan yang kamu butuhkan dan pilihan membership yang sesuai. Mulai dari kemampuanmu hari ini, lalu jalani progresmu satu sesi demi satu sesi.</p>
+                <p class="text-lg leading-8 text-[#525252]">{{ $profile->content('about_description_primary') }}</p>
+                <p class="text-sm leading-7 text-[#737373]">{{ $profile->content('about_description_secondary') }}</p>
                 <div class="flex flex-wrap gap-3">
                     <a href="{{ route('membership.index') }}" class="group inline-flex w-fit items-center gap-6 rounded-full bg-[#171717] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#454545] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]">Mulai latihanmu <span class="transition group-hover:translate-x-1" aria-hidden="true">↗</span></a>
                     <a href="#ulasan" class="group inline-flex w-fit items-center gap-6 rounded-full border border-[#171717]/25 px-6 py-4 text-sm font-semibold text-[#171717] transition hover:border-[#171717] hover:bg-[#171717] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]">Review tempat <span class="transition group-hover:translate-x-1" aria-hidden="true">↓</span></a>
@@ -156,23 +156,23 @@
 
         <figure class="about-gallery grid h-[36rem] grid-cols-2 grid-rows-3 gap-2 sm:h-[34rem] sm:grid-cols-12 sm:grid-rows-2 sm:gap-3" data-gallery-assemble>
             <div class="about-gallery-tile group relative col-span-2 overflow-hidden rounded-[1.25rem] sm:col-span-5 sm:row-span-2" style="--tile-index: 0">
-                <img src="{{ asset('images/gym-equipment-editorial.webp') }}" alt="Area dumbbell dan bangku latihan di gym" class="h-full w-full object-cover object-left transition duration-700 group-hover:scale-105" loading="lazy">
+                <img src="{{ $profile->contentImageUrl('about_gallery_image_one') }}" alt="Area dumbbell dan bangku latihan di gym" class="h-full w-full object-cover object-left transition duration-700 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/gym-equipment-editorial.webp') }}';">
                 <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-5 pb-5 pt-16 text-white sm:px-7 sm:pb-7">
-                    <p class="text-[.6rem] font-semibold uppercase tracking-[.2em] text-white/65">Ruang untuk progresmu</p>
-                    <p class="mt-2 text-xl font-medium tracking-[-.04em] sm:text-3xl">Latihanmu.<br>Ritmemu.</p>
+                    <p class="text-[.6rem] font-semibold uppercase tracking-[.2em] text-white/65">{{ $profile->content('about_gallery_eyebrow') }}</p>
+                    <p class="mt-2 text-xl font-medium tracking-[-.04em] sm:text-3xl">{!! nl2br(e($profile->content('about_gallery_title'))) !!}</p>
                 </div>
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-4" style="--tile-index: 1">
-                <img src="{{ asset('images/gym-cable-row-editorial.webp') }}" alt="Member berlatih dengan mesin kabel" class="h-full w-full object-cover object-[38%_center] transition duration-700 group-hover:scale-105" loading="lazy">
+                <img src="{{ $profile->contentImageUrl('about_gallery_image_two') }}" alt="Member berlatih dengan mesin kabel" class="h-full w-full object-cover object-[38%_center] transition duration-700 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/gym-cable-row-editorial.webp') }}';">
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-3" style="--tile-index: 2">
-                <img src="{{ asset('images/gym-kettlebell-editorial.webp') }}" alt="Latihan kettlebell di area gym" class="h-full w-full object-cover object-center transition duration-700 group-hover:scale-105" loading="lazy">
+                <img src="{{ $profile->contentImageUrl('about_gallery_image_three') }}" alt="Latihan kettlebell di area gym" class="h-full w-full object-cover object-center transition duration-700 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/gym-kettlebell-editorial.webp') }}';">
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-3" style="--tile-index: 3">
-                <img src="{{ asset('images/gympinang-hero-color.png') }}" alt="Suasana latihan di CukipGym" class="h-full w-full object-cover object-center transition duration-700 group-hover:scale-105" loading="lazy">
+                <img src="{{ $profile->contentImageUrl('about_gallery_image_four') }}" alt="Suasana latihan di CukipGym" class="h-full w-full object-cover object-center transition duration-700 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/gympinang-hero-color.png') }}';">
             </div>
             <div class="about-gallery-tile group overflow-hidden rounded-[1.25rem] sm:col-span-4" style="--tile-index: 4">
-                <img src="{{ asset('images/gym-equipment-editorial.webp') }}" alt="Detail peralatan beban CukipGym" class="h-full w-full object-cover object-right transition duration-700 group-hover:scale-105" loading="lazy">
+                <img src="{{ $profile->contentImageUrl('about_gallery_image_five') }}" alt="Detail peralatan beban CukipGym" class="h-full w-full object-cover object-right transition duration-700 group-hover:scale-105" loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/gym-equipment-editorial.webp') }}';">
             </div>
             <figcaption class="sr-only">Galeri area latihan dan fasilitas {{ $profile->name }}</figcaption>
         </figure>

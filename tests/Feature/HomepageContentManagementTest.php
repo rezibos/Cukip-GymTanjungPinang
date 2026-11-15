@@ -105,4 +105,27 @@ class HomepageContentManagementTest extends TestCase
         Storage::disk('public')->assertExists($profile->about_gallery_image_one);
         Storage::disk('public')->assertExists($profile->footer_sponsors[0]['logo']);
     }
+
+    public function test_homepage_and_footer_render_saved_content(): void
+    {
+        GymProfile::factory()->create([
+            'hero_title_primary' => 'Gerak bersama.',
+            'hero_title_secondary' => 'Tumbuh bersama.',
+            'about_title_line_three' => 'lebih konsisten.',
+            'footer_description' => 'Deskripsi footer khusus.',
+            'footer_sponsors' => [
+                ['name' => 'Sponsor Aktif', 'tagline' => null, 'logo' => null, 'url' => null, 'is_active' => true],
+                ['name' => 'Sponsor Nonaktif', 'tagline' => null, 'logo' => null, 'url' => null, 'is_active' => false],
+            ],
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSeeText('Gerak bersama.')
+            ->assertSeeText('Tumbuh bersama.')
+            ->assertSeeText('lebih konsisten.')
+            ->assertSeeText('Deskripsi footer khusus.')
+            ->assertSeeText('Sponsor Aktif')
+            ->assertDontSeeText('Sponsor Nonaktif');
+    }
 }
