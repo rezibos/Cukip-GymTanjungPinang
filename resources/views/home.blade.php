@@ -554,12 +554,13 @@
 <section class="bg-black px-5 py-20 text-white sm:px-8 lg:px-12 lg:py-24" aria-labelledby="location-title" data-navbar-tone="dark" data-location-explorer>
     @php
         $initialLocation = $marker[0] ?? [
-            'name' => $profile->name,
-            'region' => $profile->address,
-            'image' => $profile->image_url ?? asset('images/gym-equipment-editorial.webp'),
-            'hours' => $profile->opening_hours,
-            'maps_url' => $profile->maps_url,
-            'whatsapp_url' => $profile->whatsapp_url,
+            'name' => 'Lokasi belum tersedia',
+            'region' => 'Tambahkan lokasi melalui panel admin.',
+            'image' => asset('images/gym-equipment-editorial.webp'),
+            'image_position' => 'center',
+            'hours' => '-',
+            'maps_url' => null,
+            'whatsapp_url' => null,
         ];
     @endphp
     <div class="mx-auto max-w-[90rem]">
@@ -578,9 +579,6 @@
                     <span class="absolute bottom-5 left-6 rounded-full bg-black/55 px-4 py-2 text-[.6rem] font-semibold uppercase tracking-[.16em] text-white backdrop-blur-sm">Tanjungpinang, Indonesia</span>
                 </figure>
                 <div class="flex flex-1 flex-col gap-6 p-7 text-white sm:p-9" data-location-details aria-live="polite" aria-atomic="true">
-                    @if (config('gym_locations.preview_branches', []) !== [])
-                        <p class="text-[.55rem] font-semibold uppercase tracking-[.2em] text-white/35">Cabang contoh · Tanjungpinang</p>
-                    @endif
                     <div class="flex items-start justify-between gap-5">
                         <h3 class="text-3xl font-semibold tracking-[-.04em] sm:text-4xl" data-location-name>{{ $initialLocation['name'] }}</h3>
                         <span class="pt-2 text-xs tabular-nums text-white/40" data-location-count>{{ count($marker) ? '01 / ' . str_pad((string) count($marker), 2, '0', STR_PAD_LEFT) : '—' }}</span>

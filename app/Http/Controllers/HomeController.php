@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\MembershipStatus;
 use App\Models\Facility;
 use App\Models\GymClass;
+use App\Models\GymLocation;
 use App\Models\GymProfile;
 use App\Models\Membership;
 use App\Models\MembershipPlan;
@@ -34,12 +35,11 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
-        $marker = GymProfile::query()
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->orderBy('id')
+        $marker = GymLocation::query()
+            ->active()
+            ->ordered()
             ->get()
-            ->map(fn (GymProfile $location): array => [
+            ->map(fn (GymLocation $location): array => [
                 'name' => $location->name,
                 'region' => $location->address,
                 'district' => null,
@@ -47,20 +47,13 @@ class HomeController extends Controller
                 'reviews' => null,
                 'lat' => $location->latitude,
                 'lng' => $location->longitude,
-                'image' => $location->image_url ?? asset('images/gym-equipment-editorial.webp'),
+                'image' => $location->image_url,
+                'image_position' => $location->image_position,
                 'hours' => $location->opening_hours,
                 'maps_url' => $location->maps_url,
                 'whatsapp_url' => $location->whatsapp_url,
                 'url' => null,
             ])->all();
-
-        $previewBranches = config('gym_locations.preview_branches', []);
-        if ($previewBranches !== []) {
-            $marker = array_map(fn (array $location): array => [
-                ...$location,
-                'image' => asset($location['image']),
-            ], $previewBranches);
-        }
 
         return view('home', compact(
             'profile',
