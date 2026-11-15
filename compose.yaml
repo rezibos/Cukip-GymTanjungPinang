@@ -1,0 +1,20 @@
+name: gympinang-ngrok
+
+services:
+  ngrok:
+    image: ngrok/ngrok:latest
+    command:
+      - http
+      - http://host.docker.internal:8000
+      - --url=https://goldmine-cache-luminous.ngrok-free.dev
+      - --config=/etc/ngrok.yml
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 127.0.0.1:4040:4040
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ${NGROK_CONFIG_PATH:-${HOME}/.config/ngrok/ngrok.yml}
+        target: /etc/ngrok.yml
+        read_only: true
