@@ -9,6 +9,11 @@ class ListGymLocations extends ListRecords
 {
     protected static string $resource = GymLocationResource::class;
 
+    public function getPageClasses(): array
+    {
+        return ['fi-resource-facilities'];
+    }
+
     protected function getHeaderActions(): array
     {
         return [

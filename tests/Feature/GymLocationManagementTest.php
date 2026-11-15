@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Filament\Resources\GymLocations\Pages\ListGymLocations;
 use App\Models\GymLocation;
 use App\Models\User;
+use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -70,5 +71,28 @@ class GymLocationManagementTest extends TestCase
         $location = GymLocation::query()->where('name', 'CukipGym · Dompak')->firstOrFail();
 
         Storage::disk('public')->assertExists($location->image_path);
+    }
+
+    public function test_location_admin_table_uses_the_shared_non_clickable_selectable_layout(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::bootCurrentPanel();
+        Livewire::withoutLazyLoading();
+
+        $component = Livewire::test(ListGymLocations::class);
+        $table = $component->instance()->getTable();
+        $editAction = $table->getAction('edit');
+
+        $this->assertTrue($table->isSelectionEnabled());
+        $this->assertFalse($table->shouldDeselectAllRecordsWhenFiltered());
+        $this->assertTrue($table->hasCustomRecordUrl());
+        $this->assertNull($table->getRecordUrl([]));
+        $this->assertInstanceOf(EditAction::class, $editAction);
+        $this->assertSame('Ubah', $editAction->getLabel());
+        $this->assertSame('Ubah Lokasi Gym', $editAction->getModalHeading());
+        $this->assertContains('fi-resource-facilities', $component->instance()->getPageClasses());
+        $component->assertTableFilterExists('is_active');
     }
 }
