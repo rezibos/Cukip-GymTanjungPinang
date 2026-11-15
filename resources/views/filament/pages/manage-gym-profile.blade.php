@@ -1,10 +1,10 @@
 <x-filament-panels::page>
-    <form wire:submit="save">
+    <form wire:submit="save" class="gym-profile-form">
         {{ $this->form }}
 
-        <div class="mt-6">
+        <div class="gym-profile-save">
             <x-filament::button type="submit">
-                Simpan
+                Simpan perubahan
             </x-filament::button>
         </div>
     </form>

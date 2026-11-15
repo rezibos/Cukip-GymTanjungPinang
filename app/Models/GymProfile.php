@@ -99,7 +99,7 @@ class GymProfile extends Model
     /**
      * @return array<int, array{name: string, tagline: ?string, logo: ?string, url: ?string, is_active: bool}>
      */
-    public function footerSponsors(): array
+    public function footerSponsors(bool $onlyActive = true): array
     {
         $sponsors = $this->footer_sponsors;
 
@@ -112,9 +112,18 @@ class GymProfile extends Model
             ];
         }
 
+        $sponsors = array_values(array_filter(
+            $sponsors,
+            fn (array $sponsor): bool => filled($sponsor['name'] ?? null),
+        ));
+
+        if (! $onlyActive) {
+            return $sponsors;
+        }
+
         return array_values(array_filter(
             $sponsors,
-            fn (array $sponsor): bool => ($sponsor['is_active'] ?? true) && filled($sponsor['name'] ?? null),
+            fn (array $sponsor): bool => $sponsor['is_active'] ?? true,
         ));
     }
 

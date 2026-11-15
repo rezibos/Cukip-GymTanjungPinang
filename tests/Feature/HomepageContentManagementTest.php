@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\ManageGymProfile;
 use App\Filament\Pages\ManageHomepage;
 use App\Models\GymProfile;
 use App\Models\User;
@@ -60,5 +61,48 @@ class HomepageContentManagementTest extends TestCase
         $user = User::factory()->create(['role' => 'user']);
 
         $this->actingAs($user)->get('/admin/manage-homepage')->assertForbidden();
+    }
+
+    public function test_admin_can_update_about_gallery_footer_and_sponsors(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin);
+
+        Livewire::test(ManageGymProfile::class)
+            ->fillForm([
+                'name' => 'CukipGym',
+                'description' => 'Profil gym.',
+                'address' => 'Tanjungpinang',
+                'opening_hours' => '06:00 - 22:00',
+                'about_eyebrow' => 'Tentang CukipGym',
+                'about_location_label' => 'Tanjungpinang, Indonesia',
+                'about_title_line_one' => 'Tempatmu',
+                'about_title_line_two' => 'menjadi',
+                'about_title_line_three' => 'lebih hebat.',
+                'about_description_primary' => 'Paragraf pertama.',
+                'about_description_secondary' => 'Paragraf kedua.',
+                'about_gallery_eyebrow' => 'Ruang untuk progresmu',
+                'about_gallery_title' => "Latihanmu.\nRitmemu.",
+                'about_gallery_image_one' => UploadedFile::fake()->image('gallery-1.jpg'),
+                'footer_description' => 'Footer terbaru.',
+                'footer_location' => 'Gym lokal Tanjungpinang',
+                'footer_sponsors' => [[
+                    'name' => 'Sponsor Utama',
+                    'tagline' => 'Partner latihan',
+                    'logo' => [UploadedFile::fake()->image('sponsor.png')],
+                    'url' => 'https://example.com',
+                    'is_active' => true,
+                ]],
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $profile = GymProfile::current()->refresh();
+
+        $this->assertSame('lebih hebat.', $profile->about_title_line_three);
+        $this->assertSame('Sponsor Utama', $profile->footer_sponsors[0]['name']);
+        Storage::disk('public')->assertExists($profile->about_gallery_image_one);
+        Storage::disk('public')->assertExists($profile->footer_sponsors[0]['logo']);
     }
 }
