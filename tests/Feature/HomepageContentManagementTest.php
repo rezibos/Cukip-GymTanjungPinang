@@ -71,10 +71,6 @@ class HomepageContentManagementTest extends TestCase
 
         Livewire::test(ManageGymProfile::class)
             ->fillForm([
-                'name' => 'CukipGym',
-                'description' => 'Profil gym.',
-                'address' => 'Tanjungpinang',
-                'opening_hours' => '06:00 - 22:00',
                 'about_eyebrow' => 'Tentang CukipGym',
                 'about_location_label' => 'Tanjungpinang, Indonesia',
                 'about_title_line_one' => 'Tempatmu',

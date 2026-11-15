@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Models\GymProfile;
-use App\Support\CoordinateParser;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
@@ -13,7 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class ManageGymProfile extends Page
@@ -63,61 +61,6 @@ class ManageGymProfile extends Page
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Profil dan lokasi gym')
-                    ->description('Informasi utama CukipGym yang digunakan pada website dan lokasi gym.')
-                    ->schema([
-                        Grid::make([
-                            'default' => 1,
-                            'lg' => 2,
-                        ])->schema([
-                            TextInput::make('name')->label('Nama Gym')->required()->maxLength(150),
-                            TextInput::make('opening_hours')->label('Jam Operasional')->required()->placeholder('06:00 - 22:00'),
-                            TextInput::make('phone')->label('Telepon')->tel(),
-                            TextInput::make('whatsapp')->label('WhatsApp')
-                                ->regex('/^[0-9]{8,15}$/')
-                                ->placeholder('6281200000000')
-                                ->helperText('Hanya angka, format 628xxxxxxxxxx.'),
-                            Textarea::make('description')->label('Deskripsi profil')->required()->rows(5)->columnSpanFull(),
-                            TextInput::make('address')->label('Alamat')->required()->maxLength(255)->columnSpanFull(),
-                            TextInput::make('map_paste')
-                                ->label('Tempel Lokasi dari Google Maps')
-                                ->placeholder('Tempel koordinat, link, atau kode embed')
-                                ->helperText('Klik kanan lokasi di Google Maps lalu klik angka koordinat, atau tempel link/kode embed.')
-                                ->dehydrated(false)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(function (?string $state, Set $set): void {
-                                    if (blank($state)) {
-                                        return;
-                                    }
-
-                                    $coordinates = CoordinateParser::parse($state);
-
-                                    if ($coordinates) {
-                                        $set('latitude', $coordinates['lat']);
-                                        $set('longitude', $coordinates['lng']);
-                                        $set('map_paste', null);
-
-                                        Notification::make()->title('Koordinat terisi')->success()->send();
-
-                                        return;
-                                    }
-
-                                    Notification::make()
-                                        ->title('Koordinat tidak ditemukan')
-                                        ->body('Coba salin koordinat lewat klik kanan di Google Maps, atau pakai link dari address bar.')
-                                        ->warning()
-                                        ->send();
-                                })
-                                ->columnSpanFull(),
-                            TextInput::make('latitude')->label('Latitude')->numeric()->minValue(-90)->maxValue(90),
-                            TextInput::make('longitude')->label('Longitude')->numeric()->minValue(-180)->maxValue(180),
-                            FileUpload::make('image')->label('Foto Gym')
-                                ->image()->disk('public')->directory('gym-profile')
-                                ->visibility('public')->maxSize(5120)
-                                ->extraFieldWrapperAttributes(['class' => 'gym-profile-photo-field'])
-                                ->columnSpanFull(),
-                        ]),
-                    ]),
                 Section::make('Konten Tentang')
                     ->description('Tulisan yang muncul pada bagian Tentang CukipGym di beranda.')
                     ->schema([
