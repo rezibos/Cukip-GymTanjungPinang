@@ -17,6 +17,7 @@
             <a href="{{ \App\Filament\Resources\Transactions\TransactionResource::getUrl('index') }}" class="admin-action-primary">Periksa transaksi <span aria-hidden="true">↗</span></a>
             <a href="{{ \App\Filament\Resources\ClassSessions\ClassSessionResource::getUrl('index', ['action' => 'create']) }}" class="admin-action-secondary">Tambah sesi <span aria-hidden="true">＋</span></a>
             <a href="{{ \App\Filament\Resources\PersonalTrainers\PersonalTrainerResource::getUrl('index', ['action' => 'create']) }}" class="admin-action-secondary">Tambah personal trainer <span aria-hidden="true">＋</span></a>
+            <a href="{{ \App\Filament\Resources\Facilities\FacilityResource::getUrl('index', ['action' => 'create']) }}" class="admin-action-secondary">Tambah fasilitas <span aria-hidden="true">＋</span></a>
         </div>
     </div>
     <div class="admin-dashboard-links">

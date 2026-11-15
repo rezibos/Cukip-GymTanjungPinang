@@ -6,31 +6,16 @@
 
 @section('content')
 @php
-    $facilityCategories = [
-        'kekuatan' => ['label' => 'Latihan kekuatan', 'number' => '01', 'description' => 'Dari repetisi pertama sampai set terakhir. Kenali peralatan yang bisa kamu gunakan untuk menyusun latihan beban sesuai kemampuan dan targetmu.', 'items' => []],
-        'kardio' => ['label' => 'Kardio & stamina', 'number' => '02', 'description' => 'Temukan ritme gerakmu. Lengkapi rutinitas dengan sesi kardio yang durasi dan intensitasnya bisa kamu sesuaikan secara bertahap.', 'items' => []],
-        'pemulihan' => ['label' => 'Pemulihan', 'number' => '03', 'description' => 'Luangkan waktu untuk mengembalikan kenyamanan tubuh setelah latihan. Jelajahi fasilitas yang mendukung jeda dan pemulihanmu.', 'items' => []],
-        'kenyamanan' => ['label' => 'Fasilitas pendukung', 'number' => '04', 'description' => 'Latihan terasa lebih praktis saat kebutuhan lainnya sudah tersedia. Dari persiapan sebelum latihan sampai waktunya pulang.', 'items' => []],
-    ];
-    $facilityDescriptions = [
-        'ac' => 'Area berpendingin untuk menjaga kenyamanan selama kamu berlatih.',
-        'air minum' => 'Lengkapi kebutuhan minummu di sela aktivitas dan setelah latihan.',
-        'barbell' => 'Beban bebas untuk menyusun variasi gerakan dan latihan kekuatan.',
-        'bench press' => 'Bangku latihan untuk mendukung gerakan dorong dan latihan beban.',
-        'dumbbell' => 'Peralatan beban bebas yang fleksibel untuk berbagai kelompok otot.',
-        'locker' => 'Tempat menyimpan barang agar kamu bisa lebih fokus selama latihan.',
-        'parkir' => 'Area untuk memarkir kendaraan sebelum memulai sesi latihanmu.',
-        'ruang ganti' => 'Ruang untuk berganti pakaian sebelum dan setelah beraktivitas.',
-        'toilet' => 'Fasilitas sanitasi yang melengkapi kebutuhan selama berada di gym.',
-        'treadmill' => 'Atur kecepatan langkahmu untuk sesi berjalan atau berlari.',
-    ];
+    $facilityCategories = collect(\App\Enums\FacilityCategory::cases())
+        ->mapWithKeys(fn ($category) => [$category->value => [
+            'label' => $category->label(),
+            'number' => $category->number(),
+            'description' => $category->description(),
+            'items' => [],
+        ]])
+        ->all();
     foreach ($facilities as $facility) {
-        $categoryKey = match (true) {
-            (bool) preg_match('/barbell|barbel|dumbbell|bench|rack|smith|cable|beban/i', $facility->name) => 'kekuatan',
-            (bool) preg_match('/treadmill|sepeda|bike|elliptical|cardio|kardio/i', $facility->name) => 'kardio',
-            (bool) preg_match('/stretch|recovery|shower|sauna|pijat|matras|foam|yoga/i', $facility->name) => 'pemulihan',
-            default => 'kenyamanan',
-        };
+        $categoryKey = $facility->category->value;
         $facilityCategories[$categoryKey]['items'][] = $facility;
     }
 @endphp
@@ -109,12 +94,20 @@
                     </div>
                     <ul class="grid gap-3 sm:grid-cols-2">
                         @foreach ($facilityCategory['items'] as $facility)
-                            <li class="group rounded-[1.25rem] border border-black/[.04] bg-[#f5f5f5] p-6 transition-colors hover:border-black/15 hover:bg-[#eeeeee]">
+                            @php($facilityImageUrl = $facility->image_path ? Storage::disk('public')->url($facility->image_path) : null)
+                            <li class="group relative rounded-[1.25rem] border border-black/[.04] bg-[#f5f5f5] p-6 transition-colors hover:z-30 hover:border-black/15 hover:bg-[#eeeeee] focus-visible:z-30 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]" @if ($facilityImageUrl) tabindex="0" data-facility-with-image @endif>
+                                @if ($facilityImageUrl)
+                                    <figure class="pointer-events-none absolute -top-32 right-5 z-20 h-36 w-52 translate-y-3 overflow-hidden rounded-2xl bg-[#171717] opacity-0 shadow-xl transition duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100" data-facility-image-preview>
+                                        <img src="{{ $facilityImageUrl }}" alt="Foto {{ $facility->name }}" class="size-full object-cover" loading="lazy">
+                                    </figure>
+                                @endif
                                 <div class="flex items-start justify-between gap-4">
                                     <h4 class="text-base font-semibold tracking-[-.025em]">{{ $facility->name }}</h4>
                                     <span class="grid size-5 shrink-0 place-items-center rounded-full border border-black/20 text-[.6rem] text-[#737373]" aria-hidden="true">✓</span>
                                 </div>
-                                <p class="mt-3 text-justify text-xs leading-6 text-[#737373]">{{ $facility->description ?: ($facilityDescriptions[mb_strtolower($facility->name)] ?? 'Fasilitas untuk melengkapi kebutuhan selama sesi latihanmu.') }}</p>
+                                @if ($facility->description)
+                                    <p class="mt-3 text-justify text-xs leading-6 text-[#737373]">{{ $facility->description }}</p>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

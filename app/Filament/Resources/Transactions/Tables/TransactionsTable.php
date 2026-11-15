@@ -28,9 +28,6 @@ class TransactionsTable
                 TextColumn::make('quantity')->label('Qty')->alignCenter(),
                 TextColumn::make('amount')->label('Jumlah')->sortable()
                     ->formatStateUsing(fn ($state) => 'Rp'.number_format($state, 0, ',', '.')),
-                TextColumn::make('payment_proof')->label('Bukti transfer')->badge()
-                    ->getStateUsing(fn (Transaction $record): string => $record->payment_proof ? 'Diunggah' : 'Belum ada')
-                    ->color('gray'),
                 TextColumn::make('status')->label('Status')->badge()
                     ->color(fn (TransactionStatus $state) => match ($state) {
                         TransactionStatus::Paid => 'primary',

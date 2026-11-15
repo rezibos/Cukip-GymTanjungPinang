@@ -32,26 +32,26 @@
 
 <section class="px-5 pb-20 text-[#171717] sm:px-8 lg:px-12 lg:pb-24" aria-labelledby="schedule-title" data-navbar-tone="light" data-class-schedule>
     <div class="mx-auto max-w-[80rem]">
-        <div class="flex flex-col justify-between gap-5 rounded-[1.5rem] bg-[#171717] p-6 text-white sm:flex-row sm:items-center sm:px-8">
+        <div class="flex flex-col justify-between gap-5 border-y border-black/10 py-5 sm:flex-row sm:items-center sm:gap-8 sm:py-6">
             <div class="flex items-center gap-4">
-                <span class="hidden size-11 shrink-0 place-items-center rounded-full border border-white/20 sm:grid" aria-hidden="true"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 8V6a6 6 0 0 1 12 0v2M5 8h14v13H5Z"/></svg></span>
+                <span class="grid size-11 shrink-0 place-items-center rounded-full bg-black/[.045] text-[#525252]" aria-hidden="true"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 8V6a6 6 0 0 1 12 0v2M5 8h14v13H5Z"/></svg></span>
                 <div>
-                    <h2 class="text-base font-semibold tracking-[-.025em]">{{ $canBook ? 'Waktunya pilih sesi berikutnya.' : 'Latihan bareng, lebih terarah.' }}</h2>
-                    <p class="mt-1 text-xs leading-6 text-white/50">{{ $canBook ? 'Pilih kelas dan amankan slotmu selama masih tersedia.' : 'Booking kelas tersedia untuk member dengan membership aktif.' }}</p>
+                    <h2 class="text-base font-semibold tracking-[-.025em] text-[#171717]">{{ $canBook ? 'Waktunya pilih sesi berikutnya.' : 'Latihan bareng, lebih terarah.' }}</h2>
+                    <p class="mt-1 text-xs leading-6 text-[#737373]">{{ $canBook ? 'Pilih kelas dan amankan slotmu selama masih tersedia.' : 'Booking kelas tersedia untuk member dengan membership aktif.' }}</p>
                 </div>
             </div>
             @guest
-                <a href="{{ route('membership.index') }}#pilihan-paket" class="inline-flex w-fit shrink-0 items-center gap-6 rounded-full bg-white px-5 py-3 text-xs font-semibold text-[#171717] transition hover:bg-[#d4d4d4]">Pilih membership <span aria-hidden="true">↗</span></a>
+                <a href="{{ route('membership.index') }}#pilihan-paket" class="inline-flex min-h-11 w-full shrink-0 items-center justify-between gap-6 rounded-full bg-[#171717] px-5 text-xs font-semibold text-white transition hover:bg-[#404040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] sm:w-fit">Pilih membership <span aria-hidden="true">↗</span></a>
             @else
                 @if (! $canBook)
-                    <a href="{{ route('membership.index') }}" class="inline-flex w-fit shrink-0 items-center gap-6 rounded-full bg-white px-5 py-3 text-xs font-semibold text-[#171717] transition hover:bg-[#d4d4d4]">Pilih membership <span aria-hidden="true">↗</span></a>
+                    <a href="{{ route('membership.index') }}" class="inline-flex min-h-11 w-full shrink-0 items-center justify-between gap-6 rounded-full bg-[#171717] px-5 text-xs font-semibold text-white transition hover:bg-[#404040] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] sm:w-fit">Pilih membership <span aria-hidden="true">↗</span></a>
                 @else
-                    <span class="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-xs text-white/70"><span class="size-1.5 rounded-full bg-white" aria-hidden="true"></span>Member aktif</span>
+                    <span class="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-black/10 px-4 py-2.5 text-xs font-medium text-[#525252]"><span class="size-1.5 rounded-full bg-[#171717]" aria-hidden="true"></span>Member aktif</span>
                 @endif
             @endguest
         </div>
 
-        <div class="mt-10 flex items-end justify-between gap-5">
+        <div class="mt-8 flex items-end justify-between gap-5">
             <h2 id="schedule-title" class="text-2xl font-semibold tracking-[-.04em]">Jadwal tujuh hari.</h2>
             <p class="text-xs text-[#858585]" aria-live="polite" data-class-count>{{ $totalSessions }} sesi tersedia</p>
         </div>

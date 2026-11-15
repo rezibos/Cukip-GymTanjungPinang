@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\PersonalTrainer;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,6 +11,20 @@ use Tests\TestCase;
 class HomeCommunitySectionsTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_home_carousel_includes_every_active_personal_trainer(): void
+    {
+        $trainers = PersonalTrainer::factory()->count(6)->create();
+        PersonalTrainer::factory()->create(['name' => 'Pelatih Nonaktif', 'is_active' => false]);
+
+        $response = $this->get('/')->assertOk()->assertDontSee('Pelatih Nonaktif');
+
+        foreach ($trainers as $trainer) {
+            $response->assertSee($trainer->name);
+        }
+
+        $this->assertSame(6, substr_count($response->getContent(), 'data-trainer-card>'));
+    }
 
     public function test_approved_reviews_are_visible_after_the_map_before_the_faq_and_rejected_reviews_stay_private(): void
     {

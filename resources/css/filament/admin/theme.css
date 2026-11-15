@@ -324,6 +324,110 @@
     color: #6b6b6b;
 }
 
+/* Transaction list layout */
+.fi-resource-transactions .fi-page-header-main-ctn {
+    gap: .75rem;
+}
+
+.fi-resource-transactions .fi-header {
+    border: 1px solid #dcdcdc;
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    background: #ffffff;
+}
+
+.fi-resource-transactions .fi-ta-ctn {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    --tw-ring-shadow: 0 0 #0000;
+}
+
+.fi-resource-transactions .fi-ta-header-ctn {
+    position: relative;
+    z-index: 1;
+    margin-bottom: .75rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 1rem;
+    background: #ffffff;
+}
+
+.fi-resource-transactions .fi-ta-header-toolbar {
+    gap: .75rem;
+    border-bottom: 0;
+    padding: .7rem 1.35rem .7rem .85rem;
+}
+
+.fi-resource-transactions .fi-ta-header-toolbar > .fi-ta-actions:empty {
+    display: none;
+}
+
+.fi-resource-transactions .fi-ta-header-toolbar > div:last-child {
+    flex: 1;
+    min-width: 0;
+    margin-inline-start: 0;
+}
+
+.fi-resource-transactions .fi-ta-search-field {
+    flex: 1;
+    min-width: 12rem;
+}
+
+.fi-resource-transactions .fi-ta-search-field .fi-input-wrp {
+    width: 100%;
+}
+
+.fi-resource-transactions .fi-ta-content-ctn {
+    overflow: hidden;
+    border: 1px solid #dcdcdc;
+    border-radius: 1rem 1rem 0 0;
+    background: #ffffff;
+}
+
+.fi-resource-transactions .fi-ta-empty-state {
+    display: grid;
+    place-items: center;
+    min-height: 18rem;
+    margin-top: -1px;
+    border: 1px solid #dcdcdc;
+    border-radius: 0 0 1rem 1rem;
+    background: #ffffff;
+}
+
+.fi-resource-transactions .fi-pagination {
+    margin-top: -1px;
+    border: 1px solid #dcdcdc;
+    border-radius: 0 0 1rem 1rem;
+    padding: .75rem 1rem;
+    background: #ffffff;
+}
+
+@media (min-width: 64rem) {
+    .fi-resource-transactions .fi-pagination-overview {
+        display: inline;
+        justify-self: start;
+    }
+}
+
+@media (max-width: 640px) {
+    .fi-resource-transactions .fi-header {
+        padding: .9rem 1rem;
+    }
+
+    .fi-resource-transactions .fi-ta-header-toolbar {
+        align-items: stretch;
+    }
+
+    .fi-resource-transactions .fi-ta-header-toolbar > div:last-child {
+        width: 100%;
+    }
+
+    .fi-resource-transactions .fi-ta-search-field {
+        min-width: 0;
+    }
+}
+
 .fi-fo-field-label-content {
     color: #333333;
 }

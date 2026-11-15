@@ -8,6 +8,7 @@ use App\Models\GymClass;
 use App\Models\GymProfile;
 use App\Models\Membership;
 use App\Models\MembershipPlan;
+use App\Models\PersonalTrainer;
 use App\Models\Review;
 use Illuminate\View\View;
 
@@ -28,14 +29,10 @@ class HomeController extends Controller
             ->count();
         $activeClassCount = GymClass::active()->count();
         $facilityCount = Facility::count();
-        $instructors = GymClass::active()
-            ->whereNotNull('instructor')
-            ->where('instructor', '!=', '')
-            ->orderBy('instructor')
-            ->get(['name', 'instructor'])
-            ->unique('instructor')
-            ->take(4)
-            ->values();
+        $instructors = PersonalTrainer::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
         $marker = GymProfile::query()
             ->whereNotNull('latitude')

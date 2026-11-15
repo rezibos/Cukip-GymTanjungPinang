@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\FacilityCategory;
 use App\Filament\Resources\ClassBookings\Pages\ListClassBookings;
 use App\Filament\Resources\ClassSessions\Pages\ListClassSessions;
 use App\Filament\Resources\Facilities\Pages\ListFacilities;
@@ -16,6 +17,7 @@ use App\Filament\Widgets\LatestTransactions;
 use App\Filament\Widgets\RevenueChart;
 use App\Filament\Widgets\StatsOverview;
 use App\Filament\Widgets\TodayClasses;
+use App\Models\Facility;
 use App\Models\GymClass;
 use App\Models\Membership;
 use App\Models\MembershipPlan;
@@ -28,7 +30,9 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -103,6 +107,7 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Admin Pinang')->assertSee('Operasional')->assertSee('Konten website')
             ->assertSee('Periksa transaksi')->assertSee('Tambah sesi')->assertSee('Lihat website')
             ->assertSee('Tambah personal trainer')->assertSee('/admin/personal-trainers?action=create', false)
+            ->assertSee('Tambah fasilitas')->assertSee('/admin/facilities?action=create', false)
             ->assertSee('/admin/class-sessions?action=create', false)->assertSee('/admin/transactions', false)
             ->assertSee('data-admin-sidebar-toggle', false)
             ->assertSee('aria-controls="fi-main-sidebar"', false)
@@ -133,6 +138,30 @@ class AdminDashboardTest extends TestCase
             'session_minutes' => 120,
         ]);
         $this->get(route('classes.index'))->assertOk()->assertSee('Kak Adi');
+    }
+
+    public function test_admin_can_add_a_facility_to_a_selected_category(): void
+    {
+        Storage::fake('public');
+        $this->signInAdmin();
+
+        Livewire::test(ListFacilities::class)
+            ->callAction('create', [
+                'name' => 'Cable Crossover',
+                'category' => FacilityCategory::Strength->value,
+                'description' => 'Mesin kabel untuk variasi latihan kekuatan.',
+                'image_path' => UploadedFile::fake()->image('cable-crossover.jpg', 1200, 900),
+            ])
+            ->assertHasNoFormErrors();
+
+        $facility = Facility::query()->where('name', 'Cable Crossover')->firstOrFail();
+
+        $this->assertSame(FacilityCategory::Strength, $facility->category);
+        $this->assertNotNull($facility->image_path);
+        Storage::disk('public')->assertExists($facility->image_path);
+        $this->get(route('facilities.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['id="fasilitas-kekuatan"', 'Cable Crossover'], false);
     }
 
     /**
@@ -449,16 +478,19 @@ class AdminDashboardTest extends TestCase
         $this->actingAs($admin)->get('/admin')->assertOk()->assertSee($name)->assertDontSee($name, false);
     }
 
-    public function test_payment_proof_is_explained_and_manual_transaction_creation_is_not_offered(): void
+    public function test_payment_proof_is_not_shown_in_the_table_and_manual_transaction_creation_is_not_offered(): void
     {
         $admin = $this->signInAdmin();
         $membership = $this->createMembership($admin);
-        $missingProof = $membership->transactions()->create(['user_id' => $admin->id, 'amount' => 250000, 'status' => 'pending']);
-        $uploadedProof = $membership->transactions()->create(['user_id' => $admin->id, 'amount' => 250000, 'status' => 'pending', 'payment_proof' => 'payment-proofs/contoh.jpg']);
+        $transaction = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 250000,
+            'status' => 'pending',
+        ]);
 
         Livewire::test(ListTransactions::class)
-            ->assertTableColumnStateSet('payment_proof', 'Belum ada', $missingProof)
-            ->assertTableColumnStateSet('payment_proof', 'Diunggah', $uploadedProof)
+            ->assertCanSeeTableRecords([$transaction])
+            ->assertTableColumnDoesNotExist('payment_proof')
             ->assertSee('Cari invoice atau member...')
             ->assertSee('Hapus')
             ->assertActionDoesNotExist('create');
