@@ -160,6 +160,59 @@ class PaymentService
         }
     }
 
+    public function cancelPendingTrainerBooking(Payment $payment): void
+    {
+        $payment->loadMissing('trainerBookings.slot');
+
+        if ($payment->status !== PaymentStatus::Pending || $payment->trainerBookings->isEmpty()) {
+            throw new RuntimeException('Booking ini sudah tidak dapat dibatalkan.');
+        }
+
+        $providerHasTransaction = true;
+
+        try {
+            $statusResponse = $this->gateway->transactionStatus($payment->order_id);
+            $this->processStatus($payment, $statusResponse);
+            $payment->refresh();
+        } catch (Throwable $exception) {
+            if ((int) $exception->getCode() !== 404) {
+                throw $exception;
+            }
+
+            $providerHasTransaction = false;
+        }
+
+        if ($payment->status === PaymentStatus::Paid) {
+            throw new RuntimeException('Booking yang sudah dibayar tidak dapat dibatalkan.');
+        }
+
+        if ($payment->status !== PaymentStatus::Pending) {
+            throw new RuntimeException('Booking ini sudah tidak dapat dibatalkan.');
+        }
+
+        if ($providerHasTransaction) {
+            $this->gateway->cancelTransaction($payment->order_id);
+        }
+
+        DB::transaction(function () use ($payment): void {
+            $lockedPayment = Payment::query()
+                ->with(['transactions.membership.plan', 'trainerBookings.slot'])
+                ->lockForUpdate()
+                ->findOrFail($payment->id);
+
+            if ($lockedPayment->status !== PaymentStatus::Pending) {
+                throw new RuntimeException('Booking ini sudah tidak dapat dibatalkan.');
+            }
+
+            $lockedPayment->update(['midtrans_status' => 'cancel']);
+            $this->markUnavailable(
+                $lockedPayment,
+                PaymentStatus::Failed,
+                'Booking dibatalkan oleh member.',
+            );
+        });
+    }
+
     private function resolveStatus(string $transactionStatus, ?string $fraudStatus): ?PaymentStatus
     {
         return match ($transactionStatus) {

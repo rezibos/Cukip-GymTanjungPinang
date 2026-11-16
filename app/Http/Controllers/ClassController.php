@@ -24,14 +24,14 @@ class ClassController extends Controller
             ->get()
             ->groupBy(fn (ClassSession $s) => $s->date->toDateString());
 
-        // Booking milik user yang sedang login, untuk menandai tombol "Sudah Booking"
-        $myBookedSessionIds = auth()->check()
-            ? auth()->user()->classBookings()->where('status', 'booked')->pluck('class_session_id')->all()
-            : [];
+        $myBookings = auth()->check()
+            ? auth()->user()->classBookings()->where('status', 'booked')->get()->keyBy('class_session_id')
+            : collect();
+        $currentUserId = auth()->id();
         $canBook = auth()->user()?->isMember() ?? false;
         $trainers = PersonalTrainer::query()
             ->where('is_active', true)
-            ->with(['slots' => function (HasMany $query): void {
+            ->with(['slots' => function (HasMany $query) use ($currentUserId): void {
                 $query->where('starts_at', '>', now())
                     ->where('starts_at', '<=', now()->addDays(60))
                     ->where(function (Builder $availability): void {
@@ -41,10 +41,17 @@ class ClassController extends Controller
                             ->orWhere(fn (Builder $held): Builder => $held->where('status', 'held')->where('held_until', '<', now()));
                     })
                     ->orderBy('starts_at');
+
+                if ($currentUserId) {
+                    $query->with(['bookings' => function (HasMany $bookings) use ($currentUserId): void {
+                        $bookings->where('user_id', $currentUserId)
+                            ->whereIn('status', ['pending_payment', 'confirmed']);
+                    }]);
+                }
             }])
             ->orderBy('name')
             ->get();
 
-        return view('classes.index', compact('sessions', 'start', 'end', 'myBookedSessionIds', 'canBook', 'trainers'));
+        return view('classes.index', compact('sessions', 'start', 'end', 'myBookings', 'canBook', 'trainers'));
     }
 }

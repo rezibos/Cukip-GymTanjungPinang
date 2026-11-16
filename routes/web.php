@@ -64,6 +64,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/personal-trainer-bookings', [TrainerBookingController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('trainer-bookings.store');
+    Route::delete('/personal-trainer-bookings/{payment}', [TrainerBookingController::class, 'destroy'])
+        ->middleware('throttle:10,1')
+        ->name('trainer-bookings.cancel');
 
     Route::get('/cart/checkout', [CartCheckoutController::class, 'create'])->name('cart.checkout');
     Route::post('/cart/checkout', [CartCheckoutController::class, 'store'])->name('cart.checkout.store');

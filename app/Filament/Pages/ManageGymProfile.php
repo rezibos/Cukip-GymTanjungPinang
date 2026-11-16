@@ -8,7 +8,6 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -145,7 +144,12 @@ class ManageGymProfile extends Page
     {
         GymProfile::current()->update($this->form->getState());
 
-        Notification::make()->title('Tentang CukipGym berhasil disimpan')->success()->send();
+        $this->dispatch(
+            'filament-sweetalert',
+            title: 'Tentang CukipGym berhasil disimpan',
+            message: 'Konten tentang, galeri, footer, dan sponsor sudah diperbarui.',
+            type: 'success',
+        );
     }
 
     public function getPageClasses(): array

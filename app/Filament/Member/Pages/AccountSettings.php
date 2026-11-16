@@ -5,7 +5,6 @@ namespace App\Filament\Member\Pages;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -95,10 +94,12 @@ class AccountSettings extends Page
         $this->data['passwordConfirmation'] = null;
         $this->data['currentPassword'] = null;
 
-        Notification::make()
-            ->title('Pengaturan akun berhasil disimpan')
-            ->success()
-            ->send();
+        $this->dispatch(
+            'filament-sweetalert',
+            title: 'Pengaturan akun berhasil disimpan',
+            message: 'Data akunmu sudah diperbarui.',
+            type: 'success',
+        );
     }
 
     protected function getHeaderActions(): array

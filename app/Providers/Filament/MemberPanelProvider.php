@@ -36,6 +36,7 @@ class MemberPanelProvider extends PanelProvider
             ->sidebarWidth('16rem')
             ->sidebarFullyCollapsibleOnDesktop()
             ->renderHook(PanelsRenderHook::TOPBAR_START, fn (): View => view('filament.partials.sidebar-toggle'))
+            ->renderHook(PanelsRenderHook::SCRIPTS_AFTER, fn (): View => view('filament.partials.admin-scripts'))
             ->colors([
                 'primary' => Color::Neutral,
                 'gray' => Color::Neutral,

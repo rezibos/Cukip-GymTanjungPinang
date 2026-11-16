@@ -18,6 +18,11 @@ class QrAccess extends Page
 
     protected string $view = 'filament.member.pages.qr-access';
 
+    public function getHeading(): null
+    {
+        return null;
+    }
+
     /**
      * @return array<string, mixed>
      */

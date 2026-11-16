@@ -52,7 +52,9 @@
                         <summary class="flex cursor-pointer list-none items-center justify-between text-xs font-semibold">Sertifikat & lisensi <span class="text-[#737373]">Lihat semua +</span></summary>
                         <div class="mt-2 max-h-40 overflow-y-auto divide-y divide-black/10">
                             @foreach ($trainer->certifications ?? [] as $index => $certificate)
-                                @php($document = $certificationDocuments->get($index))
+                                @php
+                                    $document = $certificationDocuments->get($index);
+                                @endphp
                                 @if ($document)
                                     <a href="{{ Storage::disk('public')->url($document) }}" target="_blank" rel="noopener" class="flex items-center gap-3 py-3 text-left transition hover:text-[#737373]" data-trainer-certification data-trainer-certificate-document>
                                         <img src="{{ Storage::disk('public')->url($document) }}" alt="{{ $certificate }} milik {{ $trainer->name }}" class="h-12 w-16 rounded-lg object-cover">
@@ -79,7 +81,7 @@
             @auth
                 <form method="POST" action="{{ route('trainer-bookings.store') }}" class="flex min-h-0 flex-1 flex-col" data-trainer-booking-form data-session-price="{{ $trainer->session_price }}">
                     @csrf
-                    <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-7">
+                    <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-7" data-trainer-dialog-scroll>
                         <div class="flex items-end justify-between gap-4">
                             <div><p class="text-[.58rem] font-semibold uppercase tracking-[.14em] text-[#858585]">Pilih jadwal</p><h4 class="mt-1 text-lg font-semibold">Tanggal dan jam sesi</h4></div>
                             <p class="text-right"><span class="block text-[.55rem] uppercase tracking-[.1em] text-[#858585]">Harga per sesi</span><strong class="mt-1 block text-lg">Rp{{ number_format($trainer->session_price, 0, ',', '.') }}</strong></p>
@@ -89,11 +91,25 @@
                             <div class="relative mt-4" data-trainer-calendar>
                             <div class="flex gap-2 overflow-x-auto px-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Pilih tanggal sesi" data-trainer-date-rail>
                                 @foreach ($groupedSlots as $date => $slots)
-                                    @php($isFullyBooked = ! $availableSlots->contains(fn ($slot) => $slot->starts_at->toDateString() === $date))
-                                    <button type="button" class="min-w-[4.75rem] shrink-0 cursor-pointer rounded-xl border px-3 py-2.5 text-left transition disabled:cursor-not-allowed {{ $isFullyBooked ? 'border-[#171717] bg-[#171717] text-white' : ($date === $firstAvailableDate ? 'border-[#171717] bg-[#171717] text-white' : 'border-black/10 bg-white text-[#737373]') }}" data-trainer-date-button="{{ $date }}" aria-pressed="{{ $date === $firstAvailableDate ? 'true' : 'false' }}" @if ($isFullyBooked) disabled title="Semua sesi sudah dibooking" data-trainer-date-booked @endif>
+                                    @php
+                                        $isFullyBooked = ! $availableSlots->contains(fn ($slot) => $slot->starts_at->toDateString() === $date);
+                                        $currentUserBookingStatuses = $slots
+                                            ->flatMap(fn ($slot) => $slot->relationLoaded('bookings') ? $slot->bookings : collect())
+                                            ->pluck('status');
+                                        $hasConfirmedBooking = $currentUserBookingStatuses->contains('confirmed');
+                                        $hasPendingBooking = $currentUserBookingStatuses->contains('pending_payment');
+                                        $unavailableLabel = $hasConfirmedBooking
+                                            ? 'Sudah kamu booking'
+                                            : ($hasPendingBooking ? 'Menunggu pembayaran' : 'Tidak tersedia');
+                                        $isCurrentUserBooking = $hasConfirmedBooking || $hasPendingBooking;
+                                        $dateButtonClasses = $isFullyBooked
+                                            ? ($isCurrentUserBooking ? 'border-[#171717] bg-[#171717] text-white' : 'border-black/10 bg-[#f3f3f1] text-[#858585]')
+                                            : ($date === $firstAvailableDate ? 'border-[#171717] bg-[#171717] text-white' : 'border-black/10 bg-white text-[#737373]');
+                                    @endphp
+                                    <button type="button" class="min-w-[4.75rem] shrink-0 cursor-pointer rounded-xl border px-3 py-2.5 text-left transition disabled:cursor-not-allowed {{ $dateButtonClasses }}" data-trainer-date-button="{{ $date }}" aria-pressed="{{ $date === $firstAvailableDate ? 'true' : 'false' }}" @if ($isFullyBooked) disabled title="{{ $unavailableLabel === 'Tidak tersedia' ? 'Jadwal ini tidak tersedia' : $unavailableLabel }}" data-trainer-date-booked @endif>
                                         <span class="block text-[.55rem] font-semibold uppercase tracking-[.08em]">{{ $trainerDayNames[$slots->first()->starts_at->dayOfWeek] }}</span>
                                         <span class="mt-1 block text-base font-semibold">{{ $slots->first()->starts_at->format('d') }} <small class="text-[.58rem] font-normal">{{ $slots->first()->starts_at->format('M') }}</small></span>
-                                        @if ($isFullyBooked)<span class="mt-1 block text-[.5rem] text-white/70">Sudah dibooking</span>@endif
+                                        @if ($isFullyBooked)<span class="mt-1 block text-[.5rem] {{ $isCurrentUserBooking ? 'text-white/70' : 'text-[#858585]' }}">{{ $unavailableLabel }}</span>@endif
                                     </button>
                                 @endforeach
                             </div>
@@ -130,9 +146,19 @@
                     </div>
 
                     @if ($groupedSlots->isNotEmpty())
-                        <div class="flex items-center gap-4 border-t border-black/10 bg-white px-5 py-3.5 sm:px-7" data-trainer-booking-summary>
-                            <div class="min-w-0 flex-1"><p class="text-[.6rem] uppercase tracking-[.12em] text-[#858585]"><span data-trainer-count>0</span> sesi dipilih</p><strong class="mt-1 block text-xl" data-trainer-total>Rp0</strong></div>
-                            <button type="submit" disabled class="inline-flex min-h-12 cursor-pointer items-center gap-8 rounded-full bg-[#171717] px-6 text-xs font-semibold text-white transition hover:bg-[#404040] disabled:cursor-not-allowed disabled:opacity-35" data-trainer-submit>Booking dan bayar <span aria-hidden="true">→</span></button>
+                        <div class="border-t border-black/10 bg-white px-5 py-3.5 sm:px-7" data-trainer-booking-summary>
+                            <p class="mb-3 hidden rounded-xl bg-[#f4f4f2] px-4 py-3 text-xs leading-5 text-[#525252]" role="status" data-trainer-payment-message></p>
+                            <div class="flex items-center gap-4">
+                                <div class="min-w-0 flex-1"><p class="text-[.6rem] uppercase tracking-[.12em] text-[#858585]"><span data-trainer-count>0</span> sesi dipilih</p><strong class="mt-1 block text-xl" data-trainer-total>Rp0</strong></div>
+                                <div class="flex flex-wrap items-center justify-end gap-2">
+                                    <button type="button" class="hidden min-h-12 cursor-pointer rounded-full border border-red-200 bg-white px-5 text-xs font-semibold text-red-600 transition hover:border-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60" data-trainer-cancel-payment><span data-trainer-cancel-label>Batalkan booking</span></button>
+                                    <button type="submit" disabled class="inline-flex min-h-12 cursor-pointer items-center gap-3 rounded-full bg-[#171717] px-6 text-xs font-semibold text-white transition hover:bg-[#404040] disabled:cursor-not-allowed disabled:opacity-35" data-trainer-submit>
+                                        <span data-trainer-submit-label>Booking dan bayar</span>
+                                        <svg class="hidden size-4 animate-spin" viewBox="0 0 24 24" fill="none" data-trainer-submit-spinner aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" class="opacity-25"/><path d="M3 12a9 9 0 0 1 9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="opacity-75"/></svg>
+                                        <span data-trainer-submit-arrow aria-hidden="true">→</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </form>

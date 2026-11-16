@@ -1,16 +1,36 @@
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
-window.confirmAdminDelete = async () => {
+const supportedAlertIcons = ['success', 'error', 'warning', 'info', 'question'];
+
+const showFilamentAlert = ({
+    title = 'Pemberitahuan',
+    message = '',
+    type = 'info',
+    confirmButtonText = 'Tutup',
+} = {}) => Swal.fire({
+    title,
+    text: message || undefined,
+    icon: supportedAlertIcons.includes(type) ? type : 'info',
+    confirmButtonColor: '#171717',
+    confirmButtonText,
+});
+
+window.confirmFilamentAction = async ({
+    title = 'Lanjutkan tindakan?',
+    message = 'Pastikan tindakan ini memang ingin dilakukan.',
+    confirmButtonText = 'Ya, lanjutkan',
+    cancelButtonText = 'Batal',
+} = {}) => {
     const result = await Swal.fire({
-        title: 'Yakin ingin menghapus?',
-        text: 'Data yang dihapus tidak dapat dikembalikan.',
+        title,
+        text: message,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#171717',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, hapus',
-        cancelButtonText: 'Batal',
+        confirmButtonText,
+        cancelButtonText,
         reverseButtons: true,
         focusCancel: true,
     });
@@ -18,23 +38,66 @@ window.confirmAdminDelete = async () => {
     return result.isConfirmed;
 };
 
+window.confirmAdminDelete = () => window.confirmFilamentAction({
+    title: 'Yakin ingin menghapus?',
+    message: 'Data yang dihapus tidak dapat dikembalikan.',
+    confirmButtonText: 'Ya, hapus',
+});
+
 document.addEventListener('admin-record-created', () => {
-    Swal.fire({
+    showFilamentAlert({
         title: 'Berhasil ditambahkan!',
-        text: 'Data baru telah disimpan.',
-        icon: 'success',
-        draggable: true,
-        confirmButtonColor: '#171717',
+        message: 'Data baru telah disimpan.',
+        type: 'success',
     });
 });
 
 document.addEventListener('admin-record-deleted', () => {
-    Swal.fire({
+    showFilamentAlert({
         title: 'Berhasil dihapus!',
-        text: 'Data telah dihapus.',
-        icon: 'success',
-        confirmButtonColor: '#171717',
+        message: 'Data telah dihapus.',
+        type: 'success',
     });
+});
+
+document.addEventListener('filament-sweetalert', (event) => {
+    showFilamentAlert(event.detail);
+});
+
+const showFilamentFlashNotifications = () => {
+    document.querySelectorAll('[data-filament-flash]').forEach((notification) => {
+        showFilamentAlert({
+            title: notification.dataset.notificationTitle,
+            message: notification.textContent.trim(),
+            type: notification.dataset.notificationType,
+        });
+        notification.remove();
+    });
+};
+
+showFilamentFlashNotifications();
+document.addEventListener('livewire:navigated', showFilamentFlashNotifications);
+
+document.addEventListener('submit', async (event) => {
+    const form = event.target.closest('[data-member-class-cancel-form]');
+
+    if (!form) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const className = form.dataset.className || 'kelas ini';
+    const isConfirmed = await window.confirmFilamentAction({
+        title: `Batalkan booking ${className}?`,
+        message: 'Slotmu akan tersedia kembali untuk member lain.',
+        confirmButtonText: 'Ya, batalkan',
+        cancelButtonText: 'Tetap booking',
+    });
+
+    if (isConfirmed) {
+        form.submit();
+    }
 });
 
 const globallySelectableResources = [

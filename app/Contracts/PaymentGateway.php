@@ -14,4 +14,6 @@ interface PaymentGateway
      * @return array<string, mixed>
      */
     public function transactionStatus(string $transactionId): array;
+
+    public function cancelTransaction(string $transactionId): void;
 }

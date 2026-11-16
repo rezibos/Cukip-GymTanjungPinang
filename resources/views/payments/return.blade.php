@@ -26,6 +26,15 @@
 @endphp
 
 @section('content')
+@if ($isPaid)
+    <div
+        class="hidden"
+        data-flash-notification
+        data-notification-icon="success"
+        data-notification-title="Pembayaran berhasil"
+    >{{ $isTrainerPayment ? 'Jadwal latihan privatmu sudah dikonfirmasi.' : 'Membership kamu sudah aktif.' }}</div>
+@endif
+
 <section class="px-5 pb-20 pt-32 text-[#171717] sm:px-8 lg:px-12 lg:pb-28 lg:pt-40" data-navbar-tone="light">
     <div class="mx-auto max-w-4xl">
         <div class="rounded-[1.7rem] border border-black/10 bg-white p-8 sm:p-12">

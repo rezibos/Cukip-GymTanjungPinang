@@ -6,7 +6,6 @@ use App\Models\GymProfile;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -101,10 +100,12 @@ class ManageHomepage extends Page
     {
         GymProfile::current()->update($this->form->getState());
 
-        Notification::make()
-            ->title('Halaman awal berhasil disimpan')
-            ->success()
-            ->send();
+        $this->dispatch(
+            'filament-sweetalert',
+            title: 'Halaman awal berhasil disimpan',
+            message: 'Konten hero website sudah diperbarui.',
+            type: 'success',
+        );
     }
 
     public function getPageClasses(): array

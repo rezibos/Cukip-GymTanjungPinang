@@ -478,6 +478,17 @@ class AdminDashboardTest extends TestCase
             ->assertTableFilterExists('rating');
     }
 
+    public function test_generate_sessions_dispatches_sweetalert_success(): void
+    {
+        $this->signInAdmin();
+        GymClass::factory()->create(['is_active' => true]);
+
+        Livewire::test(ListGymClasses::class)
+            ->callTableAction('generateSessions', data: ['weeks' => 1])
+            ->assertDispatched('filament-sweetalert')
+            ->assertNotNotified();
+    }
+
     public function test_class_session_occupancy_uses_dash_when_there_are_no_bookings(): void
     {
         $admin = $this->signInAdmin();
@@ -623,6 +634,37 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Cari invoice atau member...')
             ->assertSee('Hapus')
             ->assertActionDoesNotExist('create');
+    }
+
+    public function test_transaction_status_actions_dispatch_sweetalert_feedback(): void
+    {
+        $admin = $this->signInAdmin();
+        $membership = $this->createMembership($admin);
+        $paidTransaction = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 250000,
+            'status' => 'pending',
+        ]);
+
+        Livewire::test(ListTransactions::class)
+            ->callAction(TestAction::make('markPaid')->table($paidTransaction))
+            ->assertDispatched('filament-sweetalert')
+            ->assertNotNotified();
+
+        $rejectedMembership = $this->createMembership($admin);
+        $rejectedTransaction = $rejectedMembership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 250000,
+            'status' => 'pending',
+        ]);
+
+        Livewire::test(ListTransactions::class)
+            ->callAction(
+                TestAction::make('reject')->table($rejectedTransaction),
+                data: ['admin_note' => 'Bukti pembayaran tidak valid.'],
+            )
+            ->assertDispatched('filament-sweetalert')
+            ->assertNotNotified();
     }
 
     public function test_manual_transaction_creation_route_is_not_exposed(): void

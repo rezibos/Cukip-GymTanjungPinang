@@ -30,6 +30,14 @@ class MidtransGateway implements PaymentGateway
         return get_object_vars(Transaction::status($transactionId));
     }
 
+    public function cancelTransaction(string $transactionId): void
+    {
+        $this->configure();
+        Config::$paymentIdempotencyKey = null;
+
+        Transaction::cancel($transactionId);
+    }
+
     private function configure(): void
     {
         $serverKey = $this->serverKey ?? config('services.midtrans.server_key');

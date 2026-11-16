@@ -83,6 +83,11 @@
     color: #fca5a5;
 }
 
+.swal2-popup.gym-notification .swal2-icon.swal2-info {
+    background: rgb(255 255 255 / .1);
+    color: #e5e5e5;
+}
+
 .swal2-popup.gym-notification .swal2-icon svg {
     width: 1rem;
     height: 1rem;
@@ -112,6 +117,106 @@
 .gym-notification .swal2-timer-progress-bar {
     height: 2px;
     background: #737373;
+}
+
+.swal2-popup.gym-confirmation {
+    width: min(28rem, calc(100vw - 2rem));
+    border-radius: 1rem;
+    padding: 2rem;
+    background: #fff;
+    box-shadow: 0 8px 8px rgb(0 0 0 / .14);
+    color: #171717;
+    font-family: 'Poppins', sans-serif;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1.25rem;
+    border-color: #f2b36e;
+    color: #d97706;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-icon .swal2-icon-content {
+    font-size: 2.75rem;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-title {
+    padding: 0;
+    color: #171717;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -.025em;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-message {
+    margin: .65rem 0 0;
+    padding: 0;
+    color: #5f5f5f;
+    font-size: .875rem;
+    line-height: 1.6;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-actions {
+    width: 100%;
+    margin: 1.75rem 0 0;
+    gap: .65rem;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-confirm,
+.swal2-popup.gym-confirmation .gym-confirmation-cancel {
+    min-height: 2.875rem;
+    margin: 0;
+    border-radius: 9999px;
+    padding: .7rem 1.15rem;
+    font-family: inherit;
+    font-size: .8rem;
+    font-weight: 600;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-confirm {
+    border: 1px solid #b42318;
+    background: #b42318;
+    color: #fff;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-confirm:hover {
+    border-color: #8f1c13;
+    background: #8f1c13;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-cancel {
+    border: 1px solid #d4d4d0;
+    background: #fff;
+    color: #3f3f3f;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-cancel:hover {
+    background: #f2f2ef;
+}
+
+.swal2-popup.gym-confirmation .gym-confirmation-confirm:focus-visible,
+.swal2-popup.gym-confirmation .gym-confirmation-cancel:focus-visible {
+    outline: 2px solid #525252;
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .swal2-popup.gym-confirmation .gym-confirmation-actions {
+        flex-direction: column-reverse;
+    }
+
+    .swal2-popup.gym-confirmation .gym-confirmation-confirm,
+    .swal2-popup.gym-confirmation .gym-confirmation-cancel {
+        width: 100%;
+    }
+}
+
+.swal2-container.gym-dialog-notification-container {
+    position: absolute;
+    inset: 0;
 }
 
 html {

@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\TransactionStatus;
 use App\Models\MembershipPlan;
 use App\Models\Payment;
+use App\Models\TrainerSlot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -62,11 +63,50 @@ class PaymentReturnTest extends TestCase
         $response->assertOk()
             ->assertViewHas('payment', fn (Payment $viewPayment): bool => $viewPayment->is($payment))
             ->assertSee('Pembayaran berhasil.')
+            ->assertSee('data-notification-title="Pembayaran berhasil"', false)
+            ->assertSee('Membership kamu sudah aktif.')
             ->assertSee('Konfirmasi pembayaran sudah dikirim ke '.$user->email);
         $this->assertSame($payment->order_id, $gateway->requestedTransactionId);
         $this->assertSame(PaymentStatus::Paid, $payment->fresh()->status);
         $this->assertSame(TransactionStatus::Paid, $transaction->fresh()->status);
         $this->assertSame(MembershipStatus::Active, $membership->fresh()->status);
+    }
+
+    public function test_paid_trainer_return_page_shows_a_success_notification(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create();
+        $slot = TrainerSlot::factory()->create([
+            'status' => 'held',
+            'held_until' => now()->addMinutes(30),
+        ]);
+        $payment = Payment::factory()->for($user)->create([
+            'customer_email' => $user->email,
+            'gross_amount' => 150000,
+            'status' => PaymentStatus::Pending,
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $user->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+        $gateway = new FakePaymentGateway;
+        $gateway->statusResponse = [
+            'transaction_id' => 'midtrans-trainer-transaction-1',
+            'order_id' => $payment->order_id,
+            'gross_amount' => '150000.00',
+            'transaction_status' => 'settlement',
+            'payment_type' => 'bank_transfer',
+            'fraud_status' => 'accept',
+        ];
+        $this->app->instance(PaymentGateway::class, $gateway);
+
+        $this->actingAs($user)
+            ->get(route('payments.finish', ['order_id' => $payment->order_id]))
+            ->assertOk()
+            ->assertSee('data-notification-title="Pembayaran berhasil"', false)
+            ->assertSee('Jadwal latihan privatmu sudah dikonfirmasi.');
     }
 
     public function test_guest_without_checkout_session_cannot_reconcile_another_customers_payment(): void
@@ -162,5 +202,66 @@ class PaymentReturnTest extends TestCase
             ->assertSee('Riwayat pesanan')
             ->assertSee('Paket Milik Budi')
             ->assertDontSee('Paket Rahasia Orang Lain');
+    }
+
+    public function test_payment_history_groups_orders_by_status_in_collapsible_sections(): void
+    {
+        $pendingPayment = Payment::factory()->create([
+            'user_id' => null,
+            'status' => PaymentStatus::Pending,
+            'checkout_items' => [[
+                'name' => 'Paket Menunggu',
+                'price' => 150000,
+                'quantity' => 1,
+                'subtotal' => 150000,
+            ]],
+            'gross_amount' => 150000,
+        ]);
+        $paidPayment = Payment::factory()->create([
+            'user_id' => null,
+            'status' => PaymentStatus::Paid,
+            'checkout_items' => [[
+                'name' => 'Paket Berhasil',
+                'price' => 250000,
+                'quantity' => 1,
+                'subtotal' => 250000,
+            ]],
+            'gross_amount' => 250000,
+        ]);
+        $failedPayment = Payment::factory()->create([
+            'user_id' => null,
+            'status' => PaymentStatus::Failed,
+            'checkout_items' => [[
+                'name' => 'Paket Gagal',
+                'price' => 350000,
+                'quantity' => 1,
+                'subtotal' => 350000,
+            ]],
+            'gross_amount' => 350000,
+        ]);
+
+        $response = $this->withSession([
+            'guest_payment_ids' => [$pendingPayment->id, $paidPayment->id, $failedPayment->id],
+        ])->get(route('payments.history'));
+
+        $response->assertOk()
+            ->assertSeeInOrder(['Menunggu pembayaran', 'Berhasil', 'Gagal / tidak selesai'])
+            ->assertSee('data-payment-group="pending"', false)
+            ->assertSee('data-payment-group="paid"', false)
+            ->assertSee('data-payment-group="failed"', false)
+            ->assertSee('Paket Menunggu')
+            ->assertSee('Paket Berhasil')
+            ->assertSee('Paket Gagal')
+            ->assertSee('Lanjutkan pembayaran')
+            ->assertSee('Lihat detail');
+
+        $this->assertMatchesRegularExpression(
+            '/<details\s+data-payment-group="pending"[^>]*\sopen\s*>/',
+            $response->getContent(),
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/<details\s+data-payment-group="(?:paid|failed)"[^>]*\sopen\s*>/',
+            $response->getContent(),
+        );
     }
 }

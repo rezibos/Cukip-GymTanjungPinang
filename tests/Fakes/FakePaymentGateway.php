@@ -22,6 +22,8 @@ class FakePaymentGateway implements PaymentGateway
 
     public ?string $requestedTransactionId = null;
 
+    public ?string $cancelledTransactionId = null;
+
     public function createTransaction(array $parameters, string $idempotencyKey): array
     {
         $this->createdParameters = $parameters;
@@ -35,5 +37,10 @@ class FakePaymentGateway implements PaymentGateway
         $this->requestedTransactionId = $transactionId;
 
         return $this->statusResponse;
+    }
+
+    public function cancelTransaction(string $transactionId): void
+    {
+        $this->cancelledTransactionId = $transactionId;
     }
 }

@@ -3,7 +3,11 @@
 namespace Tests\Feature;
 
 use App\Filament\Member\Pages\AccountSettings;
+use App\Models\GymClass;
 use App\Models\MembershipPlan;
+use App\Models\Payment;
+use App\Models\PersonalTrainer;
+use App\Models\TrainerSlot;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,9 +67,113 @@ class MemberPanelTest extends TestCase
         $response->assertOk()
             ->assertSee('Halo, Rani Member')
             ->assertSee('Regular Bulanan')
+            ->assertSee('Status membership')
+            ->assertSee('Aktif')
             ->assertSee('QR akses aktif')
-            ->assertSee('30 Nov 2026')
+            ->assertSee('30 November 2026')
             ->assertDontSee('Paket Rahasia');
+    }
+
+    public function test_member_dashboard_shows_personal_summary_and_upcoming_schedules(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-15 10:00:00'));
+        $member = User::factory()->create(['name' => 'Rani Member']);
+        $plan = MembershipPlan::factory()->create(['name' => '18 Month']);
+        $member->memberships()->create([
+            'membership_plan_id' => $plan->id,
+            'status' => 'active',
+            'start_date' => '2026-11-01',
+            'end_date' => '2027-05-02',
+        ]);
+
+        $trainer = PersonalTrainer::factory()->create(['name' => 'Kak Rina']);
+        $trainerSlot = TrainerSlot::factory()->for($trainer, 'trainer')->create([
+            'starts_at' => '2026-11-16 07:00:00',
+            'ends_at' => '2026-11-16 09:00:00',
+            'status' => 'booked',
+        ]);
+        $payment = Payment::factory()->for($member)->create(['status' => 'paid']);
+        $payment->trainerBookings()->create([
+            'user_id' => $member->id,
+            'trainer_slot_id' => $trainerSlot->id,
+            'amount' => 150000,
+            'status' => 'confirmed',
+        ]);
+
+        $gymClass = GymClass::factory()->create([
+            'name' => 'Yoga Pagi',
+            'instructor' => 'Kak Sinta',
+            'start_time' => '07:00',
+            'end_time' => '08:00',
+            'capacity' => 15,
+        ]);
+        $classSession = $gymClass->sessions()->create([
+            'date' => '2026-11-16',
+            'capacity' => 15,
+        ]);
+        $classBooking = $member->classBookings()->create([
+            'class_session_id' => $classSession->id,
+            'status' => 'booked',
+        ]);
+
+        $this->actingAs($member)->get('/member')
+            ->assertOk()
+            ->assertSee('class="member-personal-dashboard"', false)
+            ->assertSee('Ringkasan personal.')
+            ->assertSee('Sisa masa membership')
+            ->assertSee('Sesi personal trainer')
+            ->assertSee('Booking kelas mendatang')
+            ->assertSee('Booking kelas bulan ini')
+            ->assertSee('Halo, Rani Member.')
+            ->assertSee('Kak Rina')
+            ->assertSee('Yoga Pagi')
+            ->assertSee('data-member-class-cancel-form', false)
+            ->assertSee('aria-label="Batalkan booking Yoga Pagi"', false)
+            ->assertSee('action="'.route('classes.bookings.cancel', $classBooking).'"', false)
+            ->assertSee('member-schedule-carousel', false)
+            ->assertSee('member-schedule-arrow is-previous', false)
+            ->assertSee('member-schedule-arrow is-next', false)
+            ->assertSee('x-on:scroll.debounce.100ms="syncArrows()"', false)
+            ->assertSee('Atur sesimu')
+            ->assertSee('Atur kelasmu');
+    }
+
+    public function test_qr_access_page_uses_the_split_access_layout(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-15 10:00:00'));
+        $member = User::factory()->create();
+        $plan = MembershipPlan::factory()->create(['name' => '18 Month']);
+        $member->memberships()->create([
+            'membership_plan_id' => $plan->id,
+            'status' => 'active',
+            'start_date' => '2026-11-01',
+            'end_date' => '2027-05-07',
+        ]);
+
+        $this->actingAs($member)
+            ->get('/member/qr-access')
+            ->assertOk()
+            ->assertSee('class="member-qr-access-page"', false)
+            ->assertSee('CukipGym / Dashboard member')
+            ->assertSee('QR akses')
+            ->assertSee('Tunjukkan QR ini saat masuk.')
+            ->assertSee('Informasi akses')
+            ->assertSee('Membership aktif')
+            ->assertSee('18 Month')
+            ->assertSee('Berlaku sampai 07 Mei 2027')
+            ->assertSee('Perpanjang membership');
+    }
+
+    public function test_member_panel_renders_redirect_feedback_for_sweetalert(): void
+    {
+        $member = $this->signInMember();
+
+        $this->withSession(['success' => 'Booking berhasil dibatalkan.'])
+            ->actingAs($member)
+            ->get('/member')
+            ->assertOk()
+            ->assertSee('data-filament-flash', false)
+            ->assertSee('Booking berhasil dibatalkan.');
     }
 
     public function test_expired_members_see_limited_dashboard_and_renewal_action(): void
@@ -83,11 +191,11 @@ class MemberPanelTest extends TestCase
         $response = $this->actingAs($member)->get('/member');
 
         $response->assertOk()
-            ->assertSee('Membership kedaluwarsa')
+            ->assertSee('Tidak aktif')
             ->assertSee('QR akses dikunci')
             ->assertSee('Perpanjang membership')
             ->assertSee(route('membership.index'), false)
-            ->assertDontSee('QR akses aktif');
+            ->assertSee('QR akses pintu');
 
         $this->get('/member/my-classes')->assertForbidden();
         $this->get('/member/transactions')->assertOk();
@@ -109,7 +217,9 @@ class MemberPanelTest extends TestCase
             ])
             ->set('data.email', 'email-tidak-boleh-berubah@example.com')
             ->call('save')
-            ->assertHasNoFormErrors();
+            ->assertHasNoFormErrors()
+            ->assertDispatched('filament-sweetalert')
+            ->assertNotNotified();
 
         $member->refresh();
 

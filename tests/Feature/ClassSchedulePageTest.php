@@ -40,15 +40,19 @@ class ClassSchedulePageTest extends TestCase
         $ownSession = $this->createSession('Kelas Pilihan Saya', 3, '2026-11-09');
         $fullSession = $this->createSession('Kelas Sudah Penuh', 1, '2026-11-10');
         $availableSession = $this->createSession('Kelas Masih Tersedia', 4, '2026-11-11');
-        $user->classBookings()->create(['class_session_id' => $ownSession->id, 'status' => 'booked']);
+        $ownBooking = $user->classBookings()->create(['class_session_id' => $ownSession->id, 'status' => 'booked']);
         $otherUser = User::factory()->create();
         $otherUser->classBookings()->create(['class_session_id' => $fullSession->id, 'status' => 'booked']);
         $otherUser->classBookings()->create(['class_session_id' => $availableSession->id, 'status' => 'cancelled']);
 
         $response = $this->actingAs($user)->get(route('classes.index'));
 
-        $response->assertOk()->assertSee('Member aktif')->assertSee('Sudah booking')
+        $response->assertOk()->assertSee('Member aktif')->assertSee('Batalkan booking')
             ->assertSee('Kelas penuh')->assertSee('4 slot tersisa')
+            ->assertSee('action="'.route('classes.bookings.cancel', $ownBooking).'"', false)
+            ->assertSee('data-class-cancel-form', false)
+            ->assertSee('window.gymConfirm', false)
+            ->assertDontSee('window.confirm', false)
             ->assertSee('action="'.route('classes.book', $availableSession).'"', false)
             ->assertDontSee('action="'.route('classes.book', $ownSession).'"', false)
             ->assertDontSee('action="'.route('classes.book', $fullSession).'"', false);

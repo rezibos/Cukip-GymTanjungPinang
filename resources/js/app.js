@@ -1,10 +1,12 @@
 import { initReviewCarousels } from './review-carousel';
-import { initNotifications, showNotification } from './notifications';
+import { initNotifications, showConfirmation, showNotification } from './notifications';
 import { initMembershipCarousels } from './membership-carousel';
 
 initReviewCarousels();
 initNotifications();
 initMembershipCarousels();
+
+window.gymConfirm = showConfirmation;
 
 const updateCartTotals = (result) => {
     document.querySelectorAll('[data-cart-link]').forEach((cartLink) => {

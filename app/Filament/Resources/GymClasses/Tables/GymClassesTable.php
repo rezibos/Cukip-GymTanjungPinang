@@ -10,13 +10,13 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
+use Livewire\Component;
 
 class GymClassesTable
 {
@@ -44,7 +44,7 @@ class GymClassesTable
                         TextInput::make('weeks')->label('Berapa minggu ke depan?')
                             ->numeric()->integer()->minValue(1)->maxValue(12)->default(4)->required(),
                     ])
-                    ->action(function (array $data) {
+                    ->action(function (array $data, Component $livewire): void {
                         $weeks = (int) $data['weeks'];
                         $classes = GymClass::where('is_active', true)->get();
                         $created = 0;
@@ -71,11 +71,14 @@ class GymClassesTable
                             }
                         }
 
-                        Notification::make()
-                            ->title($created.' sesi baru berhasil dibuat')
-                            ->body($created === 0 ? 'Semua sesi pada periode ini sudah ada sebelumnya.' : null)
-                            ->success()
-                            ->send();
+                        $livewire->dispatch(
+                            'filament-sweetalert',
+                            title: $created.' sesi baru berhasil dibuat',
+                            message: $created === 0
+                                ? 'Semua sesi pada periode ini sudah ada sebelumnya.'
+                                : 'Jadwal sesi baru sudah ditambahkan.',
+                            type: 'success',
+                        );
                     }),
                 GymClassResource::makeCreateAction(),
             ])

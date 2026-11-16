@@ -3,17 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTrainerBookingRequest;
+use App\Models\Payment;
 use App\Models\TrainerSlot;
 use App\Services\PaymentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 use Throwable;
 
 class TrainerBookingController extends Controller
 {
-    public function store(StoreTrainerBookingRequest $request, PaymentService $paymentService): RedirectResponse
+    public function store(StoreTrainerBookingRequest $request, PaymentService $paymentService): JsonResponse|RedirectResponse
     {
         $user = $request->user();
         $slotIds = $request->validated('slot_ids');
@@ -61,9 +65,50 @@ class TrainerBookingController extends Controller
         } catch (Throwable $exception) {
             report($exception);
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Booking tersimpan, tetapi Midtrans belum dapat dimuat. Coba kembali dari riwayat pembayaran.',
+                    'invoice_url' => route('payments.pending', ['order_id' => $payment->order_id]),
+                ], 503);
+            }
+
             return redirect()->route('classes.index')->with('error', 'Booking tersimpan, tetapi Midtrans belum dapat dimuat. Coba kembali dari riwayat pembayaran.');
         }
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'snap_token' => $payment->snap_token,
+                'order_id' => $payment->order_id,
+                'redirect_url' => $payment->redirect_url,
+                'invoice_url' => route('payments.pending', ['order_id' => $payment->order_id]),
+                'cancel_url' => route('trainer-bookings.cancel', $payment),
+            ]);
+        }
+
         return redirect()->away($payment->redirect_url);
+    }
+
+    public function destroy(Request $request, Payment $payment, PaymentService $paymentService): JsonResponse
+    {
+        if ((int) $payment->user_id !== (int) $request->user()->id
+            || ! $payment->trainerBookings()->exists()) {
+            abort(404);
+        }
+
+        try {
+            $paymentService->cancelPendingTrainerBooking($payment);
+        } catch (RuntimeException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => 'Booking belum dapat dibatalkan. Silakan coba lagi.',
+            ], 503);
+        }
+
+        return response()->json([
+            'message' => 'Booking berhasil dibatalkan. Slot sudah tersedia kembali.',
+        ]);
     }
 }

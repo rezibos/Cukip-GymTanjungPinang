@@ -53,6 +53,17 @@ class PersonalTrainerBookingTest extends TestCase
             ->assertSee('data-trainer-certificate-document', false)
             ->assertSee('data-trainer-booking-summary', false)
             ->assertSee('data-trainer-submit', false)
+            ->assertSee('data-trainer-cancel-payment', false)
+            ->assertSee('data-trainer-dialog-scroll', false)
+            ->assertSee('app.sandbox.midtrans.com/snap/snap.js', false)
+            ->assertSee('window.snap.pay', false)
+            ->assertSee('gym:notification', false)
+            ->assertSee("showNotification('Pembayaran dijeda'", false)
+            ->assertSee("'info', trainerDialog", false)
+            ->assertSee('trainerDialog?.close()', false)
+            ->assertSee('pageScrollPosition', false)
+            ->assertSee('lockPageScroll', false)
+            ->assertSee('unlockPageScroll', false)
             ->assertSee('lg:grid-cols-5', false)
             ->assertSee('lg:col-span-2', false)
             ->assertSee('lg:col-span-3', false)
@@ -78,9 +89,34 @@ class PersonalTrainerBookingTest extends TestCase
 
         $this->actingAs(User::factory()->create())->get(route('classes.index'))
             ->assertOk()
-            ->assertSee('disabled title="Semua sesi sudah dibooking" data-trainer-date-booked', false)
-            ->assertSee('Sudah dibooking')
+            ->assertSee('disabled title="Jadwal ini tidak tersedia" data-trainer-date-booked', false)
+            ->assertSee('Tidak tersedia')
+            ->assertDontSee('Sudah kamu booking')
             ->assertDontSee('name="slot_ids[]" value="'.$slot->id.'"', false);
+    }
+
+    public function test_booked_date_is_only_marked_as_the_current_users_booking_when_it_belongs_to_them(): void
+    {
+        $user = User::factory()->create();
+        $slot = TrainerSlot::factory()->create(['status' => 'booked']);
+        $payment = $user->payments()->create([
+            'checkout_batch' => fake()->uuid(),
+            'order_id' => 'TRAINER-OWNED-BOOKING',
+            'gross_amount' => 150000,
+            'status' => 'paid',
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $user->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'confirmed',
+        ]);
+
+        $this->actingAs($user)->get(route('classes.index'))
+            ->assertOk()
+            ->assertSee('disabled title="Sudah kamu booking" data-trainer-date-booked', false)
+            ->assertSee('Sudah kamu booking')
+            ->assertDontSee('Tidak tersedia');
     }
 
     public function test_slot_end_time_follows_the_trainers_two_or_three_hour_duration(): void
@@ -111,8 +147,13 @@ class PersonalTrainerBookingTest extends TestCase
         )->create();
 
         $this->actingAs($user)
-            ->post(route('trainer-bookings.store'), ['slot_ids' => $slots->modelKeys()])
-            ->assertRedirect('https://sandbox.midtrans.com/trainer-payment');
+            ->postJson(route('trainer-bookings.store'), ['slot_ids' => $slots->modelKeys()])
+            ->assertOk()
+            ->assertJsonPath('snap_token', 'trainer-snap-token')
+            ->assertJsonPath('redirect_url', 'https://sandbox.midtrans.com/trainer-payment')
+            ->assertJsonPath('order_id', fn (string $orderId): bool => str_starts_with($orderId, 'TRAINER-'))
+            ->assertJsonPath('invoice_url', fn (string $url): bool => str_contains($url, '/payments/pending?order_id=TRAINER-'))
+            ->assertJsonPath('cancel_url', fn (string $url): bool => str_contains($url, '/personal-trainer-bookings/'));
 
         $this->assertDatabaseHas('payments', [
             'user_id' => $user->id,
@@ -129,6 +170,183 @@ class PersonalTrainerBookingTest extends TestCase
                 'status' => 'pending_payment',
             ]);
         }
+    }
+
+    public function test_non_ajax_trainer_booking_keeps_midtrans_redirect_as_a_fallback(): void
+    {
+        $this->mock(PaymentGateway::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('createTransaction')->once()->andReturn([
+                'token' => 'trainer-fallback-token',
+                'redirect_url' => 'https://sandbox.midtrans.com/trainer-fallback',
+            ]);
+        });
+        $user = User::factory()->create(['phone' => '628123456789']);
+        $slot = TrainerSlot::factory()->create([
+            'starts_at' => now()->addDays(2)->setTime(9, 0),
+            'ends_at' => now()->addDays(2)->setTime(11, 0),
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('trainer-bookings.store'), ['slot_ids' => [$slot->id]])
+            ->assertRedirect('https://sandbox.midtrans.com/trainer-fallback');
+    }
+
+    public function test_user_can_cancel_pending_trainer_payment_and_choose_another_slot(): void
+    {
+        $this->mock(PaymentGateway::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('transactionStatus')
+                ->once()
+                ->with('TRAINER-CANCEL-TEST')
+                ->andThrow(new \Exception('Transaction does not exist.', 404));
+            $mock->shouldNotReceive('cancelTransaction');
+        });
+        $user = User::factory()->create();
+        $slot = TrainerSlot::factory()->create([
+            'status' => 'held',
+            'held_until' => now()->addMinutes(30),
+        ]);
+        $payment = $user->payments()->create([
+            'checkout_batch' => fake()->uuid(),
+            'order_id' => 'TRAINER-CANCEL-TEST',
+            'gross_amount' => 150000,
+            'status' => 'pending',
+            'snap_token' => 'trainer-cancel-token',
+            'redirect_url' => 'https://sandbox.midtrans.com/trainer-cancel',
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $user->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+
+        $this->actingAs($user)
+            ->deleteJson(route('trainer-bookings.cancel', $payment))
+            ->assertOk()
+            ->assertJsonPath('message', 'Booking berhasil dibatalkan. Slot sudah tersedia kembali.');
+
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'failed']);
+        $this->assertDatabaseHas('trainer_bookings', ['payment_id' => $payment->id, 'status' => 'cancelled']);
+        $this->assertDatabaseHas('trainer_slots', [
+            'id' => $slot->id,
+            'status' => 'available',
+            'held_until' => null,
+        ]);
+    }
+
+    public function test_paid_trainer_booking_cannot_be_cancelled(): void
+    {
+        $this->mock(PaymentGateway::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('transactionStatus')
+                ->once()
+                ->with('TRAINER-PAID-TEST')
+                ->andReturn([
+                    'order_id' => 'TRAINER-PAID-TEST',
+                    'gross_amount' => '150000.00',
+                    'transaction_status' => 'settlement',
+                    'transaction_id' => 'midtrans-paid-test',
+                    'payment_type' => 'bank_transfer',
+                ]);
+            $mock->shouldNotReceive('cancelTransaction');
+        });
+        $user = User::factory()->create();
+        $slot = TrainerSlot::factory()->create([
+            'status' => 'held',
+            'held_until' => now()->addMinutes(30),
+        ]);
+        $payment = $user->payments()->create([
+            'checkout_batch' => fake()->uuid(),
+            'order_id' => 'TRAINER-PAID-TEST',
+            'gross_amount' => 150000,
+            'status' => 'pending',
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $user->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+
+        $this->actingAs($user)
+            ->deleteJson(route('trainer-bookings.cancel', $payment))
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Booking yang sudah dibayar tidak dapat dibatalkan.');
+
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'paid']);
+        $this->assertDatabaseHas('trainer_bookings', ['payment_id' => $payment->id, 'status' => 'confirmed']);
+        $this->assertDatabaseHas('trainer_slots', ['id' => $slot->id, 'status' => 'booked']);
+    }
+
+    public function test_pending_midtrans_trainer_transaction_is_cancelled_before_releasing_slot(): void
+    {
+        $this->mock(PaymentGateway::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('transactionStatus')
+                ->once()
+                ->with('TRAINER-PENDING-TEST')
+                ->andReturn([
+                    'order_id' => 'TRAINER-PENDING-TEST',
+                    'gross_amount' => '150000.00',
+                    'transaction_status' => 'pending',
+                    'transaction_id' => 'midtrans-pending-test',
+                    'payment_type' => 'bank_transfer',
+                ]);
+            $mock->shouldReceive('cancelTransaction')
+                ->once()
+                ->with('TRAINER-PENDING-TEST');
+        });
+        $user = User::factory()->create();
+        $slot = TrainerSlot::factory()->create([
+            'status' => 'held',
+            'held_until' => now()->addMinutes(30),
+        ]);
+        $payment = $user->payments()->create([
+            'checkout_batch' => fake()->uuid(),
+            'order_id' => 'TRAINER-PENDING-TEST',
+            'gross_amount' => 150000,
+            'status' => 'pending',
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $user->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+
+        $this->actingAs($user)
+            ->deleteJson(route('trainer-bookings.cancel', $payment))
+            ->assertOk();
+
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'failed']);
+        $this->assertDatabaseHas('trainer_bookings', ['payment_id' => $payment->id, 'status' => 'cancelled']);
+        $this->assertDatabaseHas('trainer_slots', ['id' => $slot->id, 'status' => 'available']);
+    }
+
+    public function test_user_cannot_cancel_another_users_trainer_payment(): void
+    {
+        $owner = User::factory()->create();
+        $slot = TrainerSlot::factory()->create([
+            'status' => 'held',
+            'held_until' => now()->addMinutes(30),
+        ]);
+        $payment = $owner->payments()->create([
+            'checkout_batch' => fake()->uuid(),
+            'order_id' => 'TRAINER-OTHER-USER',
+            'gross_amount' => 150000,
+            'status' => 'pending',
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $owner->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+
+        $this->actingAs(User::factory()->create())
+            ->deleteJson(route('trainer-bookings.cancel', $payment))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'pending']);
+        $this->assertDatabaseHas('trainer_slots', ['id' => $slot->id, 'status' => 'held']);
     }
 
     public function test_successful_payment_confirms_booking_and_marks_slot_booked(): void

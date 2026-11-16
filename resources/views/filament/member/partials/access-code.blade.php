@@ -1,4 +1,9 @@
-<div class="member-qr-card {{ $activeMembership ? 'is-active' : 'is-locked' }}">
+<div @class([
+    'member-qr-card',
+    'member-dashboard-qr-card' => $compact ?? false,
+    'is-active' => $activeMembership,
+    'is-locked' => ! $activeMembership,
+])>
     <div class="member-card-heading">
         <div>
             <p class="member-eyebrow">QR akses pintu</p>

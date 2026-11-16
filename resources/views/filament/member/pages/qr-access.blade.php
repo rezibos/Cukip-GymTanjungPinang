@@ -1,23 +1,54 @@
 <x-filament-panels::page>
-    <div class="member-page-intro">
-        <p>Gunakan QR ini sebagai kartu masuk digital. Pada versi demo, QR bersifat simulasi dan belum terhubung ke mesin pintu fisik.</p>
-    </div>
+    <div class="member-qr-access-page">
+        <header class="member-summary-title-card member-qr-access-title">
+            <p>CukipGym / Dashboard member</p>
+            <h1>QR akses</h1>
+        </header>
 
-    <div class="member-qr-page-grid">
-        @include('filament.member.partials.access-code', [
-            'activeMembership' => $activeMembership,
-            'accessCode' => $accessCode,
-            'qrCells' => $qrCells,
-        ])
+        <div class="member-qr-access-grid">
+            <section class="member-qr-access-panel">
+                <header>
+                    <h2>QR akses</h2>
+                    <p>Tunjukkan QR ini saat masuk.</p>
+                </header>
 
-        <section class="member-list-card">
-            <p class="member-eyebrow">Informasi akses</p>
-            <h2>{{ $activeMembership ? $activeMembership->plan->name : ($latestMembership?->plan?->name ?? 'Belum ada membership') }}</h2>
-            <dl class="member-details-list">
-                <div><dt>Status</dt><dd>{{ $activeMembership ? 'Aktif' : 'Kedaluwarsa' }}</dd></div>
-                <div><dt>Berlaku mulai</dt><dd>{{ $activeMembership?->start_date?->translatedFormat('d M Y') ?? '—' }}</dd></div>
-                <div><dt>Berlaku sampai</dt><dd>{{ ($activeMembership ?? $latestMembership)?->end_date?->translatedFormat('d M Y') ?? '—' }}</dd></div>
-            </dl>
-        </section>
+                @if ($activeMembership)
+                    <div class="member-qr-grid" role="img" aria-label="QR akses member aktif">
+                        @foreach ($qrCells as $isDark)
+                            <span class="{{ $isDark ? 'is-dark' : '' }}"></span>
+                        @endforeach
+                    </div>
+                    <p class="member-access-code">{{ $accessCode }}</p>
+                    <span class="member-status is-active">Aktif</span>
+                @else
+                    <div class="member-qr-locked" aria-hidden="true">
+                        <x-filament::icon icon="heroicon-o-lock-closed" />
+                    </div>
+                    <span class="member-status is-expired">Tidak aktif</span>
+                @endif
+            </section>
+
+            <section class="member-access-information-panel">
+                <header>
+                    <h2>Informasi akses</h2>
+                    <p>{{ $activeMembership ? 'Membership aktif' : 'Membership tidak aktif' }}</p>
+                </header>
+
+                <div class="member-access-plan">
+                    <strong>{{ $activeMembership?->plan?->name ?? $latestMembership?->plan?->name ?? 'Belum ada membership' }}</strong>
+                    <span>
+                        @if (($activeMembership ?? $latestMembership)?->end_date)
+                            {{ ($activeMembership ? 'Berlaku sampai ' : 'Berakhir ') . ($activeMembership ?? $latestMembership)->end_date->locale('id')->translatedFormat('d F Y') }}
+                        @else
+                            Pilih paket membership untuk mengaktifkan akses.
+                        @endif
+                    </span>
+                </div>
+
+                <a href="{{ route('membership.index') }}" class="member-button member-button-secondary">
+                    {{ $activeMembership ? 'Perpanjang membership' : 'Pilih membership' }}
+                </a>
+            </section>
+        </div>
     </div>
 </x-filament-panels::page>

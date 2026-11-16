@@ -72,7 +72,8 @@
                 @foreach ($daySessions as $session)
                     @php
                         $remaining = max(0, $session->capacity - $session->active_bookings_count);
-                        $isBooked = in_array($session->id, $myBookedSessionIds);
+                        $booking = $myBookings->get($session->id);
+                        $isBooked = $booking !== null;
                         $availability = $session->capacity > 0 ? min(100, $remaining / $session->capacity * 100) : 0;
                     @endphp
                     <article class="flex min-w-0 flex-col rounded-[1.5rem] border border-black/[.06] bg-[#f7f7f7] p-6 transition-colors hover:border-black/20 sm:p-7" data-class-session data-class-date="{{ $date }}" aria-labelledby="class-{{ $session->id }}">
@@ -93,7 +94,14 @@
                             <div class="flex justify-between gap-4 text-xs"><p class="font-medium {{ $remaining > 0 ? 'text-[#525252]' : 'text-[#a3a3a3]' }}">{{ $remaining > 0 ? "$remaining slot tersisa" : 'Kelas penuh' }}</p><p class="text-[#a3a3a3]">{{ $session->capacity }} peserta</p></div>
                             <div class="mt-3 h-1 overflow-hidden rounded-full bg-black/[.06]" aria-hidden="true"><div class="h-full rounded-full bg-[#737373]" style="width: {{ $availability }}%"></div></div>
                             @if ($isBooked)
-                                <p class="mt-5 flex min-h-11 items-center justify-center gap-2 rounded-full border border-black/10 text-xs font-semibold text-[#737373]"><span aria-hidden="true">✓</span>Sudah booking</p>
+                                <form method="POST" action="{{ route('classes.bookings.cancel', $booking) }}" class="mt-5" data-class-cancel-form data-class-name="{{ $session->gymClass->name }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[#8f3f3f]/30 px-5 text-xs font-semibold text-[#8f3f3f] transition-colors hover:border-[#8f3f3f] hover:bg-[#8f3f3f] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f3f3f]">
+                                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8" /></svg>
+                                        Batalkan booking
+                                    </button>
+                                </form>
                             @elseif ($remaining <= 0)
                                 <button type="button" disabled class="mt-5 min-h-11 w-full cursor-not-allowed rounded-full bg-black/[.04] px-5 text-xs font-semibold text-[#a3a3a3]">Slot habis</button>
                             @elseif ($canBook)
@@ -144,8 +152,46 @@
 @endsection
 
 @push('scripts')
+@if ($trainers->isNotEmpty())
+<script src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+@endif
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const finishUrl = @json(route('payments.finish'));
+    const pendingUrl = @json(route('payments.pending'));
+    const errorUrl = @json(route('payments.error'));
+
+    const paymentResultUrl = function (baseUrl, orderId) {
+        const url = new URL(baseUrl, window.location.origin);
+        url.searchParams.set('order_id', orderId);
+
+        return url.toString();
+    };
+
+    const showNotification = function (title, message, type = 'success', target = document.body) {
+        document.dispatchEvent(new CustomEvent('gym:notification', {
+            detail: { title, message, type, target },
+        }));
+    };
+
+    document.querySelectorAll('[data-class-cancel-form]').forEach(function (form) {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const className = form.dataset.className || 'kelas ini';
+            const shouldCancel = await window.gymConfirm({
+                title: `Batalkan booking ${className}?`,
+                message: 'Slotmu akan tersedia kembali untuk member lain.',
+                confirmButtonText: 'Ya, batalkan',
+                cancelButtonText: 'Tetap booking',
+            });
+
+            if (shouldCancel) {
+                form.submit();
+            }
+        });
+    });
+
     document.querySelectorAll('[data-trainer-dialog-open]').forEach(function (button) {
         button.addEventListener('click', function () {
             document.getElementById(button.dataset.trainerDialogOpen)?.showModal();
@@ -168,6 +214,145 @@ document.addEventListener('DOMContentLoaded', function () {
         const dateRail = form.querySelector('[data-trainer-date-rail]');
         const previousDates = form.querySelector('[data-trainer-calendar-prev]');
         const nextDates = form.querySelector('[data-trainer-calendar-next]');
+        const submitLabel = form.querySelector('[data-trainer-submit-label]');
+        const submitSpinner = form.querySelector('[data-trainer-submit-spinner]');
+        const submitArrow = form.querySelector('[data-trainer-submit-arrow]');
+        const paymentMessage = form.querySelector('[data-trainer-payment-message]');
+        const cancelButton = form.querySelector('[data-trainer-cancel-payment]');
+        const cancelLabel = form.querySelector('[data-trainer-cancel-label]');
+        const trainerDialog = form.closest('dialog');
+        const dialogScroller = form.querySelector('[data-trainer-dialog-scroll]');
+        let paymentData = null;
+        let isSubmitting = false;
+        let pageScrollPosition = window.scrollY;
+        let dialogScrollPosition = 0;
+        let isPageScrollLocked = false;
+        let bodyScrollStyles = null;
+
+        const showPaymentMessage = function (message, isError = false) {
+            paymentMessage.textContent = message;
+            paymentMessage.classList.remove('hidden', 'bg-[#f4f4f2]', 'text-[#525252]', 'bg-red-50', 'text-red-600');
+            paymentMessage.classList.add(isError ? 'bg-red-50' : 'bg-[#f4f4f2]', isError ? 'text-red-600' : 'text-[#525252]');
+        };
+
+        const clearPaymentMessage = function () {
+            paymentMessage.textContent = '';
+            paymentMessage.classList.add('hidden');
+        };
+
+        const setSubmitting = function (submitting) {
+            isSubmitting = submitting;
+            submitButton.disabled = submitting || (!paymentData && form.querySelectorAll('input[name="slot_ids[]"]:checked').length === 0);
+            submitLabel.textContent = submitting ? 'Menyiapkan pembayaran...' : (paymentData ? 'Lanjutkan pembayaran' : 'Booking dan bayar');
+            submitSpinner.classList.toggle('hidden', !submitting);
+            submitArrow.classList.toggle('hidden', submitting);
+        };
+
+        const rememberScrollPosition = function () {
+            pageScrollPosition = window.scrollY;
+            dialogScrollPosition = dialogScroller?.scrollTop ?? 0;
+        };
+
+        const lockPageScroll = function () {
+            if (isPageScrollLocked) {
+                return;
+            }
+
+            bodyScrollStyles = {
+                position: document.body.style.position,
+                top: document.body.style.top,
+                left: document.body.style.left,
+                right: document.body.style.right,
+                width: document.body.style.width,
+            };
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${pageScrollPosition}px`;
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.width = '100%';
+            isPageScrollLocked = true;
+        };
+
+        const unlockPageScroll = function () {
+            if (!isPageScrollLocked || !bodyScrollStyles) {
+                return;
+            }
+
+            document.body.style.position = bodyScrollStyles.position;
+            document.body.style.top = bodyScrollStyles.top;
+            document.body.style.left = bodyScrollStyles.left;
+            document.body.style.right = bodyScrollStyles.right;
+            document.body.style.width = bodyScrollStyles.width;
+            isPageScrollLocked = false;
+            bodyScrollStyles = null;
+            window.scrollTo(0, pageScrollPosition);
+        };
+
+        const restoreScrollPosition = function () {
+            unlockPageScroll();
+
+            window.requestAnimationFrame(function () {
+                window.requestAnimationFrame(function () {
+                    window.scrollTo(0, pageScrollPosition);
+
+                    if (dialogScroller) {
+                        dialogScroller.scrollTop = dialogScrollPosition;
+                    }
+                });
+            });
+        };
+
+        const openSnapPayment = function () {
+            if (!paymentData) {
+                return;
+            }
+
+            if (!window.snap || typeof window.snap.pay !== 'function') {
+                showPaymentMessage('Popup Midtrans gagal dimuat. Kamu akan diarahkan ke halaman pembayaran.', true);
+
+                if (paymentData.redirect_url) {
+                    window.setTimeout(function () {
+                        window.location.href = paymentData.redirect_url;
+                    }, 1200);
+                } else {
+                    window.location.href = paymentData.invoice_url;
+                }
+
+                return;
+            }
+
+            clearPaymentMessage();
+            rememberScrollPosition();
+            lockPageScroll();
+            trainerDialog?.close();
+            window.snap.pay(paymentData.snap_token, {
+                onSuccess: function () {
+                    unlockPageScroll();
+                    window.location.href = paymentResultUrl(finishUrl, paymentData.order_id);
+                },
+                onPending: function () {
+                    unlockPageScroll();
+                    window.location.href = paymentResultUrl(pendingUrl, paymentData.order_id);
+                },
+                onError: function () {
+                    unlockPageScroll();
+                    window.location.href = paymentResultUrl(errorUrl, paymentData.order_id);
+                },
+                onClose: function () {
+                    unlockPageScroll();
+
+                    if (trainerDialog && !trainerDialog.open) {
+                        trainerDialog.showModal();
+                    }
+
+                    restoreScrollPosition();
+                    setSubmitting(false);
+                    cancelButton.classList.remove('hidden');
+                    clearPaymentMessage();
+                    showNotification('Pembayaran dijeda', 'Lanjutkan pembayaran atau batalkan booking untuk memilih jadwal lain.', 'info', trainerDialog);
+                },
+            });
+        };
 
         if (dateRail) {
             const updateCalendarArrows = function () {
@@ -185,6 +370,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const updateDateColors = function () {
             dateButtons.forEach(function (button) {
+                if (button.disabled) {
+                    return;
+                }
+
                 const panel = Array.from(datePanels).find(function (item) {
                     return item.dataset.trainerDatePanel === button.dataset.trainerDateButton;
                 });
@@ -217,11 +406,121 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         form.addEventListener('change', function () {
+            if (paymentData) {
+                return;
+            }
+
             const selected = form.querySelectorAll('input[name="slot_ids[]"]:checked').length;
             count.textContent = selected;
             total.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(selected * price);
             submitButton.disabled = selected === 0;
             updateDateColors();
+        });
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            if (isSubmitting) {
+                return;
+            }
+
+            if (paymentData) {
+                openSnapPayment();
+                return;
+            }
+
+            clearPaymentMessage();
+            setSubmitting(true);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: new FormData(form),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const validationMessage = data.errors ? Object.values(data.errors).flat()[0] : null;
+                    showPaymentMessage(validationMessage || data.message || 'Pembayaran belum dapat dimulai. Silakan coba lagi.', true);
+
+                    if (data.invoice_url) {
+                        submitButton.disabled = true;
+                        submitLabel.textContent = 'Buka riwayat pembayaran';
+                        window.setTimeout(function () {
+                            window.location.href = data.invoice_url;
+                        }, 1800);
+                    } else {
+                        setSubmitting(false);
+                    }
+
+                    return;
+                }
+
+                paymentData = data;
+                form.querySelectorAll('input[name="slot_ids[]"]').forEach(function (input) {
+                    input.disabled = true;
+                });
+                setSubmitting(false);
+                openSnapPayment();
+            } catch (error) {
+                showPaymentMessage('Terjadi kesalahan jaringan. Periksa koneksi lalu coba lagi.', true);
+                setSubmitting(false);
+            }
+        });
+
+        cancelButton?.addEventListener('click', async function () {
+            if (!paymentData?.cancel_url || cancelButton.disabled) {
+                return;
+            }
+
+            cancelButton.disabled = true;
+            submitButton.disabled = true;
+            cancelLabel.textContent = 'Membatalkan...';
+            clearPaymentMessage();
+
+            try {
+                const response = await fetch(paymentData.cancel_url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+                    },
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showNotification('Booking belum dibatalkan', data.message || 'Booking belum dapat dibatalkan. Silakan coba lagi.', 'error', trainerDialog);
+                    cancelButton.disabled = false;
+                    submitButton.disabled = false;
+                    cancelLabel.textContent = 'Batalkan booking';
+                    return;
+                }
+
+                paymentData = null;
+                form.querySelectorAll('input[name="slot_ids[]"]').forEach(function (input) {
+                    input.disabled = false;
+                    input.checked = false;
+                });
+                cancelButton.disabled = false;
+                cancelButton.classList.add('hidden');
+                cancelLabel.textContent = 'Batalkan booking';
+                count.textContent = '0';
+                total.textContent = 'Rp0';
+                setSubmitting(false);
+                updateDateColors();
+                clearPaymentMessage();
+                showNotification('Booking dibatalkan', data.message, 'success', trainerDialog);
+            } catch (error) {
+                showNotification('Booking belum dibatalkan', 'Terjadi kesalahan jaringan saat membatalkan booking.', 'error', trainerDialog);
+                cancelButton.disabled = false;
+                submitButton.disabled = false;
+                cancelLabel.textContent = 'Batalkan booking';
+            }
         });
         updateDateColors();
     });

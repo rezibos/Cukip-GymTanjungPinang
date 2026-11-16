@@ -8,13 +8,13 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
-use Filament\Notifications\Notification;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class TransactionsTable
 {
@@ -58,7 +58,7 @@ class TransactionsTable
                     ->requiresConfirmation()
                     ->modalDescription('Semua transaksi dalam checkout yang sama akan dilunasi dan membership-nya diaktifkan.')
                     ->visible(fn (Transaction $record) => $record->status === TransactionStatus::Pending)
-                    ->action(function (Transaction $record) {
+                    ->action(function (Transaction $record, Component $livewire): void {
                         DB::transaction(function () use ($record): void {
                             foreach ($record->checkoutGroup() as $transaction) {
                                 $transaction->update(['status' => TransactionStatus::Paid, 'paid_at' => now()]);
@@ -66,10 +66,12 @@ class TransactionsTable
                             }
                         });
 
-                        Notification::make()
-                            ->title('Transaksi ditandai lunas, membership user telah aktif')
-                            ->success()
-                            ->send();
+                        $livewire->dispatch(
+                            'filament-sweetalert',
+                            title: 'Transaksi berhasil dilunasi',
+                            message: 'Membership member sudah aktif.',
+                            type: 'success',
+                        );
                     }),
 
                 Action::make('reject')
@@ -81,7 +83,7 @@ class TransactionsTable
                         Textarea::make('admin_note')->label('Alasan penolakan')->required(),
                     ])
                     ->visible(fn (Transaction $record) => $record->status === TransactionStatus::Pending)
-                    ->action(function (Transaction $record, array $data) {
+                    ->action(function (Transaction $record, array $data, Component $livewire): void {
                         DB::transaction(function () use ($record, $data): void {
                             foreach ($record->checkoutGroup() as $transaction) {
                                 $transaction->update([
@@ -92,7 +94,12 @@ class TransactionsTable
                             }
                         });
 
-                        Notification::make()->title('Transaksi ditolak')->warning()->send();
+                        $livewire->dispatch(
+                            'filament-sweetalert',
+                            title: 'Transaksi ditolak',
+                            message: 'Status transaksi dan membership telah diperbarui.',
+                            type: 'warning',
+                        );
                     }),
 
                 EditAction::make()

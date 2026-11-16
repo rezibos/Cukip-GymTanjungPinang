@@ -14,6 +14,11 @@ class Dashboard extends BaseDashboard
 
     protected string $view = 'filament.member.pages.dashboard';
 
+    public function getHeading(): null
+    {
+        return null;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -29,18 +34,25 @@ class Dashboard extends BaseDashboard
         $accessCode = $activeMembership
             ? MemberAccessCode::make($user, $activeMembership)
             : null;
-        $upcomingBookings = $user->classBookings()
+        $upcomingBookingsQuery = $user->classBookings()
             ->with('session.gymClass')
             ->where('status', 'booked')
-            ->whereHas('session', fn ($query) => $query->whereDate('date', '>=', today()))
-            ->latest('id')
-            ->limit(3)
+            ->whereHas('session', fn ($query) => $query->whereDate('date', '>=', today()));
+        $upcomingBookings = (clone $upcomingBookingsQuery)
             ->get();
-        $recentTransactions = $user->transactions()
-            ->with('membership.plan')
-            ->latest()
-            ->limit(4)
-            ->get();
+        $upcomingBookings = $upcomingBookings
+            ->sortBy(fn ($booking) => $booking->session->date)
+            ->take(6)
+            ->values();
+        $upcomingTrainerBookingsQuery = $user->trainerBookings()
+            ->with('slot.trainer')
+            ->where('status', 'confirmed')
+            ->whereHas('slot', fn ($query) => $query->where('starts_at', '>=', now()));
+        $upcomingTrainerBookings = (clone $upcomingTrainerBookingsQuery)
+            ->get()
+            ->sortBy(fn ($booking) => $booking->slot->starts_at)
+            ->take(6)
+            ->values();
 
         return [
             'user' => $user,
@@ -49,12 +61,15 @@ class Dashboard extends BaseDashboard
             'accessCode' => $accessCode,
             'qrCells' => $accessCode ? MemberAccessCode::cells($accessCode) : [],
             'upcomingBookings' => $upcomingBookings,
-            'recentTransactions' => $recentTransactions,
-            'upcomingBookingsCount' => $user->classBookings()
+            'upcomingTrainerBookings' => $upcomingTrainerBookings,
+            'upcomingBookingsCount' => (clone $upcomingBookingsQuery)->count(),
+            'upcomingTrainerBookingsCount' => (clone $upcomingTrainerBookingsQuery)->count(),
+            'monthlyBookingsCount' => $user->classBookings()
                 ->where('status', 'booked')
-                ->whereHas('session', fn ($query) => $query->whereDate('date', '>=', today()))
+                ->whereHas('session', fn ($query) => $query
+                    ->whereDate('date', '>=', now()->startOfMonth())
+                    ->whereDate('date', '<=', now()->endOfMonth()))
                 ->count(),
-            'transactionsCount' => $user->transactions()->count(),
             'remainingDays' => $activeMembership
                 ? max(0, (int) today()->diffInDays($activeMembership->end_date, false))
                 : 0,

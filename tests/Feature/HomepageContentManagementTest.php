@@ -46,7 +46,9 @@ class HomepageContentManagementTest extends TestCase
                 'hero_image' => UploadedFile::fake()->image('hero.jpg', 1600, 1000),
             ])
             ->call('save')
-            ->assertHasNoFormErrors();
+            ->assertHasNoFormErrors()
+            ->assertDispatched('filament-sweetalert')
+            ->assertNotNotified();
 
         $profile = GymProfile::current()->refresh();
 
@@ -92,7 +94,9 @@ class HomepageContentManagementTest extends TestCase
                 ]],
             ])
             ->call('save')
-            ->assertHasNoFormErrors();
+            ->assertHasNoFormErrors()
+            ->assertDispatched('filament-sweetalert')
+            ->assertNotNotified();
 
         $profile = GymProfile::current()->refresh();
 
