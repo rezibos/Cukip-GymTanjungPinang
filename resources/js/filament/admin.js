@@ -78,6 +78,104 @@ const showFilamentFlashNotifications = () => {
 showFilamentFlashNotifications();
 document.addEventListener('livewire:navigated', showFilamentFlashNotifications);
 
+const currentOnlySidebarGroupsStorageKey = 'adminCurrentOnlySidebarGroups';
+
+const readCurrentOnlySidebarGroups = () => {
+    try {
+        const storedGroups = JSON.parse(localStorage.getItem(currentOnlySidebarGroupsStorageKey) ?? '[]');
+
+        return new Set(Array.isArray(storedGroups) ? storedGroups : []);
+    } catch {
+        return new Set();
+    }
+};
+
+const writeCurrentOnlySidebarGroups = (groups) => {
+    localStorage.setItem(currentOnlySidebarGroupsStorageKey, JSON.stringify([...groups]));
+};
+
+const getSidebarStore = () => window.Alpine?.store('sidebar');
+
+const updateSidebarGroupState = (group, isCollapsed, hasCurrentItem) => {
+    group.classList.toggle('admin-sidebar-current-only', isCollapsed && hasCurrentItem);
+    group.classList.toggle('admin-sidebar-collapsed', isCollapsed && !hasCurrentItem);
+    group.querySelector('.fi-sidebar-group-collapse-btn')?.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+};
+
+const syncSidebarCurrentOnlyGroups = () => {
+    const sidebarStore = getSidebarStore();
+
+    if (!sidebarStore || !Array.isArray(sidebarStore.collapsedGroups)) {
+        return;
+    }
+
+    const collapsedGroups = readCurrentOnlySidebarGroups();
+    const sidebarGroups = [...document.querySelectorAll('.fi-main-sidebar .fi-sidebar-group')];
+    const sidebarGroupLabels = sidebarGroups.map((group) => group.dataset.groupLabel).filter(Boolean);
+
+    sidebarStore.collapsedGroups.forEach((label) => {
+        if (sidebarGroupLabels.includes(label)) {
+            collapsedGroups.add(label);
+        }
+    });
+
+    sidebarStore.collapsedGroups = sidebarStore.collapsedGroups.filter((label) => !sidebarGroupLabels.includes(label));
+
+    sidebarGroups.forEach((group) => {
+        const label = group.dataset.groupLabel;
+
+        if (!label) {
+            return;
+        }
+
+        const hasCurrentItem = Boolean(group.querySelector('.fi-sidebar-item-btn[aria-current="page"]'));
+        updateSidebarGroupState(group, collapsedGroups.has(label), hasCurrentItem);
+    });
+
+    writeCurrentOnlySidebarGroups(collapsedGroups);
+};
+
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) {
+        return;
+    }
+
+    const groupButton = event.target.closest('.fi-sidebar-group-btn');
+    const group = groupButton?.closest('.fi-sidebar-group');
+
+    if (!group) {
+        return;
+    }
+
+    const label = group.dataset.groupLabel;
+    const sidebarStore = getSidebarStore();
+
+    if (!label || !sidebarStore || !Array.isArray(sidebarStore.collapsedGroups)) {
+        return;
+    }
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const collapsedGroups = readCurrentOnlySidebarGroups();
+    const isCollapsed = !collapsedGroups.has(label);
+    const hasCurrentItem = Boolean(group.querySelector('.fi-sidebar-item-btn[aria-current="page"]'));
+
+    if (isCollapsed) {
+        collapsedGroups.add(label);
+    } else {
+        collapsedGroups.delete(label);
+    }
+
+    sidebarStore.collapsedGroups = sidebarStore.collapsedGroups.filter((collapsedGroup) => collapsedGroup !== label);
+    writeCurrentOnlySidebarGroups(collapsedGroups);
+    updateSidebarGroupState(group, isCollapsed, hasCurrentItem);
+}, true);
+
+syncSidebarCurrentOnlyGroups();
+document.addEventListener('alpine:initialized', syncSidebarCurrentOnlyGroups);
+document.addEventListener('livewire:navigated', syncSidebarCurrentOnlyGroups);
+
 document.addEventListener('submit', async (event) => {
     const form = event.target.closest('[data-member-class-cancel-form]');
 

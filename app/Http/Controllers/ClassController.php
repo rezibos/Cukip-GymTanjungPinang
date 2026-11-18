@@ -45,7 +45,8 @@ class ClassController extends Controller
                 if ($currentUserId) {
                     $query->with(['bookings' => function (HasMany $bookings) use ($currentUserId): void {
                         $bookings->where('user_id', $currentUserId)
-                            ->whereIn('status', ['pending_payment', 'confirmed']);
+                            ->whereIn('status', ['pending_payment', 'confirmed'])
+                            ->with('payment');
                     }]);
                 }
             }])

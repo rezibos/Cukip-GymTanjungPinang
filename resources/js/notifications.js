@@ -46,6 +46,7 @@ export async function showConfirmation({
     message,
     confirmButtonText = 'Ya, lanjutkan',
     cancelButtonText = 'Batal',
+    target = document.body,
 }) {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const result = await Swal.fire({
@@ -58,8 +59,10 @@ export async function showConfirmation({
         reverseButtons: true,
         confirmButtonText,
         cancelButtonText,
+        target,
         buttonsStyling: false,
         customClass: {
+            container: target instanceof HTMLDialogElement ? 'gym-dialog-notification-container' : '',
             popup: 'gym-confirmation',
             icon: 'gym-confirmation-icon',
             title: 'gym-confirmation-title',

@@ -1,11 +1,26 @@
 <x-filament-panels::page>
-    <div class="member-page-intro"><p>Kelola nama, nomor WhatsApp, dan password akun. Alamat email login tidak dapat diubah dari halaman ini.</p></div>
+    <div class="member-account-settings-page">
+        <header class="member-summary-title-card">
+            <x-filament::breadcrumbs
+                :breadcrumbs="[
+                    route('filament.member.pages.dashboard') => 'CukipGym',
+                    'Pengaturan akun',
+                ]"
+            />
+            <h1>Pengaturan akun</h1>
+        </header>
 
-    <form wire:submit="save" class="member-settings-form">
-        {{ $this->form }}
+        <form wire:submit="save" class="member-settings-form">
+            {{ $this->form }}
 
-        <div>
-            <x-filament::button type="submit">Simpan perubahan</x-filament::button>
-        </div>
-    </form>
+            <footer class="member-settings-actions">
+                <button type="button" class="member-settings-cancel" wire:click="resetForm">
+                    Batal
+                </button>
+                <button type="submit" class="member-settings-save">
+                    Simpan
+                </button>
+            </footer>
+        </form>
+    </div>
 </x-filament-panels::page>

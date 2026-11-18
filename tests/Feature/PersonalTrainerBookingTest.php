@@ -60,6 +60,7 @@ class PersonalTrainerBookingTest extends TestCase
             ->assertSee('gym:notification', false)
             ->assertSee("showNotification('Pembayaran dijeda'", false)
             ->assertSee("'info', trainerDialog", false)
+            ->assertSee('target: trainerDialog', false)
             ->assertSee('trainerDialog?.close()', false)
             ->assertSee('pageScrollPosition', false)
             ->assertSee('lockPageScroll', false)
@@ -117,6 +118,82 @@ class PersonalTrainerBookingTest extends TestCase
             ->assertSee('disabled title="Sudah kamu booking" data-trainer-date-booked', false)
             ->assertSee('Sudah kamu booking')
             ->assertDontSee('Tidak tersedia');
+    }
+
+    public function test_pending_trainer_payment_can_be_resumed_or_cancelled_after_refresh(): void
+    {
+        $user = User::factory()->create();
+        $trainer = PersonalTrainer::factory()->create([
+            'name' => 'Kak Bayu',
+            'session_price' => 150000,
+        ]);
+        $slot = TrainerSlot::factory()->for($trainer, 'trainer')->create([
+            'starts_at' => now()->addDays(2)->setTime(9, 0),
+            'ends_at' => now()->addDays(2)->setTime(12, 0),
+            'status' => 'held',
+            'held_until' => now()->addMinutes(30),
+        ]);
+        $payment = $user->payments()->create([
+            'checkout_batch' => fake()->uuid(),
+            'order_id' => 'TRAINER-REFRESH-TEST',
+            'gross_amount' => 150000,
+            'status' => 'pending',
+            'snap_token' => 'trainer-refresh-token',
+            'redirect_url' => 'https://sandbox.midtrans.com/trainer-refresh',
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $user->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('classes.index'))
+            ->assertOk()
+            ->assertSee('data-trainer-pending-payment', false)
+            ->assertSee('trainer-refresh-token')
+            ->assertSee('TRAINER-REFRESH-TEST')
+            ->assertSee('Pembayaran sesi privat ini belum selesai.')
+            ->assertSee('data-trainer-orders-link', false)
+            ->assertSee('Lihat Pesanan Saya')
+            ->assertSee('data-trainer-pending-actions', false)
+            ->assertSee('Lanjutkan pembayaran')
+            ->assertSee('Batalkan booking')
+            ->assertSee('Menunggu pembayaran');
+    }
+
+    public function test_expired_trainer_hold_is_not_restored_as_an_active_payment(): void
+    {
+        $user = User::factory()->create();
+        $trainer = PersonalTrainer::factory()->create(['session_price' => 150000]);
+        $slot = TrainerSlot::factory()->for($trainer, 'trainer')->create([
+            'starts_at' => now()->addDays(2)->setTime(9, 0),
+            'ends_at' => now()->addDays(2)->setTime(12, 0),
+            'status' => 'held',
+            'held_until' => now()->subMinute(),
+        ]);
+        $payment = $user->payments()->create([
+            'checkout_batch' => fake()->uuid(),
+            'order_id' => 'TRAINER-EXPIRED-HOLD',
+            'gross_amount' => 150000,
+            'status' => 'pending',
+            'snap_token' => 'expired-hold-token',
+        ]);
+        $payment->trainerBookings()->create([
+            'user_id' => $user->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('classes.index'))
+            ->assertOk()
+            ->assertDontSee('TRAINER-EXPIRED-HOLD')
+            ->assertDontSee('expired-hold-token')
+            ->assertDontSee('Pembayaran sesi privat ini belum selesai.')
+            ->assertSee('name="slot_ids[]" value="'.$slot->id.'"', false);
     }
 
     public function test_slot_end_time_follows_the_trainers_two_or_three_hour_duration(): void

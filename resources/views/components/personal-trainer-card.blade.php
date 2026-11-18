@@ -8,6 +8,25 @@
     $firstAvailableDate = $availableSlots->first()?->starts_at->toDateString();
     $certificationDocuments = collect($trainer->certification_documents ?? [])->filter()->values();
     $trainerDayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    $pendingTrainerBookings = $trainer->slots
+        ->filter(fn ($slot) => $slot->status === 'held' && $slot->held_until?->isFuture())
+        ->flatMap(fn ($slot) => $slot->relationLoaded('bookings') ? $slot->bookings : collect())
+        ->where('status', 'pending_payment');
+    $pendingPayment = $pendingTrainerBookings
+        ->pluck('payment')
+        ->filter(fn ($payment) => $payment?->status?->value === 'pending')
+        ->sortByDesc('created_at')
+        ->first();
+    $pendingPaymentBookings = $pendingPayment
+        ? $pendingTrainerBookings->where('payment_id', $pendingPayment->id)
+        : collect();
+    $pendingPaymentData = $pendingPayment ? [
+        'snap_token' => $pendingPayment->snap_token,
+        'order_id' => $pendingPayment->order_id,
+        'redirect_url' => $pendingPayment->redirect_url,
+        'invoice_url' => route('payments.pending', ['order_id' => $pendingPayment->order_id]),
+        'cancel_url' => route('trainer-bookings.cancel', $pendingPayment),
+    ] : null;
 @endphp
 
 <article class="group overflow-hidden rounded-[1.5rem] border border-black/10 bg-white shadow-[0_18px_45px_rgba(74,51,40,.08)]">
@@ -79,7 +98,7 @@
             </div>
 
             @auth
-                <form method="POST" action="{{ route('trainer-bookings.store') }}" class="flex min-h-0 flex-1 flex-col" data-trainer-booking-form data-session-price="{{ $trainer->session_price }}">
+                <form method="POST" action="{{ route('trainer-bookings.store') }}" class="flex min-h-0 flex-1 flex-col" data-trainer-booking-form data-session-price="{{ $trainer->session_price }}" data-trainer-pending-payment="{{ $pendingPaymentData ? json_encode($pendingPaymentData) : '' }}">
                     @csrf
                     <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-7" data-trainer-dialog-scroll>
                         <div class="flex items-end justify-between gap-4">
@@ -147,13 +166,18 @@
 
                     @if ($groupedSlots->isNotEmpty())
                         <div class="border-t border-black/10 bg-white px-5 py-3.5 sm:px-7" data-trainer-booking-summary>
-                            <p class="mb-3 hidden rounded-xl bg-[#f4f4f2] px-4 py-3 text-xs leading-5 text-[#525252]" role="status" data-trainer-payment-message></p>
+                            <div class="mb-3 {{ $pendingPayment ? 'flex' : 'hidden' }} flex-col gap-2 rounded-xl bg-[#f4f4f2] px-4 py-3 text-xs leading-5 text-[#525252] sm:flex-row sm:items-center sm:justify-between" role="status" data-trainer-payment-message>
+                                @if ($pendingPayment)
+                                    <span>Pembayaran sesi privat ini belum selesai.</span>
+                                    <a href="{{ route('payments.history') }}" class="shrink-0 font-semibold text-[#171717] underline decoration-black/25 underline-offset-4 hover:decoration-black" data-trainer-orders-link>Lihat Pesanan Saya <span aria-hidden="true">→</span></a>
+                                @endif
+                            </div>
                             <div class="flex items-center gap-4">
-                                <div class="min-w-0 flex-1"><p class="text-[.6rem] uppercase tracking-[.12em] text-[#858585]"><span data-trainer-count>0</span> sesi dipilih</p><strong class="mt-1 block text-xl" data-trainer-total>Rp0</strong></div>
-                                <div class="flex flex-wrap items-center justify-end gap-2">
-                                    <button type="button" class="hidden min-h-12 cursor-pointer rounded-full border border-red-200 bg-white px-5 text-xs font-semibold text-red-600 transition hover:border-red-600 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60" data-trainer-cancel-payment><span data-trainer-cancel-label>Batalkan booking</span></button>
-                                    <button type="submit" disabled class="inline-flex min-h-12 cursor-pointer items-center gap-3 rounded-full bg-[#171717] px-6 text-xs font-semibold text-white transition hover:bg-[#404040] disabled:cursor-not-allowed disabled:opacity-35" data-trainer-submit>
-                                        <span data-trainer-submit-label>Booking dan bayar</span>
+                                <div class="min-w-0 flex-1"><p class="text-[.6rem] uppercase tracking-[.12em] text-[#858585]"><span data-trainer-count>{{ $pendingPaymentBookings->count() }}</span> sesi {{ $pendingPayment ? 'menunggu pembayaran' : 'dipilih' }}</p><strong class="mt-1 block text-xl" data-trainer-total>{{ $pendingPayment ? 'Rp'.number_format($pendingPayment->gross_amount, 0, ',', '.') : 'Rp0' }}</strong></div>
+                                <div class="flex flex-wrap items-center justify-end gap-2" @if ($pendingPayment) data-trainer-pending-actions @endif>
+                                    <button type="button" class="{{ $pendingPayment ? '' : 'hidden' }} min-h-12 cursor-pointer rounded-full border border-[#a34343]/30 bg-white px-5 text-xs font-semibold text-[#9b3f3f] transition hover:border-[#9b3f3f] hover:bg-[#fff5f5] disabled:cursor-wait disabled:opacity-60" data-trainer-cancel-payment><span data-trainer-cancel-label>Batalkan booking</span></button>
+                                    <button type="submit" @disabled(! $pendingPayment) class="inline-flex min-h-12 cursor-pointer items-center gap-3 rounded-full bg-[#171717] px-6 text-xs font-semibold text-white transition hover:bg-[#404040] disabled:cursor-not-allowed disabled:opacity-35" data-trainer-submit>
+                                        <span data-trainer-submit-label>{{ $pendingPayment ? 'Lanjutkan pembayaran' : 'Booking dan bayar' }}</span>
                                         <svg class="hidden size-4 animate-spin" viewBox="0 0 24 24" fill="none" data-trainer-submit-spinner aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" class="opacity-25"/><path d="M3 12a9 9 0 0 1 9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="opacity-75"/></svg>
                                         <span data-trainer-submit-arrow aria-hidden="true">→</span>
                                     </button>

@@ -1,18 +1,23 @@
 <x-filament-panels::page>
     <div class="member-personal-dashboard">
         <header class="member-summary-title-card">
-            <p>CukipGym / Dashboard member</p>
+            <x-filament::breadcrumbs
+                :breadcrumbs="[
+                    route('filament.member.pages.dashboard') => 'CukipGym',
+                    'Dashboard member',
+                ]"
+            />
             <h1>Ringkasan personal.</h1>
         </header>
 
         <section class="member-summary-stats" aria-label="Statistik ringkasan member">
             <article>
                 <div><strong>{{ $remainingDays }}<small> hari</small></strong><span>Sisa masa membership</span></div>
-                <span class="member-summary-stat-icon" aria-hidden="true"><x-filament::icon icon="heroicon-o-clock" /></span>
+                <span class="member-summary-stat-icon" aria-hidden="true"><x-filament::icon icon="heroicon-o-identification" /></span>
             </article>
             <article>
                 <div><strong>{{ $upcomingTrainerBookingsCount }}</strong><span>Sesi personal trainer</span></div>
-                <span class="member-summary-stat-icon" aria-hidden="true"><x-filament::icon icon="heroicon-o-user" /></span>
+                <span class="member-summary-stat-icon" aria-hidden="true"><x-filament::icon icon="heroicon-o-user-group" /></span>
             </article>
             <article>
                 <div><strong>{{ $upcomingBookingsCount }}</strong><span>Booking kelas mendatang</span></div>
@@ -20,7 +25,7 @@
             </article>
             <article>
                 <div><strong>{{ $monthlyBookingsCount }}</strong><span>Booking kelas bulan ini</span></div>
-                <span class="member-summary-stat-icon" aria-hidden="true"><x-filament::icon icon="heroicon-o-check-circle" /></span>
+                <span class="member-summary-stat-icon" aria-hidden="true"><x-filament::icon icon="heroicon-o-check-badge" /></span>
             </article>
         </section>
 

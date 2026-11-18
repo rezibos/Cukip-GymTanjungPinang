@@ -2,7 +2,6 @@
 
 namespace App\Filament\Member\Pages;
 
-use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page;
@@ -21,7 +20,7 @@ class AccountSettings extends Page
 
     protected static ?string $title = 'Pengaturan akun';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 6;
 
     protected string $view = 'filament.member.pages.account-settings';
 
@@ -30,7 +29,7 @@ class AccountSettings extends Page
 
     public function mount(): void
     {
-        $this->form->fill(Filament::auth()->user()->only(['name', 'phone']));
+        $this->resetForm();
     }
 
     public function form(Schema $schema): Schema
@@ -38,9 +37,12 @@ class AccountSettings extends Page
         return $schema
             ->model(Filament::auth()->user())
             ->statePath('data')
+            ->columns(2)
+            ->extraAttributes(['class' => 'member-settings-grid'])
             ->components([
                 Section::make('Informasi pribadi')
                     ->description('Perbarui nama dan nomor WhatsApp yang digunakan akunmu.')
+                    ->extraAttributes(['class' => 'member-settings-panel member-settings-profile-panel'])
                     ->schema([
                         TextInput::make('name')
                             ->label('Nama lengkap')
@@ -52,11 +54,18 @@ class AccountSettings extends Page
                             ->required()
                             ->regex('/^[0-9]{8,15}$/')
                             ->helperText('Gunakan angka saja, contoh: 6281234567890.'),
-                    ])
-                    ->columns(2),
+                    ]),
                 Section::make('Ubah password')
                     ->description('Kosongkan bagian ini jika tidak ingin mengganti password.')
+                    ->extraAttributes(['class' => 'member-settings-panel member-settings-password-panel'])
                     ->schema([
+                        TextInput::make('currentPassword')
+                            ->label('Password lama')
+                            ->password()
+                            ->revealable()
+                            ->currentPassword(guard: Filament::getAuthGuard())
+                            ->required(fn (Get $get): bool => filled($get('password')))
+                            ->dehydrated(false),
                         TextInput::make('password')
                             ->label('Password baru')
                             ->password()
@@ -66,23 +75,23 @@ class AccountSettings extends Page
                             ->dehydrated(fn ($state): bool => filled($state))
                             ->dehydrateStateUsing(fn ($state): string => Hash::make($state)),
                         TextInput::make('passwordConfirmation')
-                            ->label('Konfirmasi password baru')
+                            ->label('Ulangi password baru')
                             ->password()
                             ->revealable()
-                            ->required()
-                            ->visible(fn (Get $get): bool => filled($get('password')))
+                            ->required(fn (Get $get): bool => filled($get('password')))
                             ->dehydrated(false),
-                        TextInput::make('currentPassword')
-                            ->label('Password saat ini')
-                            ->password()
-                            ->revealable()
-                            ->currentPassword(guard: Filament::getAuthGuard())
-                            ->required()
-                            ->visible(fn (Get $get): bool => filled($get('password')))
-                            ->dehydrated(false),
-                    ])
-                    ->columns(2),
+                    ]),
             ]);
+    }
+
+    public function getHeading(): null
+    {
+        return null;
+    }
+
+    public function resetForm(): void
+    {
+        $this->form->fill(Filament::auth()->user()->only(['name', 'phone']));
     }
 
     public function save(): void
@@ -100,14 +109,5 @@ class AccountSettings extends Page
             message: 'Data akunmu sudah diperbarui.',
             type: 'success',
         );
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Action::make('save')
-                ->label('Simpan perubahan')
-                ->submit('save'),
-        ];
     }
 }

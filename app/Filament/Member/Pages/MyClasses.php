@@ -22,6 +22,11 @@ class MyClasses extends Page
         return Filament::auth()->user()?->isMember() ?? false;
     }
 
+    public function getHeading(): null
+    {
+        return null;
+    }
+
     /**
      * @return array<string, mixed>
      */

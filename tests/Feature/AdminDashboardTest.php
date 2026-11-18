@@ -107,6 +107,8 @@ class AdminDashboardTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin');
 
         $response->assertOk()->assertSee('CukipGym')->assertSee('Ringkasan operasional.')
+            ->assertSee('fi-breadcrumbs', false)
+            ->assertSee('Dashboard admin')
             ->assertSee('Operasional')->assertSee('Konten website')
             ->assertSee('Member Aktif')->assertSee('Instruktur Aktif')
             ->assertSee('Income Bulan Ini')->assertSee('Booking Kelas Bulan Ini')
@@ -118,6 +120,23 @@ class AdminDashboardTest extends TestCase
             ->assertSee('data-admin-sidebar-toggle', false)
             ->assertSee('aria-controls="fi-main-sidebar"', false)
             ->assertSee('Tutup menu navigasi')->assertSee('Buka menu navigasi');
+    }
+
+    public function test_collapsed_active_navigation_group_keeps_the_current_page_visible(): void
+    {
+        $theme = file_get_contents(resource_path('css/filament/admin/theme.css'));
+
+        $this->assertStringContainsString('.fi-sidebar-group.admin-sidebar-current-only > .fi-sidebar-group-items', $theme);
+        $this->assertStringContainsString('.fi-sidebar-group.admin-sidebar-collapsed > .fi-sidebar-group-items', $theme);
+        $this->assertStringContainsString('.fi-sidebar-item:not(.fi-active):not(.fi-sidebar-item-has-active-child-items)', $theme);
+
+        $script = file_get_contents(resource_path('js/filament/admin.js'));
+
+        $this->assertStringContainsString('adminCurrentOnlySidebarGroups', $script);
+        $this->assertStringContainsString('.fi-sidebar-item-btn[aria-current="page"]', $script);
+        $this->assertStringContainsString('event.stopImmediatePropagation();', $script);
+        $this->assertStringContainsString("document.addEventListener('livewire:navigated', syncSidebarCurrentOnlyGroups)", $script);
+        $this->assertStringNotContainsString('sidebarStore.collapsedGroups = [...sidebarStore.collapsedGroups, label]', $script);
     }
 
     public function test_admin_dashboard_period_controls_cross_month_and_year_boundaries(): void
@@ -446,7 +465,11 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Konten Tentang')
             ->assertSee('Galeri Tentang')
             ->assertSee('Footer')
-            ->assertSee('Sponsor &amp; partner', false);
+            ->assertSee('Sponsor &amp; partner', false)
+            ->assertSee('gym-sponsor-field', false)
+            ->assertSee('gym-sponsor-repeater', false)
+            ->assertSee('Tutup semua')
+            ->assertSee('Buka semua');
     }
 
     public function test_gym_class_toolbar_keeps_generate_and_create_actions_available(): void

@@ -1,7 +1,12 @@
 <x-filament-panels::page>
     <div class="member-qr-access-page">
         <header class="member-summary-title-card member-qr-access-title">
-            <p>CukipGym / Dashboard member</p>
+            <x-filament::breadcrumbs
+                :breadcrumbs="[
+                    route('filament.member.pages.dashboard') => 'CukipGym',
+                    'QR akses',
+                ]"
+            />
             <h1>QR akses</h1>
         </header>
 

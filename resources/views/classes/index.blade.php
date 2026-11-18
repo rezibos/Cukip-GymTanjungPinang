@@ -222,7 +222,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const cancelLabel = form.querySelector('[data-trainer-cancel-label]');
         const trainerDialog = form.closest('dialog');
         const dialogScroller = form.querySelector('[data-trainer-dialog-scroll]');
-        let paymentData = null;
+        let paymentData = form.dataset.trainerPendingPayment
+            ? JSON.parse(form.dataset.trainerPendingPayment)
+            : null;
+        let restoredPendingPayment = Boolean(paymentData);
         let isSubmitting = false;
         let pageScrollPosition = window.scrollY;
         let dialogScrollPosition = 0;
@@ -307,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            if (!window.snap || typeof window.snap.pay !== 'function') {
+            if (!paymentData.snap_token || !window.snap || typeof window.snap.pay !== 'function') {
                 showPaymentMessage('Popup Midtrans gagal dimuat. Kamu akan diarahkan ke halaman pembayaran.', true);
 
                 if (paymentData.redirect_url) {
@@ -461,6 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 paymentData = data;
+                restoredPendingPayment = false;
                 form.querySelectorAll('input[name="slot_ids[]"]').forEach(function (input) {
                     input.disabled = true;
                 });
@@ -474,6 +478,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         cancelButton?.addEventListener('click', async function () {
             if (!paymentData?.cancel_url || cancelButton.disabled) {
+                return;
+            }
+
+            const shouldCancel = await window.gymConfirm({
+                title: 'Batalkan booking personal trainer?',
+                message: 'Pembayaran akan dibatalkan dan jadwal yang ditahan akan tersedia kembali.',
+                confirmButtonText: 'Ya, batalkan',
+                cancelButtonText: 'Lanjutkan pembayaran',
+                target: trainerDialog,
+            });
+
+            if (!shouldCancel) {
                 return;
             }
 
@@ -501,7 +517,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
+                const shouldReloadAvailableSlots = restoredPendingPayment;
                 paymentData = null;
+                restoredPendingPayment = false;
                 form.querySelectorAll('input[name="slot_ids[]"]').forEach(function (input) {
                     input.disabled = false;
                     input.checked = false;
@@ -515,6 +533,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateDateColors();
                 clearPaymentMessage();
                 showNotification('Booking dibatalkan', data.message, 'success', trainerDialog);
+
+                if (shouldReloadAvailableSlots) {
+                    window.setTimeout(function () {
+                        window.location.reload();
+                    }, 900);
+                }
             } catch (error) {
                 showNotification('Booking belum dibatalkan', 'Terjadi kesalahan jaringan saat membatalkan booking.', 'error', trainerDialog);
                 cancelButton.disabled = false;
@@ -522,6 +546,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 cancelLabel.textContent = 'Batalkan booking';
             }
         });
+        setSubmitting(false);
         updateDateColors();
     });
 });

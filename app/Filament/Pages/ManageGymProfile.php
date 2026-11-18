@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\GymProfile;
+use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
@@ -133,6 +134,20 @@ class ManageGymProfile extends Page
                             ->itemLabel(fn (array $state): ?string => $state['name'] ?? 'Sponsor baru')
                             ->reorderable()
                             ->collapsible()
+                            ->collapseAllAction(fn (Action $action): Action => $action
+                                ->label('Tutup semua')
+                                ->icon('heroicon-m-chevron-double-up')
+                                ->button()
+                                ->color('gray')
+                                ->outlined())
+                            ->expandAllAction(fn (Action $action): Action => $action
+                                ->label('Buka semua')
+                                ->icon('heroicon-m-chevron-double-down')
+                                ->button()
+                                ->color('gray')
+                                ->outlined())
+                            ->extraFieldWrapperAttributes(['class' => 'gym-sponsor-field'])
+                            ->extraAttributes(['class' => 'gym-sponsor-repeater'])
                             ->addActionLabel('Tambah sponsor')
                             ->columnSpanFull(),
                     ]),
