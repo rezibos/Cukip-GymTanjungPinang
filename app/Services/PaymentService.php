@@ -244,7 +244,7 @@ class PaymentService
                     'admin_note' => null,
                 ]);
 
-                if ($transaction->membership->status === MembershipStatus::PendingPayment) {
+                if ($transaction->membership?->status === MembershipStatus::PendingPayment) {
                     $transaction->membership->activate();
                 }
             }
@@ -309,7 +309,11 @@ class PaymentService
     private function sendPaymentConfirmation(int $paymentId): void
     {
         $payment = Payment::query()
-            ->with(['user', 'transactions.membership.plan'])
+            ->with([
+                'user',
+                'transactions.membership.plan',
+                'transactions.trainerBooking.slot.trainer',
+            ])
             ->findOrFail($paymentId);
         $accountPassword = $payment->creates_account
             && $payment->credentials_sent_at === null
@@ -374,7 +378,7 @@ class PaymentService
                 'admin_note' => $message,
             ]);
 
-            $transaction->membership->update(['status' => MembershipStatus::Cancelled]);
+            $transaction->membership?->update(['status' => MembershipStatus::Cancelled]);
         }
 
         foreach ($payment->trainerBookings as $booking) {

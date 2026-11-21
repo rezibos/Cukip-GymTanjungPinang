@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Storage;
 class Transaction extends Model
 {
     protected $fillable = [
-        'user_id', 'payment_id', 'membership_id', 'invoice_number', 'quantity', 'checkout_batch', 'amount',
-        'payment_proof', 'status', 'paid_at', 'admin_note',
+        'user_id', 'payment_id', 'membership_id', 'trainer_booking_id', 'invoice_number', 'quantity', 'checkout_batch', 'amount',
+        'payment_method', 'payment_channel', 'payment_proof', 'status', 'paid_at', 'admin_note',
     ];
 
     protected function casts(): array
@@ -29,7 +29,9 @@ class Transaction extends Model
     {
         static::creating(function (Transaction $transaction) {
             if (empty($transaction->invoice_number)) {
-                $transaction->invoice_number = static::generateInvoiceNumber();
+                $transaction->invoice_number = $transaction->trainer_booking_id
+                    ? static::generateTrainerInvoiceNumber()
+                    : static::generateInvoiceNumber();
             }
         });
     }
@@ -38,6 +40,19 @@ class Transaction extends Model
     public static function generateInvoiceNumber(): string
     {
         $prefix = 'INV-'.now()->format('Ymd').'-';
+
+        $lastNumber = static::where('invoice_number', 'like', $prefix.'%')
+            ->orderByDesc('invoice_number')
+            ->value('invoice_number');
+
+        $next = $lastNumber ? ((int) substr($lastNumber, -4)) + 1 : 1;
+
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    public static function generateTrainerInvoiceNumber(): string
+    {
+        $prefix = 'INV-TR-'.now()->format('Ymd').'-';
 
         $lastNumber = static::where('invoice_number', 'like', $prefix.'%')
             ->orderByDesc('invoice_number')
@@ -63,6 +78,29 @@ class Transaction extends Model
         return $this->belongsTo(Membership::class);
     }
 
+    public function trainerBooking(): BelongsTo
+    {
+        return $this->belongsTo(TrainerBooking::class);
+    }
+
+    public function getPurchaseNameAttribute(): string
+    {
+        if ($this->membership) {
+            return $this->membership->plan->name;
+        }
+
+        if ($this->trainerBooking) {
+            return 'Sesi privat '.$this->trainerBooking->slot->trainer->name;
+        }
+
+        return 'Pembelian lainnya';
+    }
+
+    public function getPurchaseTypeAttribute(): string
+    {
+        return $this->trainer_booking_id ? 'Personal trainer' : 'Membership';
+    }
+
     public function getPaymentProofUrlAttribute(): ?string
     {
         return $this->payment_proof ? Storage::disk('public')->url($this->payment_proof) : null;
@@ -85,7 +123,7 @@ class Transaction extends Model
         return static::query()
             ->where('checkout_batch', $this->checkout_batch)
             ->where('user_id', $this->user_id)
-            ->with('membership.plan')
+            ->with(['membership.plan', 'trainerBooking.slot.trainer', 'payment'])
             ->oldest('id')
             ->get();
     }

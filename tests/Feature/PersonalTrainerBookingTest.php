@@ -3,11 +3,14 @@
 namespace Tests\Feature;
 
 use App\Contracts\PaymentGateway;
+use App\Filament\Resources\Transactions\Pages\ListTransactions;
 use App\Models\PersonalTrainer;
 use App\Models\TrainerSlot;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Services\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
@@ -247,6 +250,38 @@ class PersonalTrainerBookingTest extends TestCase
                 'status' => 'pending_payment',
             ]);
         }
+    }
+
+    public function test_personal_trainer_purchase_is_shown_in_the_admin_transaction_table(): void
+    {
+        $this->travelTo('2026-11-18 12:00:00');
+        $this->mock(PaymentGateway::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('createTransaction')->once()->andReturn([
+                'token' => 'trainer-admin-table-token',
+                'redirect_url' => 'https://sandbox.midtrans.com/trainer-admin-table',
+            ]);
+        });
+        $member = User::factory()->create(['phone' => '628123456789']);
+        $trainer = PersonalTrainer::factory()->create([
+            'name' => 'Kak Bayu',
+            'session_price' => 150000,
+        ]);
+        $slot = TrainerSlot::factory()->for($trainer, 'trainer')->create();
+
+        $this->actingAs($member)
+            ->postJson(route('trainer-bookings.store'), ['slot_ids' => [$slot->id]])
+            ->assertOk();
+
+        $transaction = Transaction::query()->whereBelongsTo($member)->sole();
+        $this->assertSame('INV-TR-20261118-0001', $transaction->invoice_number);
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin);
+        Livewire::test(ListTransactions::class)
+            ->assertCanSeeTableRecords([$transaction])
+            ->searchTable('Kak Bayu')
+            ->assertCanSeeTableRecords([$transaction])
+            ->assertSee('Sesi privat Kak Bayu');
     }
 
     public function test_non_ajax_trainer_booking_keeps_midtrans_redirect_as_a_fallback(): void

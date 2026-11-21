@@ -49,11 +49,19 @@ class TrainerBookingController extends Controller
 
             foreach ($slots as $slot) {
                 $slot->update(['status' => 'held', 'held_until' => now()->addMinutes(30)]);
-                $payment->trainerBookings()->create([
+                $booking = $payment->trainerBookings()->create([
                     'user_id' => $user->id,
                     'trainer_slot_id' => $slot->id,
                     'amount' => $slot->trainer->session_price,
                     'status' => 'pending_payment',
+                ]);
+                $booking->transaction()->create([
+                    'user_id' => $user->id,
+                    'payment_id' => $payment->id,
+                    'quantity' => 1,
+                    'checkout_batch' => $checkoutBatch,
+                    'amount' => $slot->trainer->session_price,
+                    'status' => 'pending',
                 ]);
             }
 

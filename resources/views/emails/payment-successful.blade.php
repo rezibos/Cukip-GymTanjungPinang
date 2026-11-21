@@ -9,7 +9,7 @@
     @php
         $checkoutItems = collect($payment->checkout_items ?? []);
         $transactionItems = $payment->transactions->map(fn ($transaction) => [
-            'name' => $transaction->membership->plan->name,
+            'name' => $transaction->purchase_name,
             'quantity' => $transaction->quantity,
             'subtotal' => $transaction->amount,
         ]);
@@ -34,7 +34,7 @@
                         <td align="center" style="padding:0 32px 28px;">
                             <p style="margin:0 0 8px; color:#23825b; font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;">Pembayaran berhasil</p>
                             <h1 style="margin:0; color:#202020; font-size:25px; font-weight:700; line-height:1.3;">Terima kasih atas pembayaran Anda</h1>
-                            <p style="max-width:460px; margin:12px auto 0; color:#666666; font-size:13px; line-height:1.65;">Hai {{ $customerName }}, pembayaran membership Anda telah diverifikasi oleh Midtrans. Invoice dan akun CukipGym Anda sudah siap.</p>
+                            <p style="max-width:460px; margin:12px auto 0; color:#666666; font-size:13px; line-height:1.65;">Hai {{ $customerName }}, pembayaran Anda telah diverifikasi oleh Midtrans. Invoice dan akun CukipGym Anda sudah siap.</p>
                         </td>
                     </tr>
 

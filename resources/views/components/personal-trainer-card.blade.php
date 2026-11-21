@@ -6,7 +6,7 @@
     $groupedSlots = $trainer->slots->groupBy(fn ($slot) => $slot->starts_at->toDateString());
     $availableSlots = $trainer->slots->filter(fn ($slot) => $slot->status === 'available' || ($slot->status === 'held' && $slot->held_until?->isPast()));
     $firstAvailableDate = $availableSlots->first()?->starts_at->toDateString();
-    $certificationDocuments = collect($trainer->certification_documents ?? [])->filter()->values();
+    $certificationItems = collect($trainer->certificationItems());
     $trainerDayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
     $pendingTrainerBookings = $trainer->slots
         ->filter(fn ($slot) => $slot->status === 'held' && $slot->held_until?->isFuture())
@@ -64,33 +64,27 @@
                 <div class="mt-4 grid grid-cols-3 divide-x divide-black/10 border-y border-black/10 py-3 text-center">
                     <div class="px-2"><strong class="block text-base">{{ $trainer->experience_years }}</strong><span class="mt-1 block text-[.55rem] uppercase tracking-[.1em] text-[#858585]">Tahun</span></div>
                     <div class="px-2"><strong class="block text-base">{{ $trainer->session_minutes / 60 }} jam</strong><span class="mt-1 block text-[.55rem] uppercase tracking-[.1em] text-[#858585]">Per sesi</span></div>
-                    <div class="px-2"><strong class="block text-base">{{ count($trainer->certifications ?? []) }}</strong><span class="mt-1 block text-[.55rem] uppercase tracking-[.1em] text-[#858585]">Sertifikat</span></div>
+                    <div class="px-2"><strong class="block text-base">{{ $certificationItems->count() }}</strong><span class="mt-1 block text-[.55rem] uppercase tracking-[.1em] text-[#858585]">Sertifikat</span></div>
                 </div>
-                @if (count($trainer->certifications ?? []) > 0 || $certificationDocuments->isNotEmpty())
+                @if ($certificationItems->isNotEmpty())
                     <details class="mt-4" aria-label="Sertifikasi {{ $trainer->name }}">
                         <summary class="flex cursor-pointer list-none items-center justify-between text-xs font-semibold">Sertifikat & lisensi <span class="text-[#737373]">Lihat semua +</span></summary>
                         <div class="mt-2 max-h-40 overflow-y-auto divide-y divide-black/10">
-                            @foreach ($trainer->certifications ?? [] as $index => $certificate)
+                            @foreach ($certificationItems as $certificate)
                                 @php
-                                    $document = $certificationDocuments->get($index);
+                                    $document = $certificate['document'];
                                 @endphp
                                 @if ($document)
                                     <a href="{{ Storage::disk('public')->url($document) }}" target="_blank" rel="noopener" class="flex items-center gap-3 py-3 text-left transition hover:text-[#737373]" data-trainer-certification data-trainer-certificate-document>
-                                        <img src="{{ Storage::disk('public')->url($document) }}" alt="{{ $certificate }} milik {{ $trainer->name }}" class="h-12 w-16 rounded-lg object-cover">
-                                        <span class="min-w-0"><strong class="block truncate text-[.65rem] font-semibold">{{ $certificate }}</strong><small class="mt-1 block text-[.55rem] text-[#737373]">Lihat dokumen <span aria-hidden="true">↗</span></small></span>
+                                        <img src="{{ Storage::disk('public')->url($document) }}" alt="{{ $certificate['name'] }} milik {{ $trainer->name }}" class="h-12 w-16 rounded-lg object-cover">
+                                        <span class="min-w-0"><strong class="block truncate text-[.65rem] font-semibold">{{ $certificate['name'] }}</strong><small class="mt-1 block text-[.55rem] text-[#737373]">Lihat dokumen <span aria-hidden="true">↗</span></small></span>
                                     </a>
                                 @else
                                     <div class="flex items-center gap-3 py-3" data-trainer-certification>
                                         <span class="text-[#737373]" aria-hidden="true">✓</span>
-                                        <strong class="text-xs font-medium leading-5">{{ $certificate }}</strong>
+                                        <strong class="text-xs font-medium leading-5">{{ $certificate['name'] }}</strong>
                                     </div>
                                 @endif
-                            @endforeach
-                            @foreach ($certificationDocuments->slice(count($trainer->certifications ?? [])) as $document)
-                                <a href="{{ Storage::disk('public')->url($document) }}" target="_blank" rel="noopener" class="flex items-center gap-3 py-3 text-left transition hover:text-[#737373]" data-trainer-certificate-document>
-                                    <img src="{{ Storage::disk('public')->url($document) }}" alt="Dokumen sertifikat {{ $trainer->name }}" class="h-12 w-16 rounded-lg object-cover">
-                                    <span><strong class="block text-[.65rem] font-semibold">Sertifikat tambahan</strong><small class="mt-1 block text-[.55rem] text-[#737373]">Lihat dokumen <span aria-hidden="true">↗</span></small></span>
-                                </a>
                             @endforeach
                         </div>
                     </details>
