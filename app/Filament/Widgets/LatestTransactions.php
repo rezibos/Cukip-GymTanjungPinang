@@ -21,11 +21,11 @@ class LatestTransactions extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn () => Transaction::query()->with(['user', 'membership.plan'])->latest()->limit(5))
+            ->query(fn () => Transaction::query()->with(['user', 'membership.plan', 'trainerBooking.slot.trainer'])->latest()->limit(5))
             ->columns([
                 TextColumn::make('invoice_number')->label('Invoice'),
                 TextColumn::make('user.name')->label('Member'),
-                TextColumn::make('membership.plan.name')->label('Paket'),
+                TextColumn::make('purchase_name')->label('Pembelian'),
                 TextColumn::make('amount')->label('Jumlah')
                     ->formatStateUsing(fn (int $state): string => 'Rp'.number_format($state, 0, ',', '.')),
                 TextColumn::make('status')->label('Status')->badge()
@@ -37,7 +37,7 @@ class LatestTransactions extends TableWidget
             ])
             ->recordUrl(fn (Transaction $record): string => TransactionResource::getUrl('edit', ['record' => $record]))
             ->emptyStateHeading('Belum ada transaksi')
-            ->emptyStateDescription('Transaksi membership akan ditampilkan setelah member membuat pesanan.')
+            ->emptyStateDescription('Transaksi akan ditampilkan setelah member membuat pesanan.')
             ->emptyStateIcon('heroicon-o-credit-card')
             ->paginated(false);
     }

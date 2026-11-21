@@ -29,11 +29,19 @@ class Dashboard extends BaseDashboard
 
     public int $incomeYear;
 
+    public string $dashboardPeriod = 'month';
+
+    public ?string $dashboardStartDate = null;
+
+    public ?string $dashboardEndDate = null;
+
     public function mount(): void
     {
         $this->summaryMonth = now()->month;
         $this->summaryYear = now()->year;
         $this->incomeYear = now()->year;
+        $this->dashboardStartDate = now()->startOfMonth()->toDateString();
+        $this->dashboardEndDate = now()->toDateString();
     }
 
     public function getHeader(): ?View
@@ -78,14 +86,14 @@ class Dashboard extends BaseDashboard
      *     instructors: array{total: int, gradient: string, items: list<array{label: string, count: int, color: string, percentage: float, offset: float}>},
      *     income: array{values: list<int>, pointCoordinates: list<array{x: float, y: float, value: int}>, linePath: string, areaPath: string, maximumLabel: string, midpointLabel: string},
      *     todayClasses: Collection<int, ClassSession>,
-     *     monthLabel: string
+     *     monthLabel: string,
+     *     periodLabel: string
      * }
      */
     public function dashboardData(): array
     {
         $today = Carbon::today();
-        $currentMonthStart = $today->copy()->startOfMonth();
-        $currentMonthEnd = $today->copy()->endOfMonth();
+        [$periodStart, $periodEnd] = $this->dashboardPeriodRange();
         $selectedMonthStart = $this->selectedMonth();
         $selectedMonthEnd = $selectedMonthStart->copy()->endOfMonth();
 
@@ -97,13 +105,13 @@ class Dashboard extends BaseDashboard
 
         $monthlyIncome = (int) Transaction::query()
             ->where('status', TransactionStatus::Paid)
-            ->whereBetween('paid_at', [$currentMonthStart, $currentMonthEnd])
+            ->whereBetween('paid_at', [$periodStart, $periodEnd])
             ->sum('amount');
 
         $monthlyBookings = ClassBooking::query()
             ->where('status', 'booked')
             ->whereHas('session', fn (Builder $query): Builder => $query
-                ->whereBetween('date', [$currentMonthStart, $currentMonthEnd]))
+                ->whereBetween('date', [$periodStart, $periodEnd]))
             ->count();
 
         $expiredMemberships = Membership::query()
@@ -159,7 +167,34 @@ class Dashboard extends BaseDashboard
                 ->limit(3)
                 ->get(),
             'monthLabel' => $selectedMonthStart->locale('id')->translatedFormat('F Y'),
+            'periodLabel' => $this->dashboardPeriodLabel($periodStart, $periodEnd),
         ];
+    }
+
+    /** @return array{0: Carbon, 1: Carbon} */
+    private function dashboardPeriodRange(): array
+    {
+        $today = Carbon::today();
+
+        return match ($this->dashboardPeriod) {
+            'week' => [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()],
+            'year' => [$today->copy()->startOfYear(), $today->copy()->endOfYear()],
+            'custom' => [
+                filled($this->dashboardStartDate) ? Carbon::parse($this->dashboardStartDate)->startOfDay() : $today->copy()->startOfMonth(),
+                filled($this->dashboardEndDate) ? Carbon::parse($this->dashboardEndDate)->endOfDay() : $today->copy()->endOfDay(),
+            ],
+            default => [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()],
+        };
+    }
+
+    private function dashboardPeriodLabel(Carbon $start, Carbon $end): string
+    {
+        return match ($this->dashboardPeriod) {
+            'week' => 'Minggu ini',
+            'year' => 'Tahun '.$end->year,
+            'custom' => $start->format('d/m/Y').' – '.$end->format('d/m/Y'),
+            default => $start->locale('id')->translatedFormat('F Y'),
+        };
     }
 
     private function selectedMonth(): Carbon
@@ -221,10 +256,13 @@ class Dashboard extends BaseDashboard
 
         $maximumValue = max($values);
         $chartMaximum = max(1, $maximumValue);
+        $chartLeft = 30;
+        $chartRight = 690;
+        $chartWidth = $chartRight - $chartLeft;
         $pointCoordinates = [];
 
         foreach ($values as $index => $value) {
-            $x = 16 + (($index / 11) * 688);
+            $x = $chartLeft + (($index / 11) * $chartWidth);
             $y = 190 - (($value / $chartMaximum) * 160);
             $pointCoordinates[] = [
                 'x' => round($x, 2),
@@ -246,7 +284,7 @@ class Dashboard extends BaseDashboard
             'values' => $values,
             'pointCoordinates' => $pointCoordinates,
             'linePath' => $linePath,
-            'areaPath' => $linePath.' L 704 190 L 16 190 Z',
+            'areaPath' => $linePath." L {$chartRight} 190 L {$chartLeft} 190 Z",
             'maximumLabel' => $this->compactRupiah($maximumValue),
             'midpointLabel' => $this->compactRupiah((int) round($maximumValue / 2)),
         ];

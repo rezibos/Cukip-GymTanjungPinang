@@ -320,6 +320,134 @@
     }
 }
 
+/* Booking trainer table states follow the shared resource styling. */
+.fi-resource-trainer-bookings .fi-ta-selection-indicator {
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: .75rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 1rem;
+    padding: .75rem 1rem;
+    background: #ffffff;
+}
+
+.fi-resource-trainer-bookings .fi-ta-selection-indicator > :first-child {
+    color: #333333;
+    font-weight: 600;
+}
+
+.fi-resource-trainer-bookings .fi-ta-selection-indicator-actions-ctn {
+    align-items: center;
+}
+
+.fi-resource-trainer-bookings .fi-ta-selection-indicator-actions-ctn .fi-link {
+    border-radius: .55rem;
+    padding: .35rem .6rem;
+    background: #f5f5f5;
+    text-decoration: none;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators {
+    align-items: center;
+    justify-content: flex-start;
+    gap: .625rem;
+    margin-bottom: .75rem;
+    border: 1px solid #dcdcdc;
+    border-radius: 1rem;
+    padding: .625rem .85rem .75rem;
+    background: #ffffff;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators > :first-child {
+    flex: 0 1 auto;
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    gap: .625rem;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators-label {
+    color: #555555;
+    font-size: .8125rem;
+    font-weight: 600;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators-badges-ctn {
+    gap: .375rem;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators .fi-badge {
+    min-height: 2rem;
+    border-radius: .65rem;
+    padding: .4rem .7rem;
+    background: #f5f5f5;
+    color: #303030;
+    box-shadow: inset 0 0 0 1px #d9d9d9;
+    font-weight: 500;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators .fi-badge-delete-btn {
+    display: inline-grid;
+    width: 1rem;
+    height: 1rem;
+    margin-inline-start: .3rem;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    place-items: center;
+    background: transparent;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators .fi-badge-delete-btn .fi-badge-delete-btn-icon {
+    margin: 0;
+    color: #dc2626;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn {
+    display: inline-grid;
+    flex: 0 0 2rem;
+    align-self: center;
+    box-sizing: border-box;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    min-height: 2rem;
+    margin-top: 0;
+    border-radius: .55rem;
+    padding: 0;
+    place-items: center;
+    color: #666666;
+    box-shadow: inset 0 0 0 1px #dedede;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn > svg {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators > :nth-child(2).fi-icon-btn:hover {
+    background: #171717;
+    color: #ffffff;
+}
+
+.fi-resource-trainer-bookings .fi-ta-filter-indicators:has(.fi-ta-filter-indicators-badges-ctn > .fi-badge:only-child) > :nth-child(2).fi-icon-btn {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .fi-resource-trainer-bookings .fi-ta-selection-indicator,
+    .fi-resource-trainer-bookings .fi-ta-filter-indicators {
+        align-items: flex-start;
+        padding: .75rem;
+    }
+
+    .fi-resource-trainer-bookings .fi-ta-filter-indicators > :first-child {
+        flex: 1;
+        flex-wrap: wrap;
+    }
+}
+
 .gym-profile-save,
 .homepage-content-save {
     display: flex;
@@ -468,19 +596,210 @@
     color: #6b6b6b;
 }
 
+/* Personal trainer form modal */
+.personal-trainer-form-modal .fi-modal-header {
+    padding: 1.25rem 1.5rem;
+}
+
+.personal-trainer-form-modal .fi-modal-content {
+    padding: 1.25rem;
+    background: #f6f6f6;
+}
+
+.personal-trainer-form-modal .fi-modal-footer {
+    padding: 1rem 1.5rem;
+}
+
+.personal-trainer-form-grid {
+    align-items: stretch;
+    gap: 1rem !important;
+}
+
+.personal-trainer-form-grid > *,
+.personal-trainer-form-grid > * > .fi-sc-component,
+.personal-trainer-form-grid > * > .fi-sc-component > .personal-trainer-form-section,
+.personal-trainer-form-section > .fi-section {
+    height: 100%;
+}
+
+.personal-trainer-form-section > .fi-section {
+    overflow: visible;
+    border: 1px solid #dddddd;
+    border-radius: .85rem;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+.personal-trainer-form-section .fi-section-header {
+    border-bottom: 1px solid #e5e5e5;
+    padding: 1rem 1.15rem;
+}
+
+.personal-trainer-form-section .fi-section-header-heading {
+    color: #202020;
+    font-size: .82rem;
+    font-weight: 600;
+}
+
+.personal-trainer-form-section .fi-section-header-description {
+    margin-top: .25rem;
+    color: #707070;
+    font-size: .62rem;
+    line-height: 1.5;
+}
+
+.personal-trainer-form-section .fi-section-content {
+    padding: 1.15rem;
+}
+
+.personal-trainer-form-section .fi-sc {
+    gap: 1rem;
+}
+
+.personal-trainer-form-section .fi-fo-field-label-content {
+    color: #3a3a3a;
+    font-size: .7rem;
+    font-weight: 500;
+}
+
+.personal-trainer-form-section .fi-input-wrp {
+    min-height: 2.75rem;
+    border-radius: .65rem;
+}
+
+.personal-trainer-form-section .fi-input {
+    min-height: 2.75rem;
+    font-size: .72rem;
+}
+
+.personal-trainer-form-section textarea.fi-input {
+    min-height: 8.5rem;
+    padding-block: .75rem;
+    line-height: 1.6;
+}
+
+.personal-trainer-form-section .fi-fo-field-wrp-helper-text {
+    color: #707070;
+    font-size: .6rem;
+    line-height: 1.5;
+}
+
+.personal-trainer-service-section .fi-section-content {
+    padding-block: 1.25rem;
+}
+
+.personal-trainer-service-section .fi-sc {
+    grid-auto-rows: max-content;
+    align-content: start !important;
+    gap: 1.15rem !important;
+}
+
+.personal-trainer-service-section .fi-fo-field-wrp {
+    align-self: start;
+}
+
+.personal-trainer-media-section .fi-fo-file-upload .filepond--root:not(:has(.filepond--item)),
+.personal-trainer-media-section .fi-fo-file-upload .filepond--root:not(:has(.filepond--item)) .filepond--drop-label {
+    min-height: 2.75rem !important;
+    height: 2.75rem !important;
+}
+
+.personal-trainer-media-section .fi-fo-file-upload .filepond--root:not(:has(.filepond--item)) .filepond--drop-label {
+    padding: .5rem .75rem !important;
+}
+
+@media (max-width: 1023px) {
+    .personal-trainer-form-section > .fi-section {
+        height: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .personal-trainer-form-modal .fi-modal-header,
+    .personal-trainer-form-modal .fi-modal-content,
+    .personal-trainer-form-modal .fi-modal-footer {
+        padding-inline: 1rem;
+    }
+
+    .personal-trainer-form-section .fi-section-header,
+    .personal-trainer-form-section .fi-section-content {
+        padding: 1rem;
+    }
+}
+
 /* Transaction list layout */
-.fi-resource-transactions .fi-page-header-main-ctn {
+.transaction-view-modal .fi-modal-content {
+    padding: 1.5rem;
+}
+
+.transaction-view-grid {
+    gap: 1rem 1.25rem !important;
+}
+
+.transaction-view-item {
+    min-width: 0;
+}
+
+.transaction-view-note {
+    margin-top: .25rem;
+}
+
+.transaction-view-modal .fi-input-wrp {
+    min-height: 2.9rem;
+    border-color: #d1d1d1;
+    border-radius: .7rem;
+    background: #ffffff;
+    box-shadow: none;
+    opacity: 1;
+}
+
+.transaction-view-modal .fi-input,
+.transaction-view-modal .fi-select-input {
+    min-height: 2.9rem;
+    color: #4f4f4f;
+    opacity: 1;
+}
+
+.transaction-view-modal textarea.fi-input {
+    min-height: 6rem;
+    padding-block: .8rem;
+}
+
+@media (max-width: 768px) {
+    .transaction-view-modal .fi-modal-content {
+        padding-inline: 1rem;
+    }
+}
+
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-page-header-main-ctn {
     gap: .75rem;
 }
 
-.fi-resource-transactions .fi-header {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-header {
     border: 1px solid #dcdcdc;
     border-radius: 1rem;
     padding: 1rem 1.25rem;
     background: #ffffff;
 }
 
-.fi-resource-transactions .fi-ta-ctn {
+.fi-resource-trainer-bookings .fi-header .fi-header-actions-ctn {
+    display: none;
+}
+
+/* Booking personal trainer follows the Membership purchase-list composition. */
+.fi-resource-trainer-bookings .fi-ta-header-toolbar {
+    gap: 1.25rem;
+}
+
+.fi-resource-trainer-bookings .fi-ta-header-toolbar > .fi-ta-actions {
+    margin-inline-start: 0;
+}
+
+.fi-resource-trainer-bookings .fi-ta-header-toolbar > div:last-child {
+    padding-inline-end: .25rem;
+}
+
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-ctn {
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -488,7 +807,7 @@
     --tw-ring-shadow: 0 0 #0000;
 }
 
-.fi-resource-transactions .fi-ta-header-ctn {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-header-ctn {
     position: relative;
     z-index: 1;
     margin-bottom: .75rem;
@@ -497,39 +816,46 @@
     background: #ffffff;
 }
 
-.fi-resource-transactions .fi-ta-header-toolbar {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-header-toolbar {
     gap: .75rem;
     border-bottom: 0;
     padding: .7rem 1.35rem .7rem .85rem;
 }
 
-.fi-resource-transactions .fi-ta-header-toolbar > .fi-ta-actions:empty {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-header-toolbar > .fi-ta-actions:empty {
     display: none;
 }
 
-.fi-resource-transactions .fi-ta-header-toolbar > div:last-child {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-header-toolbar > .fi-ta-actions {
+    order: 2;
+    flex-shrink: 0;
+    margin-inline-start: .65rem;
+}
+
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-header-toolbar > div:last-child {
+    order: 1;
     flex: 1;
     min-width: 0;
     margin-inline-start: 0;
 }
 
-.fi-resource-transactions .fi-ta-search-field {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-search-field {
     flex: 1;
     min-width: 12rem;
 }
 
-.fi-resource-transactions .fi-ta-search-field .fi-input-wrp {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-search-field .fi-input-wrp {
     width: 100%;
 }
 
-.fi-resource-transactions .fi-ta-content-ctn {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-content-ctn {
     overflow: hidden;
     border: 1px solid #dcdcdc;
     border-radius: 1rem 1rem 0 0;
     background: #ffffff;
 }
 
-.fi-resource-transactions .fi-ta-empty-state {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-empty-state {
     display: grid;
     place-items: center;
     min-height: 18rem;
@@ -539,7 +865,7 @@
     background: #ffffff;
 }
 
-.fi-resource-transactions .fi-pagination {
+:is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-pagination {
     margin-top: -1px;
     border: 1px solid #dcdcdc;
     border-radius: 0 0 1rem 1rem;
@@ -548,26 +874,26 @@
 }
 
 @media (min-width: 64rem) {
-    .fi-resource-transactions .fi-pagination-overview {
+    :is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-pagination-overview {
         display: inline;
         justify-self: start;
     }
 }
 
 @media (max-width: 640px) {
-    .fi-resource-transactions .fi-header {
+    :is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-header {
         padding: .9rem 1rem;
     }
 
-    .fi-resource-transactions .fi-ta-header-toolbar {
+    :is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-header-toolbar {
         align-items: stretch;
     }
 
-    .fi-resource-transactions .fi-ta-header-toolbar > div:last-child {
+    :is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-header-toolbar > div:last-child {
         width: 100%;
     }
 
-    .fi-resource-transactions .fi-ta-search-field {
+    :is(.fi-resource-transactions, .fi-resource-trainer-bookings) .fi-ta-search-field {
         min-width: 0;
     }
 }
@@ -688,6 +1014,10 @@
 
 /* Table selection state */
 :is(.fi-resource-transactions, .fi-resource-memberships, .fi-resource-users, .fi-resource-personal-trainers, .fi-resource-trainer-slots, .fi-resource-class-sessions, .fi-resource-class-bookings, .fi-resource-facilities, .fi-resource-membership-plans, .fi-resource-reviews) .fi-ta-table > thead .fi-ta-selection-cell {
+    background: #f3f3f3;
+}
+
+.fi-resource-trainer-bookings .fi-ta-table > thead .fi-ta-selection-cell {
     background: #f3f3f3;
 }
 
@@ -844,6 +1174,31 @@
     border-radius: 1rem;
 }
 
+.fi-dropdown-panel.fi-scrollable:has(.fi-select-input-search-ctn) {
+    max-height: min(15rem, 50vh) !important;
+    overflow-y: scroll !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #b8b8b8 transparent;
+}
+
+.fi-modal .fi-dropdown-panel.fi-scrollable:has(.fi-select-input-search-ctn) {
+    max-height: min(11rem, 35vh) !important;
+}
+
+.fi-modal .gym-location-focus-select .fi-dropdown-panel.fi-scrollable:has(.fi-select-input-search-ctn) {
+    max-height: min(8rem, 25vh) !important;
+}
+
+.fi-dropdown-panel.fi-scrollable:has(.fi-select-input-search-ctn)::-webkit-scrollbar {
+    width: .45rem;
+}
+
+.fi-dropdown-panel.fi-scrollable:has(.fi-select-input-search-ctn)::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #a3a3a3;
+}
+
 .admin-dashboard-header-card {
     width: 100%;
     border: 1px solid #d8d8d8;
@@ -851,6 +1206,93 @@
     padding: 1.25rem 1.5rem;
     background: #ffffff;
     color: #171717;
+}
+
+.admin-dashboard-header-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.admin-dashboard-header-main > div:first-child {
+    min-width: 0;
+}
+
+.admin-dashboard-header-filter {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    flex: 0 0 auto;
+}
+
+.admin-dashboard-header-filter select {
+    appearance: none;
+    min-width: 7.4rem;
+    height: 2.35rem;
+    padding: 0 2.5rem 0 .95rem;
+    border: 1px solid #d4d4d4;
+    border-radius: 999px;
+    background: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='none' stroke='%23171717' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 7.5 5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    color: #171717;
+    font-size: .72rem;
+    font-weight: 600;
+}
+
+.admin-dashboard-header-filter button {
+    display: grid;
+    width: 2.35rem;
+    height: 2.35rem;
+    place-items: center;
+    border: 1px solid #171717;
+    border-radius: 50%;
+    background: #171717;
+    color: #ffffff;
+    transition: border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+
+.admin-dashboard-header-filter button:hover {
+    border-color: #333333;
+    background: #333333;
+    color: #ffffff;
+}
+
+.admin-dashboard-header-filter button .fi-icon {
+    width: .95rem;
+    height: .95rem;
+}
+
+.admin-dashboard-custom-period {
+    display: flex;
+    justify-content: flex-end;
+    gap: .6rem;
+    margin-top: .85rem;
+    padding-top: .85rem;
+    border-top: 1px solid #eeeeee;
+}
+
+.admin-dashboard-custom-period label {
+    display: grid;
+    gap: .3rem;
+}
+
+.admin-dashboard-custom-period label span {
+    color: #737373;
+    font-size: .62rem;
+    font-weight: 600;
+}
+
+.admin-dashboard-custom-period input {
+    min-height: 2.35rem;
+    padding: 0 .75rem;
+    border: 1px solid #d8d8d8;
+    border-radius: .65rem;
+    background: #fff;
+    color: #171717;
+    font-size: .72rem;
 }
 
 .admin-dashboard-header-card h1 {
@@ -1343,27 +1785,53 @@
 }
 
 .income-chart {
-    position: relative;
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: .5rem;
+    row-gap: .5rem;
     margin-top: 1.25rem;
-    padding-left: 3.25rem;
 }
 
 .income-chart-scale {
-    position: absolute;
-    top: .4rem;
-    bottom: 1.75rem;
-    left: 0;
-    display: flex;
-    justify-content: space-between;
-    flex-direction: column;
+    position: relative;
+    grid-column: 1;
+    grid-row: 1;
     color: #777777;
     font-size: .58rem;
 }
 
-.income-chart svg {
+.income-chart-scale span {
+    position: absolute;
+    right: 0;
+    transform: translateY(-50%);
+    white-space: nowrap;
+}
+
+.income-chart-scale span:first-child {
+    top: 14.286%;
+}
+
+.income-chart-scale span:nth-child(2) {
+    top: 52.381%;
+}
+
+.income-chart-scale span:last-child {
+    top: 90.476%;
+}
+
+.income-chart-plot {
+    position: relative;
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.income-chart-plot svg {
     display: block;
     width: 100%;
-    min-height: 13rem;
+    height: auto;
+    aspect-ratio: 720 / 210;
     overflow: visible;
 }
 
@@ -1384,21 +1852,96 @@
     stroke-width: 3;
 }
 
-.income-chart circle {
+.income-chart-point {
+    cursor: help;
+    outline: none;
+}
+
+.income-chart-point-hit {
+    fill: transparent;
+    stroke: none;
+}
+
+.income-chart-point-marker {
     fill: #171717;
     stroke: #ffffff;
     stroke-width: 2;
+    transition: fill 150ms cubic-bezier(.22, 1, .36, 1), stroke-width 150ms cubic-bezier(.22, 1, .36, 1);
 }
 
-.income-chart circle.is-peak {
+.income-chart-point-marker.is-peak {
     fill: #22c55e;
     stroke-width: 3;
 }
 
+.income-chart-point:hover .income-chart-point-marker,
+.income-chart-point:focus-visible .income-chart-point-marker {
+    fill: #16a34a;
+    stroke-width: 4;
+}
+
+.income-chart-tooltip {
+    position: absolute;
+    z-index: 2;
+    top: var(--tooltip-y);
+    left: var(--tooltip-x);
+    display: grid;
+    min-width: 7.75rem;
+    gap: .15rem;
+    transform: translate(-50%, calc(-100% - .65rem));
+    border-radius: .55rem;
+    padding: .5rem .65rem;
+    background: #171717;
+    color: #ffffff;
+    pointer-events: none;
+    box-shadow: 0 4px 8px rgb(0 0 0 / 14%);
+}
+
+.income-chart-tooltip::after {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: .55rem;
+    height: .55rem;
+    transform: translate(-50%, -50%) rotate(45deg);
+    background: #171717;
+    content: '';
+}
+
+.income-chart-tooltip.is-start {
+    transform: translate(0, calc(-100% - .65rem));
+}
+
+.income-chart-tooltip.is-start::after {
+    left: .75rem;
+}
+
+.income-chart-tooltip.is-end {
+    transform: translate(-100%, calc(-100% - .65rem));
+}
+
+.income-chart-tooltip.is-end::after {
+    right: .75rem;
+    left: auto;
+}
+
+.income-chart-tooltip span {
+    color: #cfcfcf;
+    font-size: .54rem;
+    line-height: 1.35;
+}
+
+.income-chart-tooltip strong {
+    font-size: .68rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
 .income-chart-months {
     display: grid;
+    grid-column: 2;
+    grid-row: 2;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    margin-top: -.5rem;
     color: #777777;
     font-size: .58rem;
     text-align: center;
@@ -1554,6 +2097,26 @@
         font-size: 1.55rem;
     }
 
+    .admin-dashboard-header-main {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-dashboard-header-filter,
+    .admin-dashboard-header-filter label,
+    .admin-dashboard-header-filter select {
+        width: 100%;
+    }
+
+    .admin-dashboard-header-filter button {
+        flex: 0 0 2.35rem;
+    }
+
+    .admin-dashboard-custom-period {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
     .operational-stats {
         grid-template-columns: 1fr;
     }
@@ -1604,13 +2167,13 @@
     }
 
     .income-chart {
-        padding-left: 2.75rem;
+        grid-template-columns: 2.75rem minmax(34rem, 1fr);
         overflow-x: auto;
     }
 
-    .income-chart svg,
+    .income-chart-plot,
     .income-chart-months {
-        min-width: 34rem;
+        grid-column: 2;
     }
 }
 
@@ -1620,8 +2183,13 @@
     }
 
     .distribution-donut-segment,
-    .distribution-legend button {
+    .distribution-legend button,
+    .income-chart-point-marker {
         transition: none;
+    }
+
+    .income-chart-tooltip {
+        transition: none !important;
     }
 }
 
@@ -2749,8 +3317,9 @@
 
 .member-settings-panel .fi-input-wrp {
     display: flex;
+    height: 3rem;
     align-items: center;
-    min-height: 2.85rem;
+    min-height: 3rem;
     border-color: #cfcfcf;
     border-radius: .65rem;
     box-shadow: none;
@@ -2772,13 +3341,13 @@
 .member-settings-panel .fi-input {
     display: block;
     width: 100%;
-    height: 100%;
-    min-height: 2.85rem;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    height: 3rem;
+    min-height: 3rem;
+    padding-top: .75rem !important;
+    padding-bottom: .75rem !important;
     padding-inline: .85rem;
     font-size: .75rem;
-    line-height: normal;
+    line-height: 1.5rem;
 }
 
 .member-settings-panel .fi-input-wrp-prefix,

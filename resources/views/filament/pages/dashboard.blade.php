@@ -4,8 +4,8 @@
         $stats = [
             ['label' => 'Member Aktif', 'value' => number_format($dashboard['stats']['activeMembers']), 'meta' => 'Membership masih berlaku', 'icon' => 'heroicon-o-user-group'],
             ['label' => 'Instruktur Aktif', 'value' => number_format($dashboard['stats']['activeTrainers']), 'meta' => 'Siap menerima jadwal', 'icon' => 'heroicon-o-academic-cap'],
-            ['label' => 'Income Bulan Ini', 'value' => 'Rp'.number_format($dashboard['stats']['monthlyIncome'], 0, ',', '.'), 'meta' => now()->locale('id')->translatedFormat('F Y'), 'icon' => 'heroicon-o-banknotes'],
-            ['label' => 'Booking Kelas Bulan Ini', 'value' => number_format($dashboard['stats']['monthlyBookings']), 'meta' => 'Booking berstatus aktif', 'icon' => 'heroicon-o-calendar-days'],
+            ['label' => 'Income Periode', 'value' => 'Rp'.number_format($dashboard['stats']['monthlyIncome'], 0, ',', '.'), 'meta' => $dashboard['periodLabel'], 'icon' => 'heroicon-o-banknotes'],
+            ['label' => 'Booking Kelas Periode', 'value' => number_format($dashboard['stats']['monthlyBookings']), 'meta' => $dashboard['periodLabel'], 'icon' => 'heroicon-o-calendar-days'],
         ];
         $membershipMetrics = [
             ['label' => 'Membership expired', 'data' => $dashboard['membershipSummary']['expired']],
@@ -130,8 +130,7 @@
                         @endif
                     </div>
                     @if ($chart['data']['items'] !== [])
-                        <div class="distribution-selection" aria-live="polite">
-                            <p x-show="selectedIndex === null">Pilih warna atau nama untuk melihat detail.</p>
+                        <div class="distribution-selection" x-cloak x-show="selectedIndex !== null" aria-live="polite">
                             @foreach ($chart['data']['items'] as $index => $item)
                                 <div x-cloak x-show="selectedIndex === {{ $index }}">
                                     <span><i style="--legend-color: {{ $item['color'] }};"></i>{{ $item['label'] }}</span>
@@ -161,22 +160,62 @@
                         <span>{{ $dashboard['income']['midpointLabel'] }}</span>
                         <span>Rp0</span>
                     </div>
-                    <svg viewBox="0 0 720 210" role="img" aria-label="Grafik total income tahun {{ $this->incomeYear }}">
-                        <defs>
-                            <linearGradient id="income-area-gradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#171717" stop-opacity="0.16" />
-                                <stop offset="100%" stop-color="#171717" stop-opacity="0" />
-                            </linearGradient>
-                        </defs>
-                        <line x1="16" y1="30" x2="704" y2="30" />
-                        <line x1="16" y1="110" x2="704" y2="110" />
-                        <line x1="16" y1="190" x2="704" y2="190" />
-                        <path class="income-chart-area" d="{{ $dashboard['income']['areaPath'] }}" />
-                        <path class="income-chart-line" d="{{ $dashboard['income']['linePath'] }}" />
+                    <div class="income-chart-plot" x-data="{ activePoint: null }">
+                        <svg viewBox="0 0 720 210" role="img" aria-label="Grafik total income tahun {{ $this->incomeYear }}">
+                            <defs>
+                                <linearGradient id="income-area-gradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#171717" stop-opacity="0.16" />
+                                    <stop offset="100%" stop-color="#171717" stop-opacity="0" />
+                                </linearGradient>
+                            </defs>
+                            <line x1="30" y1="30" x2="690" y2="30" />
+                            <line x1="30" y1="110" x2="690" y2="110" />
+                            <line x1="30" y1="190" x2="690" y2="190" />
+                            <path class="income-chart-area" d="{{ $dashboard['income']['areaPath'] }}" />
+                            <path class="income-chart-line" d="{{ $dashboard['income']['linePath'] }}" />
+                            @foreach ($dashboard['income']['pointCoordinates'] as $index => $point)
+                                @php
+                                    $pointLabel = Illuminate\Support\Carbon::create($this->incomeYear, $index + 1, 1)
+                                        ->locale('id')
+                                        ->translatedFormat('F Y');
+                                    $formattedPointValue = 'Rp'.number_format($point['value'], 0, ',', '.');
+                                    $isPeakPoint = $point['value'] === max($dashboard['income']['values']) && $point['value'] > 0;
+                                @endphp
+                                <g
+                                    class="income-chart-point"
+                                    x-on:mouseenter="activePoint = {{ $index }}"
+                                    x-on:mouseleave="activePoint = null"
+                                    x-on:focus="activePoint = {{ $index }}"
+                                    x-on:blur="activePoint = null"
+                                    tabindex="0"
+                                    role="img"
+                                    aria-label="{{ $pointLabel }}: {{ $formattedPointValue }}"
+                                >
+                                    <circle class="income-chart-point-hit" cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="12" />
+                                    <circle class="income-chart-point-marker {{ $isPeakPoint ? 'is-peak' : '' }}" cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="{{ $point['value'] > 0 ? 4 : 2.5 }}" />
+                                </g>
+                            @endforeach
+                        </svg>
                         @foreach ($dashboard['income']['pointCoordinates'] as $index => $point)
-                            <circle class="{{ $point['value'] === max($dashboard['income']['values']) && $point['value'] > 0 ? 'is-peak' : '' }}" cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="{{ $point['value'] > 0 ? 4 : 2.5 }}" />
+                            @php
+                                $pointLabel = Illuminate\Support\Carbon::create($this->incomeYear, $index + 1, 1)
+                                    ->locale('id')
+                                    ->translatedFormat('F Y');
+                                $formattedPointValue = 'Rp'.number_format($point['value'], 0, ',', '.');
+                            @endphp
+                            <div
+                                class="income-chart-tooltip {{ $index === 0 ? 'is-start' : ($index === 11 ? 'is-end' : '') }}"
+                                style="--tooltip-x: {{ round(($point['x'] / 720) * 100, 3) }}%; --tooltip-y: {{ round(($point['y'] / 210) * 100, 3) }}%;"
+                                x-cloak
+                                x-show="activePoint === {{ $index }}"
+                                x-transition.opacity.duration.150ms
+                                aria-hidden="true"
+                            >
+                                <span>{{ $pointLabel }}</span>
+                                <strong>{{ $formattedPointValue }}</strong>
+                            </div>
                         @endforeach
-                    </svg>
+                    </div>
                     <div class="income-chart-months" aria-hidden="true">
                         @foreach ($monthLabels as $label)
                             <span>{{ $label }}</span>

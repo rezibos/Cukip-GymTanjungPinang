@@ -8,11 +8,14 @@ use App\Filament\Resources\ClassBookings\Pages\ListClassBookings;
 use App\Filament\Resources\ClassSessions\Pages\ListClassSessions;
 use App\Filament\Resources\Facilities\Pages\ListFacilities;
 use App\Filament\Resources\GymClasses\Pages\ListGymClasses;
+use App\Filament\Resources\GymLocations\Pages\ListGymLocations;
 use App\Filament\Resources\MembershipPlans\Pages\ListMembershipPlans;
 use App\Filament\Resources\Memberships\Pages\ListMemberships;
 use App\Filament\Resources\PersonalTrainers\Pages\ListPersonalTrainers;
 use App\Filament\Resources\Reviews\Pages\ListReviews;
+use App\Filament\Resources\TrainerBookings\Pages\ListTrainerBookings;
 use App\Filament\Resources\TrainerSlots\Pages\ListTrainerSlots;
+use App\Filament\Resources\TrainerSlots\TrainerSlotResource;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Widgets\LatestTransactions;
@@ -23,14 +26,25 @@ use App\Models\Facility;
 use App\Models\GymClass;
 use App\Models\Membership;
 use App\Models\MembershipPlan;
+use App\Models\Payment;
+use App\Models\PersonalTrainer;
+use App\Models\TrainerBooking;
+use App\Models\TrainerSlot;
+use App\Models\Transaction;
 use App\Models\User;
 use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\Testing\TestAction;
+use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -101,8 +115,16 @@ class AdminDashboardTest extends TestCase
 
     public function test_admin_dashboard_renders_the_operational_summary_layout(): void
     {
+        $this->travelTo(Carbon::parse('2026-11-21 10:00:00'));
         $admin = User::factory()->create(['role' => 'admin', 'name' => 'Admin Pinang']);
-        $this->createMembership(User::factory()->create());
+        $member = User::factory()->create();
+        $membership = $this->createMembership($member);
+        $membership->transactions()->create([
+            'user_id' => $member->id,
+            'amount' => 1_700_000,
+            'status' => 'paid',
+            'paid_at' => '2026-11-15 10:00:00',
+        ]);
 
         $response = $this->actingAs($admin)->get('/admin');
 
@@ -111,10 +133,15 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Dashboard admin')
             ->assertSee('Operasional')->assertSee('Konten website')
             ->assertSee('Member Aktif')->assertSee('Instruktur Aktif')
-            ->assertSee('Income Bulan Ini')->assertSee('Booking Kelas Bulan Ini')
+            ->assertSee('Income Periode')->assertSee('Booking Kelas Periode')
+            ->assertSee('Periode ringkasan')->assertSee('Bulan ini')
             ->assertSee('Rangkuman membership')->assertSee('Membership chart')
             ->assertSee('Instruktur chart')->assertSee('Total income')->assertSee('Kelas hari ini')
-            ->assertSee('Pilih warna atau nama untuk melihat detail.')
+            ->assertDontSee('Pilih warna atau nama untuk melihat detail.')
+            ->assertSee('aria-label="November 2026: Rp1.700.000"', false)
+            ->assertSee('income-chart-tooltip', false)
+            ->assertSee('cx="30"', false)
+            ->assertSee('cx="690"', false)
             ->assertSee('selectItem(0)', false)
             ->assertDontSee('Halo, Admin Pinang.')->assertDontSee('Transaksi Terbaru')
             ->assertSee('data-admin-sidebar-toggle', false)
@@ -165,6 +192,45 @@ class AdminDashboardTest extends TestCase
         }
     }
 
+    public function test_admin_dashboard_summary_can_be_filtered_by_week_month_year_or_custom_dates(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 10:00:00'));
+        $admin = $this->signInAdmin();
+        $membership = $this->createMembership($admin);
+
+        foreach ([
+            ['amount' => 100000, 'paid_at' => '2026-11-18 10:00:00'],
+            ['amount' => 200000, 'paid_at' => '2026-11-03 10:00:00'],
+            ['amount' => 300000, 'paid_at' => '2026-04-10 10:00:00'],
+            ['amount' => 400000, 'paid_at' => '2025-12-20 10:00:00'],
+        ] as $transaction) {
+            $membership->transactions()->create([
+                'user_id' => $admin->id,
+                'amount' => $transaction['amount'],
+                'status' => 'paid',
+                'paid_at' => $transaction['paid_at'],
+            ]);
+        }
+
+        $component = Livewire::test(AdminDashboard::class);
+
+        $component->set('dashboardPeriod', 'week');
+        $this->assertSame(100000, $component->instance()->dashboardData()['stats']['monthlyIncome']);
+
+        $component->set('dashboardPeriod', 'month');
+        $this->assertSame(300000, $component->instance()->dashboardData()['stats']['monthlyIncome']);
+
+        $component->set('dashboardPeriod', 'year');
+        $this->assertSame(600000, $component->instance()->dashboardData()['stats']['monthlyIncome']);
+
+        $component
+            ->set('dashboardPeriod', 'custom')
+            ->set('dashboardStartDate', '2026-11-01')
+            ->set('dashboardEndDate', '2026-11-10');
+
+        $this->assertSame(200000, $component->instance()->dashboardData()['stats']['monthlyIncome']);
+    }
+
     public function test_admin_can_add_a_personal_trainer_without_certificate_photos(): void
     {
         $this->signInAdmin();
@@ -175,8 +241,10 @@ class AdminDashboardTest extends TestCase
                 'specialization' => 'Strength Training',
                 'description' => 'Pendampingan teknik latihan kekuatan untuk pemula.',
                 'experience_years' => 4,
-                'certifications' => ['Certified Personal Trainer'],
-                'certification_documents' => [],
+                'certifications' => [
+                    ['name' => 'Strength Coach', 'document' => null],
+                    ['name' => 'Certified Personal Trainer', 'document' => null],
+                ],
                 'session_price' => 200000,
                 'session_minutes' => 120,
                 'is_active' => true,
@@ -188,7 +256,50 @@ class AdminDashboardTest extends TestCase
             'session_price' => 200000,
             'session_minutes' => 120,
         ]);
+        $this->assertSame(
+            ['Strength Coach', 'Certified Personal Trainer'],
+            collect(PersonalTrainer::where('name', 'Kak Adi')->firstOrFail()->certificationItems())
+                ->pluck('name')
+                ->all(),
+        );
         $this->get(route('classes.index'))->assertOk()->assertSee('Kak Adi');
+    }
+
+    public function test_personal_trainer_create_modal_uses_the_wide_styled_layout(): void
+    {
+        $this->signInAdmin();
+
+        $component = Livewire::test(ListPersonalTrainers::class);
+        $action = $component->instance()->getAction('create');
+
+        $this->assertSame(Alignment::End, $action->getModalFooterActionsAlignment());
+        $this->assertSame(Width::FourExtraLarge, $action->getModalWidth());
+        $this->assertTrue($action->isModalHeaderSticky());
+        $this->assertTrue($action->isModalFooterSticky());
+        $this->assertSame(
+            ['class' => 'personal-trainer-form-modal'],
+            $action->getExtraModalWindowAttributes(),
+        );
+    }
+
+    public function test_personal_trainer_edit_modal_hydrates_legacy_certificates(): void
+    {
+        $this->signInAdmin();
+        $trainer = PersonalTrainer::factory()->create([
+            'certifications' => ['Strength Coach', 'Mobility Coach'],
+            'certification_documents' => ['personal-trainers/certificates/strength.jpg'],
+        ]);
+
+        Livewire::test(ListPersonalTrainers::class)
+            ->mountAction(TestAction::make('edit')->table($trainer))
+            ->assertActionDataSet(function (array $state): array {
+                $this->assertSame(
+                    ['Strength Coach', 'Mobility Coach'],
+                    collect($state['certifications'])->pluck('name')->values()->all(),
+                );
+
+                return [];
+            });
     }
 
     public function test_admin_can_add_a_facility_to_a_selected_category(): void
@@ -244,6 +355,31 @@ class AdminDashboardTest extends TestCase
             ->assertActionMounted('create');
     }
 
+    public function test_user_create_modal_shows_helpful_input_placeholders(): void
+    {
+        $form = file_get_contents(app_path('Filament/Resources/Users/Schemas/UserForm.php'));
+
+        $this->assertStringContainsString("->placeholder('Contoh: Fachrezi Bachri')", $form);
+        $this->assertStringContainsString("->placeholder('Contoh: fachrezi@email.com')", $form);
+        $this->assertStringContainsString("->placeholder('Contoh: 081234567890')", $form);
+        $this->assertStringContainsString("->placeholder('Minimal 8 karakter')", $form);
+    }
+
+    public function test_admin_text_fields_receive_contextual_placeholders(): void
+    {
+        $this->assertSame('Contoh: Kak Bayu', TextInput::make('name')->label('Nama pelatih')->getPlaceholder());
+        $this->assertSame('Contoh: Functional Training', TextInput::make('specialization')->getPlaceholder());
+        $this->assertSame('Contoh: 150000', TextInput::make('session_price')->getPlaceholder());
+        $this->assertSame(
+            'Jelaskan informasi yang perlu diketahui pengunjung.',
+            Textarea::make('description')->getPlaceholder(),
+        );
+        $this->assertSame(
+            'Placeholder khusus',
+            TextInput::make('name')->placeholder('Placeholder khusus')->getPlaceholder(),
+        );
+    }
+
     public function test_membership_creation_dispatches_sweetalert_success_instead_of_a_filament_notification(): void
     {
         $this->signInAdmin();
@@ -267,6 +403,84 @@ class AdminDashboardTest extends TestCase
             'membership_plan_id' => $plan->id,
             'status' => 'active',
         ]);
+    }
+
+    #[TestWith(['active', '2026-11-21', '2026-12-21'])]
+    #[TestWith(['upcoming', '2026-11-25', '2026-12-25'])]
+    public function test_manual_active_or_upcoming_membership_creates_paid_transaction_and_income(
+        string $status,
+        string $startDate,
+        string $endDate,
+    ): void {
+        $this->travelTo(Carbon::parse('2026-11-21 10:00:00'));
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $plan = MembershipPlan::factory()->create(['price' => 475000]);
+
+        Livewire::test(ListMemberships::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'membership_plan_id' => $plan->id,
+                'status' => $status,
+                'payment_method' => 'manual',
+                'payment_channel' => 'qris',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ])
+            ->assertHasNoFormErrors();
+
+        $membership = Membership::query()->whereBelongsTo($member)->sole();
+
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $member->id,
+            'membership_id' => $membership->id,
+            'quantity' => 1,
+            'amount' => 475000,
+            'payment_method' => 'manual',
+            'payment_channel' => 'qris',
+            'status' => 'paid',
+            'paid_at' => '2026-11-21 10:00:00',
+        ]);
+
+        $this->assertSame(
+            475000,
+            Livewire::test(AdminDashboard::class)->instance()->dashboardData()['stats']['monthlyIncome'],
+        );
+    }
+
+    public function test_manual_pending_membership_is_recorded_without_counting_as_income(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 10:00:00'));
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $plan = MembershipPlan::factory()->create(['price' => 325000]);
+
+        Livewire::test(ListMemberships::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'membership_plan_id' => $plan->id,
+                'status' => 'pending_payment',
+                'payment_method' => 'midtrans',
+                'start_date' => '2026-11-21',
+                'end_date' => '2026-12-21',
+            ])
+            ->assertHasNoFormErrors();
+
+        $membership = Membership::query()->whereBelongsTo($member)->sole();
+
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $member->id,
+            'membership_id' => $membership->id,
+            'amount' => 325000,
+            'payment_method' => 'midtrans',
+            'payment_channel' => null,
+            'status' => 'pending',
+            'paid_at' => null,
+        ]);
+        $this->assertSame(
+            0,
+            Livewire::test(AdminDashboard::class)->instance()->dashboardData()['stats']['monthlyIncome'],
+        );
     }
 
     public function test_admin_can_create_a_membership_package_with_promotional_benefits(): void
@@ -379,6 +593,7 @@ class AdminDashboardTest extends TestCase
 
         $this->assertFalse($action->isConfirmationRequired());
         $this->assertFalse($action->hasModal());
+        $this->assertSame('Hapus', $action->getLabel());
         $this->assertNull($action->getKeyBindings());
         $this->assertStringContainsString('confirmAdminDelete', $action->getAlpineClickHandler());
         $this->assertStringContainsString("mountAction('delete'", $action->getAlpineClickHandler());
@@ -389,6 +604,44 @@ class AdminDashboardTest extends TestCase
             ->assertNotNotified();
 
         $this->assertModelMissing($membership);
+    }
+
+    public function test_admin_table_selection_controls_use_indonesian_labels(): void
+    {
+        $this->assertSame(
+            'Pilih semua 34',
+            __('filament-tables::table.selection_indicator.actions.select_all.label', ['count' => 34]),
+        );
+        $this->assertSame(
+            'Batalkan semua pilihan',
+            __('filament-tables::table.selection_indicator.actions.deselect_all.label'),
+        );
+    }
+
+    public function test_admin_can_delete_multiple_selected_records(): void
+    {
+        $this->signInAdmin();
+        $firstMembership = $this->createMembership(User::factory()->create());
+        $secondMembership = $this->createMembership(User::factory()->create());
+        $component = Livewire::test(ListMemberships::class);
+        $action = collect($component->instance()->getTable()->getToolbarActions())
+            ->first(fn ($action): bool => $action->getName() === 'delete');
+
+        $this->assertInstanceOf(DeleteBulkAction::class, $action);
+
+        $this->assertFalse($action->isConfirmationRequired());
+        $this->assertFalse($action->hasModal());
+        $this->assertNull($action->getKeyBindings());
+        $this->assertStringContainsString('confirmAdminDelete', $action->getAlpineClickHandler());
+        $this->assertStringContainsString("mountAction('delete'", $action->getAlpineClickHandler());
+
+        $component
+            ->callTableBulkAction('delete', [$firstMembership, $secondMembership])
+            ->assertDispatched('admin-record-deleted')
+            ->assertNotNotified();
+
+        $this->assertModelMissing($firstMembership);
+        $this->assertModelMissing($secondMembership);
     }
 
     /**
@@ -413,6 +666,40 @@ class AdminDashboardTest extends TestCase
         $this->assertSame(Width::FourExtraLarge, $action->getModalWidth());
         $this->assertTrue($action->isModalHeaderSticky());
         $this->assertTrue($action->isModalFooterSticky());
+    }
+
+    public function test_transaction_detail_action_is_view_only(): void
+    {
+        $admin = $this->signInAdmin();
+        $membership = $this->createMembership($admin);
+        $transaction = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 250000,
+            'quantity' => 1,
+            'status' => 'rejected',
+            'admin_note' => 'Pembayaran tidak sesuai.',
+        ]);
+
+        $component = Livewire::test(ListTransactions::class);
+        $action = $component->instance()->getTable()->getAction('view');
+
+        $this->assertInstanceOf(ViewAction::class, $action);
+        $this->assertSame('Detail', $action->getLabel());
+        $this->assertSame('Detail Transaksi', $action->getModalHeading());
+        $this->assertSame('Periksa detail transaksi di bawah ini.', $action->getModalDescription());
+        $this->assertNull($action->getModalSubmitAction());
+        $this->assertSame('Tutup', $action->getModalCancelAction()?->getLabel());
+        $this->assertSame(Alignment::End, $action->getModalFooterActionsAlignment());
+        $this->assertSame(Width::FourExtraLarge, $action->getModalWidth());
+        $this->assertTrue($action->isModalHeaderSticky());
+        $this->assertTrue($action->isModalFooterSticky());
+
+        $this->assertSame('Membership', $transaction->purchase_type);
+        $this->assertSame($membership->plan->name, $transaction->purchase_name);
+        $this->assertSame(
+            ['class' => 'transaction-view-modal'],
+            $action->getExtraModalWindowAttributes(),
+        );
     }
 
     /**
@@ -501,6 +788,142 @@ class AdminDashboardTest extends TestCase
             ->assertTableFilterExists('rating');
     }
 
+    public function test_admin_can_open_and_monitor_personal_trainer_bookings(): void
+    {
+        $this->signInAdmin();
+        $booking = TrainerBooking::factory()->create();
+
+        Livewire::test(ListTrainerBookings::class)
+            ->assertCanSeeTableRecords([$booking])
+            ->assertTableFilterExists('status')
+            ->assertTableFilterExists('payment_status')
+            ->assertTableActionExists('view', record: $booking);
+
+        $this->get('/admin/trainer-bookings')
+            ->assertOk()
+            ->assertSee('Booking Personal Trainer');
+    }
+
+    public function test_admin_can_create_a_paid_personal_trainer_booking_for_multiple_slots(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 10:00:00'));
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $trainer = PersonalTrainer::factory()->create(['session_price' => 150000]);
+        $slots = collect([
+            TrainerSlot::factory()->create([
+                'personal_trainer_id' => $trainer->id,
+                'starts_at' => '2026-11-25 09:00:00',
+                'ends_at' => '2026-11-25 11:00:00',
+            ]),
+            TrainerSlot::factory()->create([
+                'personal_trainer_id' => $trainer->id,
+                'starts_at' => '2026-11-26 09:00:00',
+                'ends_at' => '2026-11-26 11:00:00',
+            ]),
+        ]);
+
+        Livewire::test(ListTrainerBookings::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'personal_trainer_id' => $trainer->id,
+                'slot_ids' => $slots->pluck('id')->all(),
+                'payment_status' => 'paid',
+                'payment_method' => 'manual',
+                'payment_channel' => 'cash',
+            ])
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseCount('trainer_bookings', 2);
+        $this->assertDatabaseHas('payments', [
+            'user_id' => $member->id,
+            'gross_amount' => 300000,
+            'status' => 'paid',
+        ]);
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $member->id,
+            'amount' => 150000,
+            'payment_method' => 'manual',
+            'payment_channel' => 'cash',
+            'status' => 'paid',
+        ]);
+        $this->assertSame(2, Transaction::query()->where('user_id', $member->id)->count());
+        $this->assertSame(2, TrainerSlot::query()->whereKey($slots)->where('status', 'booked')->count());
+        $this->assertSame(
+            300000,
+            Livewire::test(AdminDashboard::class)->instance()->dashboardData()['stats']['monthlyIncome'],
+        );
+    }
+
+    public function test_pending_manual_personal_trainer_booking_is_not_counted_as_income(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 10:00:00'));
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $trainer = PersonalTrainer::factory()->create(['session_price' => 175000]);
+        $slot = TrainerSlot::factory()->create([
+            'personal_trainer_id' => $trainer->id,
+            'starts_at' => '2026-11-25 09:00:00',
+            'ends_at' => '2026-11-25 11:00:00',
+        ]);
+
+        Livewire::test(ListTrainerBookings::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'personal_trainer_id' => $trainer->id,
+                'slot_ids' => [$slot->id],
+                'payment_status' => 'pending',
+                'payment_method' => 'midtrans',
+            ])
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('trainer_bookings', [
+            'user_id' => $member->id,
+            'trainer_slot_id' => $slot->id,
+            'status' => 'pending_payment',
+        ]);
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $member->id,
+            'amount' => 175000,
+            'payment_method' => 'midtrans',
+            'payment_channel' => null,
+            'status' => 'pending',
+        ]);
+        $this->assertSame(
+            0,
+            Livewire::test(AdminDashboard::class)->instance()->dashboardData()['stats']['monthlyIncome'],
+        );
+    }
+
+    public function test_admin_can_create_a_class_booking_from_the_modal(): void
+    {
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $gymClass = GymClass::factory()->create([
+            'name' => 'Yoga Pagi',
+            'start_time' => '07:00',
+            'end_time' => '08:00',
+        ]);
+        $session = $gymClass->sessions()->create([
+            'date' => '2026-11-25',
+            'capacity' => 15,
+        ]);
+
+        Livewire::test(ListClassBookings::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'class_session_id' => $session->id,
+                'status' => 'booked',
+            ])
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('class_bookings', [
+            'user_id' => $member->id,
+            'class_session_id' => $session->id,
+            'status' => 'booked',
+        ]);
+    }
+
     public function test_generate_sessions_dispatches_sweetalert_success(): void
     {
         $this->signInAdmin();
@@ -555,6 +978,29 @@ class AdminDashboardTest extends TestCase
             ->filterTable('rating', '5')
             ->assertCanSeeTableRecords([$approvedReview])
             ->assertCanNotSeeTableRecords([$rejectedReview]);
+    }
+
+    public function test_admin_can_create_a_review_from_the_review_modal(): void
+    {
+        $this->signInAdmin();
+        $member = User::factory()->create(['role' => 'user']);
+
+        Livewire::test(ListReviews::class)
+            ->callAction('create', [
+                'user_id' => $member->id,
+                'name' => 'Member Contoh',
+                'rating' => 5,
+                'review' => 'Pelayanan gym sangat baik dan pelatihnya ramah.',
+                'status' => 'approved',
+            ])
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('reviews', [
+            'user_id' => $member->id,
+            'name' => 'Member Contoh',
+            'rating' => 5,
+            'status' => 'approved',
+        ]);
     }
 
     public function test_stat_cards_show_actual_paid_revenue_and_current_operational_counts(): void
@@ -654,7 +1100,7 @@ class AdminDashboardTest extends TestCase
         Livewire::test(ListTransactions::class)
             ->assertCanSeeTableRecords([$transaction])
             ->assertTableColumnDoesNotExist('payment_proof')
-            ->assertSee('Cari invoice atau member...')
+            ->assertSee('Cari invoice, member, atau pembelian...')
             ->assertSee('Hapus')
             ->assertActionDoesNotExist('create');
     }
@@ -690,6 +1136,135 @@ class AdminDashboardTest extends TestCase
             ->assertNotNotified();
     }
 
+    public function test_marking_a_personal_trainer_transaction_paid_confirms_its_booking(): void
+    {
+        $this->signInAdmin();
+        $member = User::factory()->create();
+        $trainer = PersonalTrainer::factory()->create(['session_price' => 150000]);
+        $slot = TrainerSlot::factory()->for($trainer, 'trainer')->create([
+            'status' => 'held',
+            'held_until' => now()->addMinutes(30),
+        ]);
+        $payment = Payment::factory()->for($member)->create([
+            'gross_amount' => 150000,
+            'status' => 'pending',
+        ]);
+        $booking = $payment->trainerBookings()->create([
+            'user_id' => $member->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+        $transaction = $booking->transaction()->create([
+            'user_id' => $member->id,
+            'payment_id' => $payment->id,
+            'quantity' => 1,
+            'checkout_batch' => $payment->checkout_batch,
+            'amount' => 150000,
+            'status' => 'pending',
+        ]);
+
+        Livewire::test(ListTransactions::class)
+            ->callAction(TestAction::make('markPaid')->table($transaction))
+            ->assertDispatched('filament-sweetalert');
+
+        $this->assertDatabaseHas('transactions', ['id' => $transaction->id, 'status' => 'paid']);
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'paid']);
+        $this->assertDatabaseHas('trainer_bookings', ['id' => $booking->id, 'status' => 'confirmed']);
+        $this->assertDatabaseHas('trainer_slots', [
+            'id' => $slot->id,
+            'status' => 'booked',
+            'held_until' => null,
+        ]);
+    }
+
+    public function test_transactions_can_be_filtered_by_membership_or_personal_trainer(): void
+    {
+        $admin = $this->signInAdmin();
+        $membership = $this->createMembership($admin);
+        $membershipTransaction = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 250000,
+            'status' => 'paid',
+        ]);
+        $member = User::factory()->create();
+        $trainer = PersonalTrainer::factory()->create(['session_price' => 150000]);
+        $slot = TrainerSlot::factory()->for($trainer, 'trainer')->create();
+        $payment = Payment::factory()->for($member)->create(['gross_amount' => 150000]);
+        $booking = $payment->trainerBookings()->create([
+            'user_id' => $member->id,
+            'trainer_slot_id' => $slot->id,
+            'amount' => 150000,
+            'status' => 'pending_payment',
+        ]);
+        $trainerTransaction = $booking->transaction()->create([
+            'user_id' => $member->id,
+            'payment_id' => $payment->id,
+            'checkout_batch' => $payment->checkout_batch,
+            'amount' => 150000,
+            'status' => 'pending',
+        ]);
+
+        Livewire::test(ListTransactions::class)
+            ->assertTableFilterExists('purchase_type')
+            ->filterTable('purchase_type', 'membership')
+            ->assertCanSeeTableRecords([$membershipTransaction])
+            ->assertCanNotSeeTableRecords([$trainerTransaction])
+            ->filterTable('purchase_type', 'trainer')
+            ->assertCanSeeTableRecords([$trainerTransaction])
+            ->assertCanNotSeeTableRecords([$membershipTransaction]);
+    }
+
+    public function test_transactions_can_be_filtered_by_week_month_year_or_custom_dates(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-21 10:00:00'));
+        $admin = $this->signInAdmin();
+        $membership = $this->createMembership($admin);
+        $thisWeek = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 150000,
+            'status' => 'paid',
+        ]);
+        $thisWeek->forceFill(['created_at' => '2026-11-18 10:00:00'])->saveQuietly();
+        $thisMonth = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 250000,
+            'status' => 'paid',
+        ]);
+        $thisMonth->forceFill(['created_at' => '2026-11-03 10:00:00'])->saveQuietly();
+        $thisYear = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 350000,
+            'status' => 'paid',
+        ]);
+        $thisYear->forceFill(['created_at' => '2026-04-10 10:00:00'])->saveQuietly();
+        $previousYear = $membership->transactions()->create([
+            'user_id' => $admin->id,
+            'amount' => 450000,
+            'status' => 'paid',
+        ]);
+        $previousYear->forceFill(['created_at' => '2025-12-20 10:00:00'])->saveQuietly();
+
+        Livewire::test(ListTransactions::class)
+            ->assertTableFilterExists('period')
+            ->filterTable('period', ['range' => 'week'])
+            ->assertCanSeeTableRecords([$thisWeek])
+            ->assertCanNotSeeTableRecords([$thisMonth, $thisYear, $previousYear])
+            ->filterTable('period', ['range' => 'month'])
+            ->assertCanSeeTableRecords([$thisWeek, $thisMonth])
+            ->assertCanNotSeeTableRecords([$thisYear, $previousYear])
+            ->filterTable('period', ['range' => 'year'])
+            ->assertCanSeeTableRecords([$thisWeek, $thisMonth, $thisYear])
+            ->assertCanNotSeeTableRecords([$previousYear])
+            ->filterTable('period', [
+                'range' => 'custom',
+                'start_date' => '2026-11-01',
+                'end_date' => '2026-11-10',
+            ])
+            ->assertCanSeeTableRecords([$thisMonth])
+            ->assertCanNotSeeTableRecords([$thisWeek, $thisYear, $previousYear]);
+    }
+
     public function test_manual_transaction_creation_route_is_not_exposed(): void
     {
         $this->signInAdmin();
@@ -709,15 +1284,97 @@ class AdminDashboardTest extends TestCase
 
         $this->assertTrue($component->instance()->getTable()->isSelectionEnabled());
         $this->assertFalse($component->instance()->getTable()->shouldDeselectAllRecordsWhenFiltered());
+        $component
+            ->assertTableBulkActionExists('delete')
+            ->assertTableBulkActionHasLabel('delete', 'Hapus semua');
     }
 
     public function test_trainer_schedule_can_be_filtered_by_trainer_and_status(): void
     {
         $this->signInAdmin();
+        $availableSlot = TrainerSlot::factory()->create(['status' => 'available']);
+        $bookedSlot = TrainerSlot::factory()->create(['status' => 'booked']);
 
         Livewire::test(ListTrainerSlots::class)
             ->assertTableFilterExists('personal_trainer_id')
-            ->assertTableFilterExists('status');
+            ->assertTableFilterExists('status')
+            ->assertTableColumnFormattedStateSet('status', 'Tersedia', $availableSlot)
+            ->assertTableColumnFormattedStateSet('status', 'Sudah dibooking', $bookedSlot);
+    }
+
+    public function test_trainer_schedule_uses_complete_labels_and_supports_record_deletion(): void
+    {
+        $this->signInAdmin();
+        $slot = TrainerSlot::factory()->create();
+        $component = Livewire::test(ListTrainerSlots::class);
+
+        $this->assertSame('Jadwal Personal Trainer', TrainerSlotResource::getNavigationLabel());
+        $this->assertSame('Jadwal Personal Trainer', TrainerSlotResource::getModelLabel());
+        $this->assertSame('Jadwal Personal Trainer', TrainerSlotResource::getPluralModelLabel());
+
+        $component
+            ->assertTableActionExists('delete', record: $slot)
+            ->assertTableActionHasLabel('delete', 'Hapus', $slot)
+            ->callTableAction('delete', $slot)
+            ->assertDispatched('admin-record-deleted');
+
+        $this->assertModelMissing($slot);
+    }
+
+    public function test_gym_class_form_does_not_show_inactive_generation_helper(): void
+    {
+        $this->signInAdmin();
+        $gymClass = GymClass::factory()->create();
+        $formSource = file_get_contents(app_path('Filament/Resources/GymClasses/Schemas/GymClassForm.php'));
+
+        $this->assertStringNotContainsString(
+            'Kelas nonaktif tidak ikut dibuatkan sesi baru saat generate.',
+            $formSource,
+        );
+
+        Livewire::test(ListGymClasses::class)
+            ->mountAction(TestAction::make('edit')->table($gymClass))
+            ->assertActionMounted(TestAction::make('edit')->table($gymClass))
+            ->assertDontSee('Kelas nonaktif tidak ikut dibuatkan sesi baru saat generate.');
+    }
+
+    public function test_searchable_dropdowns_use_a_consistent_internal_scroll_area(): void
+    {
+        $theme = file_get_contents(resource_path('css/filament/admin/theme.css'));
+
+        $this->assertStringContainsString(
+            '.fi-dropdown-panel.fi-scrollable:has(.fi-select-input-search-ctn)',
+            $theme,
+        );
+        $this->assertStringContainsString(
+            'overflow-y: scroll !important',
+            $theme,
+        );
+        $this->assertStringContainsString(
+            '.fi-modal .fi-dropdown-panel.fi-scrollable:has(.fi-select-input-search-ctn)',
+            $theme,
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.personal-trainer-form-section > \.fi-section\s*\{[^}]*overflow: visible;/s',
+            $theme,
+        );
+    }
+
+    public function test_admin_selects_use_the_same_searchable_non_native_dropdown(): void
+    {
+        $select = Select::make('example');
+        $filter = SelectFilter::make('example');
+
+        $this->assertFalse($select->isNative());
+        $this->assertTrue($select->isSearchable());
+        $this->assertSame('bottom', $select->getPosition());
+        $this->assertStringContainsString(
+            'fi-fixed-positioning-context',
+            $select->getExtraFieldWrapperAttributes()['class'],
+        );
+        $this->assertFalse($filter->isNative());
+        $this->assertTrue($filter->getSearchable());
+        $this->assertTrue($filter->isPreloaded());
     }
 
     private function signInAdmin(): User
@@ -746,12 +1403,13 @@ class AdminDashboardTest extends TestCase
         return [
             'membership' => [ListMemberships::class, 'Tambah Membership'],
             'pengguna' => [ListUsers::class, 'Tambah Pengguna'],
-            'jadwal trainer' => [ListTrainerSlots::class, 'Tambah Jadwal Trainer'],
+            'jadwal trainer' => [ListTrainerSlots::class, 'Tambah Jadwal Personal Trainer'],
             'sesi kelas' => [ListClassSessions::class, 'Tambah Sesi Kelas'],
             'booking kelas' => [ListClassBookings::class, 'Tambah Booking Kelas'],
             'jenis kelas' => [ListGymClasses::class, 'Tambah Jenis Kelas'],
             'fasilitas' => [ListFacilities::class, 'Tambah Fasilitas'],
             'paket membership' => [ListMembershipPlans::class, 'Tambah Paket Membership'],
+            'review' => [ListReviews::class, 'Tambah Review Member'],
         ];
     }
 
@@ -768,7 +1426,8 @@ class AdminDashboardTest extends TestCase
             'fasilitas' => [ListFacilities::class, 'Ubah Fasilitas', 'Ubah'],
             'paket membership' => [ListMembershipPlans::class, 'Ubah Paket Membership', 'Ubah'],
             'review' => [ListReviews::class, 'Ubah Review', 'Ubah'],
-            'transaksi' => [ListTransactions::class, 'Detail Transaksi', 'Detail'],
+            'personal trainer' => [ListPersonalTrainers::class, 'Ubah Personal Trainer', 'Ubah'],
+            'jadwal trainer' => [ListTrainerSlots::class, 'Ubah Jadwal Personal Trainer', 'Ubah'],
         ];
     }
 
@@ -785,8 +1444,11 @@ class AdminDashboardTest extends TestCase
             'booking kelas' => [ListClassBookings::class],
             'jenis kelas' => [ListGymClasses::class],
             'fasilitas' => [ListFacilities::class],
+            'lokasi gym' => [ListGymLocations::class],
             'paket membership' => [ListMembershipPlans::class],
             'review' => [ListReviews::class],
+            'personal trainer' => [ListPersonalTrainers::class],
+            'jadwal trainer' => [ListTrainerSlots::class],
         ];
     }
 
