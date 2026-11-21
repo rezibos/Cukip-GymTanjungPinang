@@ -16,6 +16,8 @@ class TransactionForm
         return $schema->components([
             TextInput::make('invoice_number')->label('Nomor Invoice')->disabled(),
             Select::make('user_id')->label('User')->relationship('user', 'name')->disabled(),
+            TextInput::make('purchase_type')->label('Jenis Pembelian')->disabled(),
+            TextInput::make('purchase_name')->label('Pembelian')->disabled(),
             TextInput::make('amount')->label('Jumlah')->disabled()
                 ->formatStateUsing(fn ($state) => 'Rp'.number_format((int) $state, 0, ',', '.')),
             TextInput::make('quantity')->label('Kuantitas')->disabled(),

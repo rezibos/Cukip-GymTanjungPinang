@@ -12,6 +12,8 @@ use BackedEnum;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
@@ -31,11 +33,6 @@ class ReviewResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    public static function canCreate(): bool
-    {
-        return false;
-    }
-
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
@@ -52,7 +49,17 @@ class ReviewResource extends Resource
     {
         return CreateAction::make()
             ->label('Tambah')
-            ->icon(Heroicon::Plus);
+            ->icon(Heroicon::Plus)
+            ->modal()
+            ->modalHeading('Tambah Review Member')
+            ->modalDescription('Lengkapi data review member di bawah ini.')
+            ->modalSubmitActionLabel('Simpan')
+            ->modalCancelActionLabel('Batal')
+            ->modalFooterActionsAlignment(Alignment::End)
+            ->modalWidth(Width::FourExtraLarge)
+            ->stickyModalHeader()
+            ->stickyModalFooter()
+            ->createAnother(false);
     }
 
     public static function getRelations(): array

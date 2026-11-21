@@ -41,6 +41,30 @@ class MembershipForm
                     MembershipStatus::Cancelled->value => 'Dibatalkan',
                 ])
                 ->required(),
+            Select::make('payment_method')
+                ->label('Metode Pembayaran')
+                ->searchable(false)
+                ->position('top')
+                ->options([
+                    'manual' => 'Manual',
+                    'midtrans' => 'Otomatis (Midtrans)',
+                ])
+                ->default('manual')
+                ->live()
+                ->required()
+                ->visibleOn('create'),
+            Select::make('payment_channel')
+                ->label('Pembayaran Manual')
+                ->searchable(false)
+                ->position('top')
+                ->options([
+                    'cash' => 'Tunai',
+                    'qris' => 'QRIS',
+                    'bank_transfer' => 'Transfer Bank',
+                ])
+                ->default('cash')
+                ->required(fn (Get $get): bool => $get('payment_method') === 'manual')
+                ->visible(fn (Get $get, string $operation): bool => $operation === 'create' && $get('payment_method') === 'manual'),
             DatePicker::make('start_date')->label('Tanggal Mulai')
                 ->live()
                 ->afterStateUpdated(function (Get $get, Set $set, mixed $state): void {

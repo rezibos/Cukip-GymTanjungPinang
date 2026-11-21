@@ -12,9 +12,16 @@ class TrainerSlotForm
     {
         return $schema
             ->components([
-                Select::make('personal_trainer_id')->label('Pelatih')->relationship('trainer', 'name')->searchable()->preload()->required(),
-                DateTimePicker::make('starts_at')->label('Mulai sesi')->helperText('Waktu selesai otomatis mengikuti durasi pelatih, yaitu 2 atau 3 jam.')->seconds(false)->required(),
+                Select::make('personal_trainer_id')
+                    ->label('Pelatih')
+                    ->relationship('trainer', 'name')
+                    ->searchable()
+                    ->searchPrompt('Cari nama pelatih...')
+                    ->preload()
+                    ->extraFieldWrapperAttributes(['class' => 'trainer-slot-trainer-select'], merge: true)
+                    ->required(),
                 Select::make('status')->label('Status')->options(['available' => 'Tersedia', 'held' => 'Ditahan pembayaran', 'booked' => 'Sudah dibooking'])->default('available')->required(),
+                DateTimePicker::make('starts_at')->label('Mulai sesi')->seconds(false)->required(),
             ]);
     }
 }

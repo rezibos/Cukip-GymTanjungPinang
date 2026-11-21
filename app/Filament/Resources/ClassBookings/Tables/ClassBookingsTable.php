@@ -7,6 +7,7 @@ use App\Filament\Resources\ClassBookings\ClassBookingResource;
 use App\Models\ClassBooking;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -35,12 +36,13 @@ class ClassBookingsTable
             ->deselectAllRecordsWhenFiltered(false)
             ->toolbarActions([
                 ClassBookingResource::makeCreateAction(),
+                DeleteBulkAction::make(),
             ])
             ->recordActions([
                 Action::make('cancel')
                     ->label('Batalkan')
                     ->icon('heroicon-o-x-circle')
-                    ->color('danger')
+                    ->color('info')
                     ->requiresConfirmation()
                     ->visible(fn (ClassBooking $record) => $record->status->value === 'booked')
                     ->action(fn (ClassBooking $record) => $record->update(['status' => 'cancelled'])),

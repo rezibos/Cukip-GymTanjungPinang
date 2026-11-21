@@ -16,4 +16,12 @@ class EditPersonalTrainer extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    /** @param array<string, mixed> $data */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['certifications'] = $this->getRecord()->certificationItems();
+
+        return $data;
+    }
 }

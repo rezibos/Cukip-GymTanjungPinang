@@ -19,7 +19,6 @@ class FacilityForm
             Textarea::make('description')->label('Keterangan')->rows(4)->maxLength(255)->columnSpanFull(),
             FileUpload::make('image_path')
                 ->label('Foto fasilitas')
-                ->helperText('Opsional. Foto akan muncul saat pengunjung mengarahkan mouse ke card fasilitas.')
                 ->image()
                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                 ->imageEditor()

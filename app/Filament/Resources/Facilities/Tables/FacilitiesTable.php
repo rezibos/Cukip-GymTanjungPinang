@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Facilities\Tables;
 use App\Enums\FacilityCategory;
 use App\Filament\Resources\Facilities\FacilityResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
@@ -36,6 +37,7 @@ class FacilitiesTable
             ->deselectAllRecordsWhenFiltered(false)
             ->toolbarActions([
                 FacilityResource::makeCreateAction(),
+                DeleteBulkAction::make(),
             ])
             ->recordActions([
                 EditAction::make()

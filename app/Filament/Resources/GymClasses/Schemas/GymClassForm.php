@@ -4,8 +4,8 @@ namespace App\Filament\Resources\GymClasses\Schemas;
 
 use App\Enums\DayOfWeek;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -28,8 +28,7 @@ class GymClassForm
             TextInput::make('capacity')->label('Kapasitas')->required()
                 ->numeric()->integer()->minValue(1)->maxValue(200),
 
-            Toggle::make('is_active')->label('Aktif')->default(true)
-                ->helperText('Kelas nonaktif tidak ikut dibuatkan sesi baru saat generate.'),
+            Toggle::make('is_active')->label('Aktif')->inline(false)->default(true),
 
             Textarea::make('description')->label('Deskripsi')->rows(2)->columnSpanFull(),
         ])->columns(2);

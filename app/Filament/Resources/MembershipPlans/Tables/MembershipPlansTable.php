@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MembershipPlans\Tables;
 use App\Filament\Resources\MembershipPlans\MembershipPlanResource;
 use App\Models\MembershipPlan;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
@@ -32,6 +33,8 @@ class MembershipPlansTable
             ->defaultSort('price')
             ->recordUrl(null)
             ->searchPlaceholder('Cari paket membership...')
+            ->emptyStateHeading('No Paket membership')
+            ->emptyStateDescription(null)
             ->filters([
                 SelectFilter::make('is_active')
                     ->label('Status')
@@ -45,6 +48,7 @@ class MembershipPlansTable
             ->deselectAllRecordsWhenFiltered(false)
             ->toolbarActions([
                 MembershipPlanResource::makeCreateAction(),
+                DeleteBulkAction::make(),
             ])
             ->recordActions([
                 EditAction::make()

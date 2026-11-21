@@ -12,7 +12,13 @@ class ClassSessionForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('gym_class_id')->label('Kelas')->relationship('gymClass', 'name')->required()->searchable()->preload(),
+            Select::make('gym_class_id')
+                ->label('Kelas')
+                ->relationship('gymClass', 'name')
+                ->required()
+                ->searchable()
+                ->preload()
+                ->extraFieldWrapperAttributes(['class' => 'class-session-class-select'], merge: true),
             DatePicker::make('date')->label('Tanggal')->required(),
             TextInput::make('capacity')->label('Kapasitas')->required()->numeric()->integer()->minValue(1),
         ]);

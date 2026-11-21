@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ClassSessions\Tables;
 
 use App\Filament\Resources\ClassSessions\ClassSessionResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
@@ -35,6 +36,7 @@ class ClassSessionsTable
             ->deselectAllRecordsWhenFiltered(false)
             ->toolbarActions([
                 ClassSessionResource::makeCreateAction(),
+                DeleteBulkAction::make(),
             ])
             ->recordActions([
                 EditAction::make()

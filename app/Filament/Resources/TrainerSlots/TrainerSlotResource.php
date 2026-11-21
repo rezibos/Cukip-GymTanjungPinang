@@ -26,9 +26,11 @@ class TrainerSlotResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Kelas & latihan';
 
-    protected static ?string $navigationLabel = 'Jadwal personal trainer';
+    protected static ?string $navigationLabel = 'Jadwal Personal Trainer';
 
-    protected static ?string $modelLabel = 'Jadwal trainer';
+    protected static ?string $modelLabel = 'Jadwal Personal Trainer';
+
+    protected static ?string $pluralModelLabel = 'Jadwal Personal Trainer';
 
     public static function form(Schema $schema): Schema
     {
@@ -46,7 +48,7 @@ class TrainerSlotResource extends Resource
             ->label('Tambah')
             ->icon(Heroicon::Plus)
             ->modal()
-            ->modalHeading('Tambah Jadwal Trainer')
+            ->modalHeading('Tambah Jadwal Personal Trainer')
             ->modalDescription('Lengkapi jadwal personal trainer baru di bawah ini.')
             ->modalSubmitActionLabel('Simpan')
             ->modalCancelActionLabel('Batal')

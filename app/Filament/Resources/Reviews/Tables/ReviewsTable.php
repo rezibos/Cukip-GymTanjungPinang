@@ -6,6 +6,7 @@ use App\Filament\Resources\Reviews\ReviewResource;
 use App\Models\Review;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
@@ -61,6 +62,7 @@ class ReviewsTable
             ->deselectAllRecordsWhenFiltered(false)
             ->toolbarActions([
                 ReviewResource::makeCreateAction(),
+                DeleteBulkAction::make(),
             ])
             ->recordActions([
                 Action::make('reject')->label('Sembunyikan')->icon('heroicon-o-eye-slash')->color('warning')

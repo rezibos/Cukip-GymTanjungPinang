@@ -4,6 +4,7 @@ namespace App\Filament\Resources\GymLocations\Tables;
 
 use App\Filament\Resources\GymLocations\GymLocationResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
@@ -42,6 +43,7 @@ class GymLocationsTable
             ])
             ->recordUrl(null)
             ->searchPlaceholder('Cari lokasi gym...')
+            ->emptyStateDescription(null)
             ->filters([
                 TernaryFilter::make('is_active')
                     ->label('Status')
@@ -54,6 +56,7 @@ class GymLocationsTable
             ->deselectAllRecordsWhenFiltered(false)
             ->toolbarActions([
                 GymLocationResource::makeCreateAction(),
+                DeleteBulkAction::make(),
             ])
             ->recordActions([
                 EditAction::make()

@@ -25,11 +25,11 @@ class ClassSessionResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'id';
 
-    protected static ?string $navigationLabel = 'Jadwal sesi';
+    protected static ?string $navigationLabel = 'Jadwal Sesi';
 
     protected static ?string $modelLabel = 'Sesi Kelas';
 
-    protected static ?string $pluralModelLabel = 'Jadwal sesi';
+    protected static ?string $pluralModelLabel = 'Jadwal Sesi';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Kelas & latihan';
 

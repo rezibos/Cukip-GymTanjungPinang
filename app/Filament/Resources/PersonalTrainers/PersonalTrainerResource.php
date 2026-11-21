@@ -12,6 +12,7 @@ use BackedEnum;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -25,9 +26,9 @@ class PersonalTrainerResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Kelas & latihan';
 
-    protected static ?string $navigationLabel = 'Personal trainer';
+    protected static ?string $navigationLabel = 'Personal Trainer';
 
-    protected static ?string $modelLabel = 'Personal trainer';
+    protected static ?string $modelLabel = 'Personal Trainer';
 
     public static function form(Schema $schema): Schema
     {
@@ -42,13 +43,15 @@ class PersonalTrainerResource extends Resource
     public static function makeCreateAction(): CreateAction
     {
         return CreateAction::make()
-            ->label('Tambah personal trainer')
+            ->label('Tambah')
             ->icon(Heroicon::Plus)
             ->modal()
             ->modalHeading('Tambah personal trainer')
             ->modalSubmitActionLabel('Simpan')
             ->modalCancelActionLabel('Batal')
+            ->modalFooterActionsAlignment(Alignment::End)
             ->modalWidth(Width::FourExtraLarge)
+            ->extraModalWindowAttributes(['class' => 'personal-trainer-form-modal'])
             ->stickyModalHeader()
             ->stickyModalFooter()
             ->createAnother(false);

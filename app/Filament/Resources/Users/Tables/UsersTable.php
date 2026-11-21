@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users\Tables;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
@@ -28,6 +29,7 @@ class UsersTable
             ->defaultSort('created_at', 'desc')
             ->recordUrl(null)
             ->selectable()
+            ->checkIfRecordIsSelectableUsing(fn (User $record): bool => $record->id !== auth()->id())
             ->trackDeselectedRecords(false)
             ->deselectAllRecordsWhenFiltered(false)
             ->searchPlaceholder('Cari nama atau email...')
@@ -36,6 +38,7 @@ class UsersTable
             ])
             ->toolbarActions([
                 UserResource::makeCreateAction(),
+                DeleteBulkAction::make(),
             ])
             ->recordActions([
                 EditAction::make()

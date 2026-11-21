@@ -26,7 +26,6 @@ class GymLocationForm
                     ->maxLength(255),
                 TextInput::make('map_paste')
                     ->label('Tempel lokasi dari Google Maps')
-                    ->helperText('Tempel koordinat, link, atau kode embed. Latitude dan longitude akan terisi otomatis.')
                     ->dehydrated(false)
                     ->live(onBlur: true)
                     ->afterStateUpdated(function (?string $state, Set $set): void {
@@ -59,12 +58,10 @@ class GymLocationForm
                     ->maxLength(150),
                 TextInput::make('whatsapp')
                     ->label('WhatsApp')
-                    ->helperText('Gunakan angka saja, misalnya 6281234567890.')
                     ->regex('/^[0-9]{8,15}$/')
                     ->maxLength(20),
                 FileUpload::make('image_path')
                     ->label('Foto lokasi')
-                    ->helperText('Opsional. Foto ini tampil pada kartu lokasi di halaman utama. Maksimal 5 MB.')
                     ->image()
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                     ->imageEditor()
@@ -76,6 +73,8 @@ class GymLocationForm
                     ->columnSpanFull(),
                 Select::make('image_position')
                     ->label('Fokus foto')
+                    ->position('top')
+                    ->extraFieldWrapperAttributes(['class' => 'gym-location-focus-select'], merge: true)
                     ->options([
                         'center' => 'Tengah',
                         'left center' => 'Kiri',

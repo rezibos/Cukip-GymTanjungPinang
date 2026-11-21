@@ -25,11 +25,11 @@ class GymClassResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?string $navigationLabel = 'Jenis kelas';
+    protected static ?string $navigationLabel = 'Jenis Kelas';
 
-    protected static ?string $modelLabel = 'Jenis kelas';
+    protected static ?string $modelLabel = 'Jenis Kelas';
 
-    protected static ?string $pluralModelLabel = 'Jenis kelas';
+    protected static ?string $pluralModelLabel = 'Jenis Kelas';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Kelas & latihan';
 

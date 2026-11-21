@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Memberships;
 
+use App\Enums\MembershipStatus;
+use App\Enums\TransactionStatus;
 use App\Filament\Resources\Memberships\Pages\CreateMembership;
 use App\Filament\Resources\Memberships\Pages\EditMembership;
 use App\Filament\Resources\Memberships\Pages\ListMemberships;
@@ -16,6 +18,8 @@ use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class MembershipResource extends Resource
 {
@@ -59,6 +63,39 @@ class MembershipResource extends Resource
             ->modalWidth(Width::FourExtraLarge)
             ->stickyModalHeader()
             ->stickyModalFooter()
+            ->using(function (array $data): Membership {
+                return DB::transaction(function () use ($data): Membership {
+                    $membership = Membership::query()->create(Arr::except($data, [
+                        'payment_method',
+                        'payment_channel',
+                    ]));
+                    $membership->refresh();
+                    $membership->loadMissing('plan');
+
+                    $transactionStatus = match ($membership->status) {
+                        MembershipStatus::PendingPayment => TransactionStatus::Pending,
+                        MembershipStatus::Cancelled => TransactionStatus::Rejected,
+                        MembershipStatus::Upcoming,
+                        MembershipStatus::Active,
+                        MembershipStatus::Expired => TransactionStatus::Paid,
+                    };
+
+                    $membership->transactions()->create([
+                        'user_id' => $membership->user_id,
+                        'quantity' => $membership->quantity,
+                        'amount' => $membership->plan->price * $membership->quantity,
+                        'payment_method' => $data['payment_method'],
+                        'payment_channel' => $data['payment_method'] === 'manual'
+                            ? $data['payment_channel']
+                            : null,
+                        'status' => $transactionStatus,
+                        'paid_at' => $transactionStatus === TransactionStatus::Paid ? now() : null,
+                        'admin_note' => 'Dibuat manual oleh admin.',
+                    ]);
+
+                    return $membership;
+                });
+            })
             ->createAnother(false);
     }
 

@@ -23,11 +23,11 @@ class ClassBookingResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
-    protected static ?string $navigationLabel = 'Booking kelas';
+    protected static ?string $navigationLabel = 'Booking Kelas';
 
-    protected static ?string $modelLabel = 'Booking kelas';
+    protected static ?string $modelLabel = 'Booking Kelas';
 
-    protected static ?string $pluralModelLabel = 'Booking kelas';
+    protected static ?string $pluralModelLabel = 'Booking Kelas';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Kelas & latihan';
 
